@@ -1,7 +1,9 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Gym Equipment</title>
+    <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
 </head>
 <body>
     <h1>Our Gym Equipment</h1>
@@ -9,11 +11,11 @@
         {% for product in products %}
             <li>
                 <h2>{{ product.name }}</h2>
-                <p>{{ product.description }}</p>
-                <p>Price: €{{ product.price }}</p>
                 {% if product.image %}
-                    <img src="{{ product.image.url }}" width="200">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
                 {% endif %}
+                <p>{{ product.description }}</p>
+                <p><strong>€{{ product.price }}</strong></p>
             </li>
         {% endfor %}
     </ul>
