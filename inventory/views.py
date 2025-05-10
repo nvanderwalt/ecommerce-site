@@ -3,20 +3,21 @@ from .models import Product
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+import stripe
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
-# Product list
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'inventory/product_list.html', {'products': products})
 
-# Add product to cart
 def add_to_cart(request, product_id):
     cart = request.session.get('cart', {})
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     request.session['cart'] = cart
     return redirect('product_list')
 
-# View cart contents
 @login_required
 def cart_view(request):
     cart = request.session.get('cart', {})
@@ -39,10 +40,10 @@ def cart_view(request):
     context = {
         'cart_items': cart_items,
         'total': total,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
     }
     return render(request, 'inventory/cart.html', context)
 
-# Register new user
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -53,3 +54,37 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+@csrf_exempt
+@login_required
+def create_checkout_session(request):
+    cart = request.session.get('cart', {})
+    line_items = []
+
+    for product_id, quantity in cart.items():
+        try:
+            product = Product.objects.get(id=product_id)
+            line_items.append({
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': product.name,
+                    },
+                    'unit_amount': int(product.price * 100),
+                },
+                'quantity': quantity,
+            })
+        except Product.DoesNotExist:
+            pass
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=line_items,
+        mode='payment',
+        success_url='http://127.0.0.1:8000/success/',
+        cancel_url='http://127.0.0.1:8000/cart/',
+    )
+
+    return JsonResponse({'id': session.id})

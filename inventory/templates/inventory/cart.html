@@ -18,7 +18,34 @@
                 </li>
             {% endfor %}
         </ul>
+
         <h3>Total: €{{ total }}</h3>
+
+        <!-- Stripe Checkout Button -->
+        <form id="payment-form">
+            <button type="button" id="checkout-button">Checkout with Stripe</button>
+        </form>
+
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+            const stripe = Stripe("{{ stripe_public_key }}");
+
+            document.getElementById("checkout-button").addEventListener("click", function () {
+                fetch("{% url 'create_checkout_session' %}", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (session) {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                });
+            });
+        </script>
+
     {% else %}
         <p>Your cart is empty.</p>
     {% endif %}
