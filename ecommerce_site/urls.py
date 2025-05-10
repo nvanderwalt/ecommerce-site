@@ -1,3 +1,4 @@
+from django.urls import include, path
 from django.contrib import admin
 from django.urls import path, include
 from inventory.views import (
@@ -23,6 +24,7 @@ urlpatterns = [
     path('success/', payment_success, name='payment_success'),
     path('profile/', profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('posts/', include('posts.urls')),
 ]
 
 if settings.DEBUG:
