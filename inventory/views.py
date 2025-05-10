@@ -8,10 +8,28 @@ import stripe
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from .forms import UserProfileForm, ReviewForm
 
 def product_list(request):
     products = Product.objects.all()
-    return render(request, 'inventory/product_list.html', {'products': products})
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        product_id = request.POST.get('product_id')
+        product = Product.objects.get(id=product_id)
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.product = product
+            review.save()
+            return redirect('product_list')
+    else:
+        form = ReviewForm()
+
+    return render(request, 'inventory/product_list.html', {
+        'products': products,
+        'form': form,
+    })
 
 def add_to_cart(request, product_id):
     cart = request.session.get('cart', {})

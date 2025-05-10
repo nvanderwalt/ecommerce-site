@@ -17,8 +17,6 @@
     {% endif %}
 
     <h1>Our Gym Equipment</h1>
-
-    <!-- View Cart Link -->
     <p><a href="{% url 'cart' %}">🛒 View Cart</a></p>
 
     <ul>
@@ -31,13 +29,38 @@
             <p>{{ product.description }}</p>
             <p><strong>€{{ product.price }}</strong></p>
 
+            <!-- Add to cart form -->
             <form method="POST" action="{% url 'add_to_cart' product.id %}">
                 {% csrf_token %}
                 <button type="submit">Add to Cart</button>
             </form>
+
+            <!-- Show existing reviews -->
+            <h4>Reviews:</h4>
+            <ul>
+                {% for review in product.reviews.all %}
+                <li><strong>{{ review.rating }}★</strong> by {{ review.user.username }}<br>{{ review.comment }}</li>
+                {% empty %}
+                <li>No reviews yet.</li>
+                {% endfor %}
+            </ul>
+
+            <!-- Review form -->
+            {% if user.is_authenticated %}
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <button type="submit">Submit Review</button>
+            </form>
+            {% else %}
+            <p><em>Log in to leave a review.</em></p>
+            {% endif %}
+
+            <hr>
         </li>
         {% endfor %}
     </ul>
-</body>
 
+</body>
 </html>
