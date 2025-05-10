@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Community Posts</h1>
+<a href="{% url 'post_create' %}">➕ New Post</a>
+
+{% for post in posts %}
+  <div class="post mb-4 p-4 border rounded">
+    <p>{{ post.content|linebreaks }}</p>
+    <p class="text-sm text-gray-600">
+      By {{ post.author.username }} on {{ post.created_at|date:"F j, Y, g:i a" }}
+    </p>
+  </div>
+{% empty %}
+  <p>No posts yet. Be the first to <a href="{% url 'post_create' %}">share one</a>!</p>
+{% endfor %}
+{% endblock %}
