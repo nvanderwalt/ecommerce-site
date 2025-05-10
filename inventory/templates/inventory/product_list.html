@@ -7,6 +7,10 @@
 </head>
 <body>
     <h1>Our Gym Equipment</h1>
+
+    <!-- View Cart Link -->
+    <p><a href="{% url 'cart' %}">🛒 View Cart</a></p>
+
     <ul>
         {% for product in products %}
             <li>
