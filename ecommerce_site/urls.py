@@ -1,4 +1,5 @@
 from django.contrib import admin
+from inventory.views import payment_success
 from django.urls import path, include
 from inventory.views import (
     product_list,
@@ -19,6 +20,7 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('success/', payment_success, name='payment_success'),
 ]
 
 if settings.DEBUG:
