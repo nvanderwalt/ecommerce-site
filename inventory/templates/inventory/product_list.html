@@ -20,7 +20,7 @@
                 <form method="POST" action="{% url 'add_to_cart' product.id %}">
                     {% csrf_token %}
                     <button type="submit">Add to Cart</button>
-                </form>                
+                </form>
             </li>
         {% endfor %}
     </ul>
