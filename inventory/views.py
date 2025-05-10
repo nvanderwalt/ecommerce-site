@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
-from .models import Product
+from .models import Product, UserProfile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from .forms import UserProfileForm
 import stripe
 from django.conf import settings
 from django.http import JsonResponse
@@ -11,9 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'inventory/product_list.html', {'products': products})
-
-def payment_success(request):
-    return render(request, 'inventory/success.html')
 
 def add_to_cart(request, product_id):
     cart = request.session.get('cart', {})
@@ -91,3 +89,19 @@ def create_checkout_session(request):
     )
 
     return JsonResponse({'id': session.id})
+
+def payment_success(request):
+    return render(request, 'inventory/success.html')
+
+@login_required
+def profile_view(request):
+    profile = request.user.userprofile
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'inventory/profile.html', {'form': form})
