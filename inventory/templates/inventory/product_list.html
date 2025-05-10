@@ -1,46 +1,43 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Gym Equipment</title>
     <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
 </head>
-<body>
-    <h1>Our Gym Equipment</h1>
 
-    <!-- User Greeting & Auth Links -->
+<body>
+
     {% if user.is_authenticated %}
         <p>Welcome, {{ user.username }}!</p>
-        <form method="POST" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
+        <p><a href="{% url 'profile' %}">Edit Profile</a> | <a href="{% url 'logout' %}">Log out</a></p>
     {% else %}
-        <p>
-            <a href="{% url 'login' %}">Log in</a> |
-            <a href="{% url 'register' %}">Register</a>
-        </p>
+        <p><a href="{% url 'login' %}">Log in</a> | <a href="{% url 'register' %}">Register</a></p>
     {% endif %}
+
+    <h1>Our Gym Equipment</h1>
 
     <!-- View Cart Link -->
     <p><a href="{% url 'cart' %}">🛒 View Cart</a></p>
 
     <ul>
         {% for product in products %}
-            <li>
-                <h2>{{ product.name }}</h2>
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                {% endif %}
-                <p>{{ product.description }}</p>
-                <p><strong>€{{ product.price }}</strong></p>
+        <li>
+            <h2>{{ product.name }}</h2>
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% endif %}
+            <p>{{ product.description }}</p>
+            <p><strong>€{{ product.price }}</strong></p>
 
-                <form method="POST" action="{% url 'add_to_cart' product.id %}">
-                    {% csrf_token %}
-                    <button type="submit">Add to Cart</button>
-                </form>
-            </li>
+            <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                {% csrf_token %}
+                <button type="submit">Add to Cart</button>
+            </form>
+        </li>
         {% endfor %}
     </ul>
 </body>
+
 </html>

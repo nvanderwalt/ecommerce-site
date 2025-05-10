@@ -1,5 +1,4 @@
 from django.contrib import admin
-from inventory.views import payment_success
 from django.urls import path, include
 from inventory.views import (
     product_list,
@@ -7,6 +6,8 @@ from inventory.views import (
     cart_view,
     register,
     create_checkout_session,
+    payment_success,
+    profile_view,
 )
 
 from django.conf import settings
@@ -19,8 +20,9 @@ urlpatterns = [
     path('cart/', cart_view, name='cart'),
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
-    path('accounts/', include('django.contrib.auth.urls')),
     path('success/', payment_success, name='payment_success'),
+    path('profile/', profile_view, name='profile'),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:
