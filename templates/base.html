@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TEST BASE</title>
+  <title>{% block title %}My Site{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
 </head>
 <body>
-  <h1 style="color: red;">BASE TEMPLATE LOADED</h1>
+  <header>
+    <h1>BASE TEMPLATE LOADED</h1>
+  </header>
 
-  {% block content %}
-  <p style="color: blue;">DEFAULT CONTENT BLOCK (you shouldn’t see this)</p>
-  {% endblock %}
+  {% block content %}{% endblock %}
 </body>
 </html>
