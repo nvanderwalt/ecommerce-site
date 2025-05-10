@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import Product
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 
 # Product list
 def product_list(request):
@@ -16,6 +17,7 @@ def add_to_cart(request, product_id):
     return redirect('product_list')
 
 # View cart contents
+@login_required
 def cart_view(request):
     cart = request.session.get('cart', {})
     cart_items = []
