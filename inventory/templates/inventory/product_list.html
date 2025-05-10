@@ -16,6 +16,11 @@
                 {% endif %}
                 <p>{{ product.description }}</p>
                 <p><strong>€{{ product.price }}</strong></p>
+
+                <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Add to Cart</button>
+                </form>                
             </li>
         {% endfor %}
     </ul>
