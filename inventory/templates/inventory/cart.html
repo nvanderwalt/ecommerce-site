@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
+</head>
+<body>
+    <h1>Your Cart</h1>
+
+    {% if cart_items %}
+        <ul>
+            {% for item in cart_items %}
+                <li>
+                    <h2>{{ item.product.name }}</h2>
+                    <p>Quantity: {{ item.quantity }}</p>
+                    <p>Item Total: €{{ item.item_total }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+        <h3>Total: €{{ total }}</h3>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+
+    <p><a href="{% url 'product_list' %}">Back to products</a></p>
+</body>
+</html>
