@@ -23,6 +23,8 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('posts/', include('posts.urls')),
+    path('cancel/', payment_cancel, name='payment_cancel'),
+
 
     # ✅ Add this line to include Stripe checkout
     path('checkout/', include('checkout.urls')),

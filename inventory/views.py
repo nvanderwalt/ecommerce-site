@@ -123,3 +123,9 @@ def profile_view(request):
         form = UserProfileForm(instance=profile)
 
     return render(request, 'inventory/profile.html', {'form': form})
+
+def payment_success(request):
+    return render(request, 'inventory/payment_success.html')
+
+def payment_cancel(request):
+    return render(request, 'inventory/payment_cancel.html')
