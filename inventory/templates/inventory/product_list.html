@@ -1,19 +1,25 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <title>Gym Equipment</title>
     <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
 </head>
 
 <body>
-
     {% if user.is_authenticated %}
         <p>Welcome, {{ user.username }}!</p>
-        <p><a href="{% url 'profile' %}">Edit Profile</a> | <a href="{% url 'logout' %}">Log out</a></p>
+        <p>
+            <a href="{% url 'profile' %}">Edit Profile</a> |
+            <a href="{% url 'logout' %}">Log out</a>
+        </p>
     {% else %}
-        <p><a href="{% url 'login' %}">Log in</a> | <a href="{% url 'register' %}">Register</a></p>
+        <p>
+            <a href="{% url 'login' %}">Log in</a> |
+            <a href="{% url 'register' %}">Register</a>
+        </p>
     {% endif %}
 
     <h1>Our Gym Equipment</h1>
@@ -24,34 +30,37 @@
         <li>
             <h2>{{ product.name }}</h2>
             {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200">
             {% endif %}
             <p>{{ product.description }}</p>
             <p><strong>€{{ product.price }}</strong></p>
 
-            <!-- Add to cart form -->
+            <!-- Add to cart -->
             <form method="POST" action="{% url 'add_to_cart' product.id %}">
                 {% csrf_token %}
                 <button type="submit">Add to Cart</button>
             </form>
 
-            <!-- Stripe Buy Now button -->
+            <!-- Buy Now -->
             <form method="POST" action="{% url 'buy' product.id %}">
                 {% csrf_token %}
                 <button type="submit">Buy Now</button>
             </form>
 
-            <!-- Show existing reviews -->
+            <!-- Reviews -->
             <h4>Reviews:</h4>
             <ul>
                 {% for review in product.reviews.all %}
-                <li><strong>{{ review.rating }}★</strong> by {{ review.user.username }}<br>{{ review.comment }}</li>
+                    <li>
+                        <strong>{{ review.rating }}★</strong> by {{ review.user.username }}<br>
+                        {{ review.comment }}
+                    </li>
                 {% empty %}
-                <li>No reviews yet.</li>
+                    <li>No reviews yet.</li>
                 {% endfor %}
             </ul>
 
-            <!-- Review form -->
+            <!-- Leave a Review -->
             {% if user.is_authenticated %}
             <form method="POST">
                 {% csrf_token %}
@@ -60,13 +69,12 @@
                 <button type="submit">Submit Review</button>
             </form>
             {% else %}
-            <p><em>Log in to leave a review.</em></p>
+                <p><em>Log in to leave a review.</em></p>
             {% endif %}
-
             <hr>
         </li>
         {% endfor %}
     </ul>
-
 </body>
+
 </html>

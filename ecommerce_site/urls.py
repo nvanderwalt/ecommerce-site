@@ -1,5 +1,7 @@
-from django.urls import include, path
 from django.contrib import admin
+from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
 from inventory.views import (
     product_list,
     add_to_cart,
@@ -9,9 +11,8 @@ from inventory.views import (
     payment_success,
     profile_view,
     payment_cancel,
+    error_view,  # Only import your custom view if you’re using it
 )
-from django.conf import settings
-from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -21,14 +22,12 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
     path('success/', payment_success, name='payment_success'),
+    path('cancel/', payment_cancel, name='payment_cancel'),
     path('profile/', profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('posts/', include('posts.urls')),
-    path('cancel/', payment_cancel, name='payment_cancel'),
-
-
-    # ✅ Add this line to include Stripe checkout
     path('checkout/', include('checkout.urls')),
+    path('error/', error_view, name='error'),  # ✅ Only this one
 ]
 
 if settings.DEBUG:

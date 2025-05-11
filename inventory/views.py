@@ -3,28 +3,29 @@ from .models import Product, UserProfile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .forms import UserProfileForm
+from .forms import UserProfileForm, ReviewForm
 import stripe
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .forms import UserProfileForm, ReviewForm
 
 def product_list(request):
     products = Product.objects.all()
+    form = ReviewForm()
 
     if request.method == 'POST' and request.user.is_authenticated:
         product_id = request.POST.get('product_id')
-        product = Product.objects.get(id=product_id)
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.user = request.user
-            review.product = product
-            review.save()
-            return redirect('product_list')
-    else:
-        form = ReviewForm()
+        try:
+            product = Product.objects.get(id=product_id)
+            form = ReviewForm(request.POST)
+            if form.is_valid():
+                review = form.save(commit=False)
+                review.user = request.user
+                review.product = product
+                review.save()
+                return redirect('product_list')
+        except Product.DoesNotExist:
+            pass  # Optionally add logging or an error message
 
     return render(request, 'inventory/product_list.html', {
         'products': products,
@@ -109,7 +110,10 @@ def create_checkout_session(request):
     return JsonResponse({'id': session.id})
 
 def payment_success(request):
-    return render(request, 'inventory/success.html')
+    return render(request, 'inventory/payment_success.html')
+
+def payment_cancel(request):
+    return render(request, 'inventory/payment_cancel.html')
 
 @login_required
 def profile_view(request):
@@ -124,8 +128,5 @@ def profile_view(request):
 
     return render(request, 'inventory/profile.html', {'form': form})
 
-def payment_success(request):
-    return render(request, 'inventory/payment_success.html')
-
-def payment_cancel(request):
-    return render(request, 'inventory/payment_cancel.html')
+def error_view(request):
+    return render(request, 'error.html')

@@ -1,55 +1,53 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Your Cart</title>
     <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
 </head>
 <body>
-    <h1>Your Cart</h1>
+    <div class="cart-container">
+        <h1>Your Cart</h1>
 
-    {% if cart_items %}
-        <ul>
-            {% for item in cart_items %}
-                <li>
-                    <h2>{{ item.product.name }}</h2>
-                    <p>Quantity: {{ item.quantity }}</p>
-                    <p>Item Total: €{{ item.item_total }}</p>
-                </li>
-            {% endfor %}
-        </ul>
+        {% if cart_items %}
+            <ul>
+                {% for item in cart_items %}
+                    <li>
+                        <h2>{{ item.product.name }}</h2>
+                        <p>Quantity: {{ item.quantity }}</p>
+                        <p>Item Total: €{{ item.item_total }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
 
-        <h3>Total: €{{ total }}</h3>
+            <h3>Total: €{{ total }}</h3>
 
-        <!-- Stripe Checkout Button -->
-        <form id="payment-form">
-            <button type="button" id="checkout-button">Checkout with Stripe</button>
-        </form>
+            <!-- Stripe Checkout Button -->
+            <form id="payment-form">
+                <button type="button" id="checkout-button">Checkout with Stripe</button>
+            </form>
 
-        <script src="https://js.stripe.com/v3/"></script>
-        <script>
-            const stripe = Stripe("{{ stripe_public_key }}");
+            <script src="https://js.stripe.com/v3/"></script>
+            <script>
+                const stripe = Stripe("{{ stripe_public_key }}");
 
-            document.getElementById("checkout-button").addEventListener("click", function () {
-                fetch("{% url 'create_checkout_session' %}", {
-                    method: "POST",
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    }
-                })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (session) {
-                    return stripe.redirectToCheckout({ sessionId: session.id });
+                document.getElementById("checkout-button").addEventListener("click", function () {
+                    fetch("{% url 'create_checkout_session' %}", {
+                        method: "POST",
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(session => stripe.redirectToCheckout({ sessionId: session.id }));
                 });
-            });
-        </script>
+            </script>
+        {% else %}
+            <p>Your cart is empty.</p>
+        {% endif %}
 
-    {% else %}
-        <p>Your cart is empty.</p>
-    {% endif %}
-
-    <p><a href="{% url 'product_list' %}">Back to products</a></p>
+        <p><a href="{% url 'product_list' %}">← Back to products</a></p>
+    </div>
 </body>
 </html>
