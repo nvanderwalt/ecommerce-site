@@ -1,6 +1,5 @@
 from django.urls import include, path
 from django.contrib import admin
-from django.urls import path, include
 from inventory.views import (
     product_list,
     add_to_cart,
@@ -10,7 +9,6 @@ from inventory.views import (
     payment_success,
     profile_view,
 )
-
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -25,6 +23,9 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('posts/', include('posts.urls')),
+
+    # ✅ Add this line to include Stripe checkout
+    path('checkout/', include('checkout.urls')),
 ]
 
 if settings.DEBUG:
