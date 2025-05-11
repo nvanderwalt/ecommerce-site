@@ -8,6 +8,7 @@ from inventory.views import (
     create_checkout_session,
     payment_success,
     profile_view,
+    payment_cancel,
 )
 from django.conf import settings
 from django.conf.urls.static import static
