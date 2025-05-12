@@ -22,6 +22,10 @@
                     <strong>{{ post.created_at|date:"M d, Y H:i" }}</strong><br>
                     {{ post.content }}
                 </li>
+                <form method="post" action="{% url 'post_delete' post.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Delete this post?');">Delete</button>
+                </form>
             {% endfor %}
         </ul>
     {% else %}

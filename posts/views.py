@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Post
 from .forms import PostForm
+from django.contrib import messages
 
 @login_required
 def post_list(request):
@@ -20,3 +21,10 @@ def post_create(request):
     else:
         form = PostForm()
     return render(request, 'posts/post_create.html', {'form': form})
+
+@login_required
+def post_delete(request, post_id):
+    post = get_object_or_404(Post, id=post_id, author=request.user)
+    post.delete()
+    messages.success(request, "Post deleted.")
+    return redirect('profile')
