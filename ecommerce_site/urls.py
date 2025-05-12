@@ -11,7 +11,9 @@ from inventory.views import (
     payment_success,
     profile_view,
     payment_cancel,
-    error_view,  # Only import your custom view if you’re using it
+    error_view,  # Only import your custom view if you're using it
+    update_cart,
+    remove_from_cart,  # Add these imports
 )
 
 urlpatterns = [
@@ -28,6 +30,8 @@ urlpatterns = [
     path('posts/', include('posts.urls')),
     path('checkout/', include('checkout.urls')),
     path('error/', error_view, name='error'),  # ✅ Only this one
+    path('update-cart/<int:product_id>/', update_cart, name='update_cart'),  # Add these URLs
+    path('remove-from-cart/<int:product_id>/', remove_from_cart, name='remove_from_cart'),
 ]
 
 if settings.DEBUG:

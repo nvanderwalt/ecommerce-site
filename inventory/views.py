@@ -8,6 +8,7 @@ import stripe
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 def product_list(request):
     products = Product.objects.all()
@@ -135,3 +136,48 @@ def profile_view(request):
 
 def error_view(request):
     return render(request, 'error.html')
+
+@login_required
+def update_cart(request, product_id):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        cart = request.session.get('cart', {})
+        product_id_str = str(product_id)
+        
+        try:
+            product = Product.objects.get(id=product_id)
+            if action == 'increase':
+                cart[product_id_str] = cart.get(product_id_str, 0) + 1
+                messages.success(request, f'Added another {product.name} to your cart.')
+            elif action == 'decrease':
+                if cart.get(product_id_str, 0) > 1:
+                    cart[product_id_str] = cart[product_id_str] - 1
+                    messages.success(request, f'Reduced quantity of {product.name} in your cart.')
+                else:
+                    messages.warning(request, f'Quantity cannot be less than 1.')
+            
+            request.session['cart'] = cart
+            
+        except Product.DoesNotExist:
+            messages.error(request, "Product not found.")
+    
+    return redirect('cart')
+
+@login_required
+def remove_from_cart(request, product_id):
+    if request.method == 'POST':
+        cart = request.session.get('cart', {})
+        product_id_str = str(product_id)
+        
+        try:
+            product = Product.objects.get(id=product_id)
+            if product_id_str in cart:
+                del cart[product_id_str]
+                request.session['cart'] = cart
+                messages.success(request, f'Removed {product.name} from your cart.')
+            else:
+                messages.warning(request, "This item wasn't in your cart.")
+        except Product.DoesNotExist:
+            messages.error(request, "Product not found.")
+    
+    return redirect('cart')
