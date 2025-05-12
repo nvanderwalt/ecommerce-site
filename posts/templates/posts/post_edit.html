@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Post</title>
+    <link rel="stylesheet" href="{% static 'inventory/style.css' %}">
+</head>
+<body>
+    <h1>Edit Your Post</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update</button>
+    </form>
+
+    <p><a href="{% url 'profile' %}">Back to Profile</a></p>
+</body>
+</html>
