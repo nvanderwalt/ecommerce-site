@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Plans - FitFusion</title>
+    <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Exercise Plans</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="exercise-plans">
+            {% for plan in plans %}
+                <div class="plan-card">
+                    <h2>{{ plan.name }}</h2>
+                    <p class="difficulty">{{ plan.get_difficulty_display }}</p>
+                    <p class="duration">Duration: {{ plan.duration }} minutes</p>
+                    <p class="calories">Estimated calories: {{ plan.calories_burn }}</p>
+                    <p class="price">€{{ plan.price }}</p>
+                    <a href="{% url 'exercise_plan_detail' plan.id %}" class="view-plan-btn">View Details</a>
+                </div>
+            {% empty %}
+                <p>No exercise plans available at the moment.</p>
+            {% endfor %}
+        </div>
+
+        <p class="back-link"><a href="{% url 'product_list' %}">← Back to Products</a></p>
+    </div>
+</body>
+</html> 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Product, UserProfile
+from .models import Product, UserProfile, ExercisePlan
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -181,3 +181,51 @@ def remove_from_cart(request, product_id):
             messages.error(request, "Product not found.")
     
     return redirect('cart')
+
+@login_required
+def exercise_plan_list(request):
+    plans = ExercisePlan.objects.all()
+    return render(request, 'inventory/exercise_plans.html', {
+        'plans': plans
+    })
+
+@login_required
+def exercise_plan_detail(request, plan_id):
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        return render(request, 'inventory/exercise_plan_detail.html', {
+            'plan': plan,
+            'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+        })
+    except ExercisePlan.DoesNotExist:
+        messages.error(request, "Exercise plan not found.")
+        return redirect('exercise_plan_list')
+
+@csrf_exempt
+@login_required
+def create_plan_checkout_session(request, plan_id):
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': plan.name,
+                        'description': f"{plan.get_difficulty_display()} level, {plan.duration} minutes"
+                    },
+                    'unit_amount': int(plan.price * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url='http://127.0.0.1:8000/success/',
+            cancel_url=f'http://127.0.0.1:8000/exercise-plan/{plan_id}/',
+        )
+
+        return JsonResponse({'id': session.id})
+    except ExercisePlan.DoesNotExist:
+        return JsonResponse({'error': 'Exercise plan not found'}, status=404)

@@ -14,6 +14,9 @@ from inventory.views import (
     error_view,  # Only import your custom view if you're using it
     update_cart,
     remove_from_cart,  # Add these imports
+    exercise_plan_list,
+    exercise_plan_detail,
+    create_plan_checkout_session,
 )
 
 urlpatterns = [
@@ -32,6 +35,9 @@ urlpatterns = [
     path('error/', error_view, name='error'),  # ✅ Only this one
     path('update-cart/<int:product_id>/', update_cart, name='update_cart'),  # Add these URLs
     path('remove-from-cart/<int:product_id>/', remove_from_cart, name='remove_from_cart'),
+    path('exercise-plans/', exercise_plan_list, name='exercise_plan_list'),
+    path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
+    path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
 ]
 
 if settings.DEBUG:
