@@ -30,7 +30,7 @@ urlpatterns = [
     path('cancel/', payment_cancel, name='payment_cancel'),
     path('profile/', profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('posts/', include('posts.urls')),
+    path('post/', include('posts.urls')),  # Changed from posts/ to post/ for consistency
     path('checkout/', include('checkout.urls')),
     path('error/', error_view, name='error'),  # ✅ Only this one
     path('update-cart/<int:product_id>/', update_cart, name='update_cart'),  # Add these URLs

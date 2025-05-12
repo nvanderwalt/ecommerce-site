@@ -23,15 +23,13 @@ class UserProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
-    from django.contrib.auth.models import User
+    """Create or update user profile when a User is created or updated."""
     if created:
         UserProfile.objects.create(user=instance)
     else:
         try:
-            # Try to get the profile
-            instance.userprofile
+            instance.userprofile.save()
         except User.userprofile.RelatedObjectDoesNotExist:
-            # Create profile if it doesn't exist
             UserProfile.objects.create(user=instance)
 
 class Review(models.Model):
