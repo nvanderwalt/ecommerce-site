@@ -25,6 +25,25 @@ def post_create(request):
 @login_required
 def post_delete(request, post_id):
     post = get_object_or_404(Post, id=post_id, author=request.user)
-    post.delete()
-    messages.success(request, "Post deleted.")
-    return redirect('profile')
+
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, "Post deleted.")
+        return redirect('profile')
+
+    return render(request, 'posts/post_confirm_delete.html', {'post': post})
+
+@login_required
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, id=post_id, author=request.user)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Post updated.")
+            return redirect('profile')
+    else:
+        form = PostForm(instance=post)
+
+    return render(request, 'posts/post_edit.html', {'form': form})

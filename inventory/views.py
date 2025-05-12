@@ -79,6 +79,7 @@ def register(request):
 @csrf_exempt
 @login_required
 def create_checkout_session(request):
+    stripe.api_key = settings.STRIPE_SECRET_KEY
     cart = request.session.get('cart', {})
     line_items = []
 
@@ -90,6 +91,7 @@ def create_checkout_session(request):
                     'currency': 'eur',
                     'product_data': {
                         'name': product.name,
+                        'description': product.description[:100],
                     },
                     'unit_amount': int(product.price * 100),
                 },
@@ -98,17 +100,22 @@ def create_checkout_session(request):
         except Product.DoesNotExist:
             pass
 
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+    if not line_items:
+        messages.error(request, "Your cart is empty.")
+        return redirect('cart')
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=line_items,
-        mode='payment',
-        success_url='http://127.0.0.1:8000/success/',
-        cancel_url='http://127.0.0.1:8000/cart/',
-    )
-
-    return JsonResponse({'id': session.id})
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri('/success/'),
+            cancel_url=request.build_absolute_uri('/cart/'),
+        )
+        return JsonResponse({'id': session.id})
+    except Exception as e:
+        messages.error(request, f"Payment error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
 
 def payment_success(request):
     return render(request, 'inventory/payment_success.html')
