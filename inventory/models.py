@@ -24,13 +24,7 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     """Create or update user profile when a User is created or updated."""
-    if created:
-        UserProfile.objects.create(user=instance)
-    else:
-        try:
-            instance.userprofile.save()
-        except User.userprofile.RelatedObjectDoesNotExist:
-            UserProfile.objects.create(user=instance)
+    UserProfile.objects.get_or_create(user=instance)
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
