@@ -21,11 +21,13 @@
                 <li>
                     <strong>{{ post.created_at|date:"M d, Y H:i" }}</strong><br>
                     {{ post.content }}
+                    <br>
+                    <a href="{% url 'post_edit' post.id %}">Edit</a>
+                    <form method="post" action="{% url 'post_delete' post.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Delete this post?');">Delete</button>
+                    </form>
                 </li>
-                <form method="post" action="{% url 'post_delete' post.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" onclick="return confirm('Delete this post?');">Delete</button>
-                </form>
             {% endfor %}
         </ul>
     {% else %}
