@@ -1,0 +1,140 @@
+.cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cart-items {
+    list-style: none;
+    padding: 0;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.item-details h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+}
+
+.price {
+    color: #666;
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.quantity-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qty-btn {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+    cursor: pointer;
+}
+
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quantity {
+    padding: 0 10px;
+    font-weight: bold;
+}
+
+.remove-btn {
+    padding: 5px 15px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background: #cc0000;
+}
+
+.cart-summary {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f8f8;
+    border-radius: 5px;
+}
+
+.checkout-btn {
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.checkout-btn:hover {
+    background: #45a049;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px;
+    background: #f8f8f8;
+    border-radius: 5px;
+}
+
+.back-link {
+    margin-top: 20px;
+}
+
+.back-link a {
+    color: #666;
+    text-decoration: none;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+}
+
+.messages {
+    margin-bottom: 20px;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.alert-success {
+    background: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.alert-warning {
+    background: #fcf8e3;
+    color: #8a6d3b;
+    border: 1px solid #faebcc;
+}
+
+.alert-error {
+    background: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+} 
