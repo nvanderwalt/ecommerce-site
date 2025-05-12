@@ -2,15 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}My Site{% endblock %}</title>
+  <title>{% block title %}FitFusion{% endblock %}</title>
   {% load static %}
-  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
 </head>
 <body>
-  <header>
-    <h1>BASE TEMPLATE LOADED</h1>
-  </header>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <a href="/products">FitFusion</a>
+    </div>
+    <div class="nav-links">
+      <a href="/products" class="nav-item">Products</a>
+      <a href="/exercise-plans" class="nav-item">Exercise Plans</a>
+      <a href="/cart" class="nav-item">Cart</a>
+      {% if user.is_authenticated %}
+        <a href="/profile" class="nav-item">Profile</a>
+        <form method="post" action="/logout" class="nav-item logout-form">
+          {% csrf_token %}
+          <button type="submit">Log out</button>
+        </form>
+      {% else %}
+        <a href="/login" class="nav-item">Log in</a>
+        <a href="/register" class="nav-item">Register</a>
+      {% endif %}
+    </div>
+  </nav>
 
-  {% block content %}{% endblock %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
