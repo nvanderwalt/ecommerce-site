@@ -76,9 +76,12 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
-@csrf_exempt
 @login_required
+@csrf_exempt
 def create_checkout_session(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
     stripe.api_key = settings.STRIPE_SECRET_KEY
     cart = request.session.get('cart', {})
     line_items = []
@@ -102,7 +105,7 @@ def create_checkout_session(request):
 
     if not line_items:
         messages.error(request, "Your cart is empty.")
-        return redirect('cart')
+        return JsonResponse({'error': 'Cart is empty'}, status=400)
 
     try:
         session = stripe.checkout.Session.create(
@@ -111,17 +114,28 @@ def create_checkout_session(request):
             mode='payment',
             success_url=request.build_absolute_uri('/success/'),
             cancel_url=request.build_absolute_uri('/cart/'),
+            metadata={
+                'type': 'cart_checkout'
+            }
         )
         return JsonResponse({'id': session.id})
-    except Exception as e:
-        messages.error(request, f"Payment error: {str(e)}")
+    except stripe.error.AuthenticationError as e:
+        return JsonResponse({'error': 'Authentication failed'}, status=401)
+    except stripe.error.StripeError as e:
         return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': 'Server error'}, status=500)
 
 def payment_success(request):
-    return render(request, 'inventory/payment_success.html')
+    # Clear the cart if it was a cart checkout
+    if request.session.get('cart'):
+        request.session['cart'] = {}
+    messages.success(request, "Payment successful! Thank you for your purchase.")
+    return redirect('product_list')
 
 def payment_cancel(request):
-    return render(request, 'inventory/payment_cancel.html')
+    messages.info(request, "Your payment was cancelled. Please try again when you're ready.")
+    return redirect('cart')
 
 @login_required
 def profile_view(request):
@@ -211,6 +225,9 @@ def exercise_plan_detail(request, plan_id):
 @csrf_exempt
 @login_required
 def create_plan_checkout_session(request, plan_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
     try:
         plan = ExercisePlan.objects.get(id=plan_id)
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -229,10 +246,20 @@ def create_plan_checkout_session(request, plan_id):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='http://127.0.0.1:8000/success/',
-            cancel_url=f'http://127.0.0.1:8000/exercise-plan/{plan_id}/',
+            success_url=request.build_absolute_uri('/success/'),
+            cancel_url=request.build_absolute_uri(f'/exercise-plan/{plan_id}/'),
+            metadata={
+                'type': 'plan_checkout',
+                'plan_id': str(plan_id)
+            }
         )
 
         return JsonResponse({'id': session.id})
     except ExercisePlan.DoesNotExist:
         return JsonResponse({'error': 'Exercise plan not found'}, status=404)
+    except stripe.error.AuthenticationError:
+        return JsonResponse({'error': 'Authentication failed'}, status=401)
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': 'Server error'}, status=500)
