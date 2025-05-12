@@ -118,6 +118,8 @@ def payment_cancel(request):
 @login_required
 def profile_view(request):
     profile = request.user.userprofile
+    posts = request.user.post_set.order_by('-created_at')  # fetch user's posts
+
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=profile)
         if form.is_valid():
@@ -126,7 +128,10 @@ def profile_view(request):
     else:
         form = UserProfileForm(instance=profile)
 
-    return render(request, 'inventory/profile.html', {'form': form})
+    return render(request, 'inventory/profile.html', {
+        'form': form,
+        'posts': posts,
+    })
 
 def error_view(request):
     return render(request, 'error.html')

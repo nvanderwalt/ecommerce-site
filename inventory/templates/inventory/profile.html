@@ -1,24 +1,33 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Your Profile</title>
-    <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'inventory/style.css' %}">
 </head>
-<body class="profile-page">
+<body>
+    <h1>Edit Your Profile</h1>
 
-    <div class="profile-container">
-        <h1>Your Profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Profile</button>
+    </form>
 
-        <form method="post" class="profile-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="profile-save-button">Save Profile</button>
-        </form>
+    <h2>Your Posts</h2>
+    {% if posts %}
+        <ul>
+            {% for post in posts %}
+                <li>
+                    <strong>{{ post.created_at|date:"M d, Y H:i" }}</strong><br>
+                    {{ post.content }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't shared anything yet.</p>
+    {% endif %}
 
-        <p><a href="{% url 'product_list' %}" class="back-link">← Back to products</a></p>
-    </div>
-
+    <p><a href="{% url 'product_list' %}">Back to products</a></p>
 </body>
 </html>
