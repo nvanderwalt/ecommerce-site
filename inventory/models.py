@@ -23,10 +23,16 @@ class UserProfile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
+    from django.contrib.auth.models import User
     if created:
         UserProfile.objects.create(user=instance)
     else:
-        UserProfile.objects.get_or_create(user=instance)
+        try:
+            # Try to get the profile
+            instance.userprofile
+        except User.userprofile.RelatedObjectDoesNotExist:
+            # Create profile if it doesn't exist
+            UserProfile.objects.create(user=instance)
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
