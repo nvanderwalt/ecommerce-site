@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 class SubscriptionPlan(models.Model):
+    """
+    Represents a subscription plan that users can subscribe to.
+    Each plan has specific features, duration, and pricing.
+    """
     PLAN_TYPES = [
         ('BASIC', 'Basic'),
         ('PREMIUM', 'Premium'),
@@ -27,6 +31,10 @@ class SubscriptionPlan(models.Model):
         ordering = ['price']
 
 class UserSubscription(models.Model):
+    """
+    Represents a user's subscription to a specific plan.
+    Tracks the subscription status, duration, and renewal settings.
+    """
     STATUS_CHOICES = [
         ('ACTIVE', 'Active'),
         ('CANCELLED', 'Cancelled'),
@@ -48,6 +56,10 @@ class UserSubscription(models.Model):
         return f"{self.user.username}'s {self.plan.name} Subscription"
 
     def is_active(self):
+        """
+        Checks if the subscription is currently active based on status and dates.
+        Returns True if subscription is active and within valid date range.
+        """
         now = timezone.now()
         return (
             self.status == 'ACTIVE' and
@@ -56,6 +68,10 @@ class UserSubscription(models.Model):
         )
 
     def cancel_subscription(self):
+        """
+        Cancels the subscription by updating status and turning off auto-renewal.
+        The subscription will remain active until the end date.
+        """
         self.status = 'CANCELLED'
         self.is_auto_renewal = False
         self.save()
