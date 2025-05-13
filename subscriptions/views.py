@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
+import logging
 
 # Create your views here.
 
@@ -87,11 +88,43 @@ class UserSubscriptionView(LoginRequiredMixin, TemplateView):
 @csrf_exempt
 @login_required
 def create_subscription_checkout(request, plan_id):
+    """Create a Stripe Checkout Session for subscription.
+    
+    Args:
+        request: The HTTP request
+        plan_id: ID of the subscription plan
+        
+    Returns:
+        JsonResponse with session ID or error message
+    """
     if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse(
+            {'error': 'This endpoint only accepts POST requests'}, 
+            status=405
+        )
 
     try:
+        # Validate plan exists and is active
         plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+        if not plan.is_active:
+            return JsonResponse(
+                {'error': 'This subscription plan is no longer available'},
+                status=400
+            )
+
+        # Check if user already has an active subscription
+        active_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status='ACTIVE',
+            end_date__gt=timezone.now()
+        ).first()
+
+        if active_subscription:
+            return JsonResponse(
+                {'error': 'You already have an active subscription'},
+                status=400
+            )
+
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         # Create Stripe Checkout Session
@@ -121,12 +154,39 @@ def create_subscription_checkout(request, plan_id):
         )
 
         return JsonResponse({'id': checkout_session.id})
+
+    except SubscriptionPlan.DoesNotExist:
+        return JsonResponse(
+            {'error': 'Subscription plan not found'},
+            status=404
+        )
     except stripe.error.AuthenticationError:
-        return JsonResponse({'error': 'Authentication failed'}, status=401)
+        return JsonResponse(
+            {'error': 'Failed to authenticate with Stripe. Please check your API keys'},
+            status=401
+        )
+    except stripe.error.InvalidRequestError as e:
+        return JsonResponse(
+            {'error': str(e)},
+            status=400
+        )
+    except stripe.error.RateLimitError:
+        return JsonResponse(
+            {'error': 'Too many requests to Stripe. Please try again in a moment'},
+            status=429
+        )
     except stripe.error.StripeError as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse(
+            {'error': f'An error occurred with Stripe: {str(e)}'},
+            status=400
+        )
     except Exception as e:
-        return JsonResponse({'error': 'Server error'}, status=500)
+        # Log unexpected errors
+        logger.error(f'Unexpected error in create_subscription_checkout: {str(e)}')
+        return JsonResponse(
+            {'error': 'An unexpected error occurred. Please try again later'},
+            status=500
+        )
 
 @login_required
 def subscription_success(request):
