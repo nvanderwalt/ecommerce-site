@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ plan.name }} - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-4">
+                    <h1 class="card-title text-center mb-0">{{ plan.name }}</h1>
+                </div>
+                <div class="card-body">
+                    {% if current_subscription and current_subscription.plan == plan %}
+                    <div class="alert alert-info mb-4">
+                        <p class="mb-0">You are currently subscribed to this plan.</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center mb-4">
+                        <h2 class="display-4 mb-0">${{ plan.price }}</h2>
+                        <p class="text-muted">per month</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3>Plan Description</h3>
+                        <p class="lead">{{ plan.description }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3>Features</h3>
+                        <ul class="list-group list-group-flush">
+                            {% for feature in plan.features %}
+                            <li class="list-group-item">
+                                <i class="fas fa-check text-success me-2"></i>{{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="text-center">
+                        {% if current_subscription and current_subscription.plan == plan %}
+                        <a href="{% url 'subscriptions:user_subscription' %}" 
+                           class="btn btn-outline-primary btn-lg">
+                            Manage Subscription
+                        </a>
+                        {% else %}
+                        <button class="btn btn-primary btn-lg"
+                                id="subscribe-button"
+                                data-plan-id="{{ plan.id }}">
+                            Subscribe Now
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('subscribe-button').addEventListener('click', function() {
+        // We'll implement the Stripe subscription logic here later
+        alert('Stripe integration coming soon!');
+    });
+</script>
+{% endblock %} 

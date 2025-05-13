@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Subscription - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">My Subscription</h1>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if active_subscription %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">Active Subscription</h2>
+        </div>
+        <div class="card-body">
+            <h3 class="card-title">{{ active_subscription.plan.name }}</h3>
+            <p class="card-text">{{ active_subscription.plan.description }}</p>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Status:</strong> {{ active_subscription.get_status_display }}</p>
+                    <p><strong>Start Date:</strong> {{ active_subscription.start_date|date:"F j, Y" }}</p>
+                    <p><strong>End Date:</strong> {{ active_subscription.end_date|date:"F j, Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Price:</strong> ${{ active_subscription.plan.price }}/month</p>
+                    <p><strong>Auto Renewal:</strong> {% if active_subscription.is_auto_renewal %}Yes{% else %}No{% endif %}</p>
+                </div>
+            </div>
+
+            {% if active_subscription.status == 'ACTIVE' and active_subscription.is_auto_renewal %}
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="subscription_id" value="{{ active_subscription.id }}">
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Are you sure you want to cancel your subscription?')">
+                    Cancel Subscription
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p class="mb-0">You don't have any active subscriptions. 
+            <a href="{% url 'subscriptions:plan_list' %}" class="alert-link">View our subscription plans</a>
+        </p>
+    </div>
+    {% endif %}
+
+    {% if subscriptions %}
+    <h2 class="h3 mb-4">Subscription History</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subscription in subscriptions %}
+                <tr>
+                    <td>{{ subscription.plan.name }}</td>
+                    <td>{{ subscription.get_status_display }}</td>
+                    <td>{{ subscription.start_date|date:"F j, Y" }}</td>
+                    <td>{{ subscription.end_date|date:"F j, Y" }}</td>
+                    <td>${{ subscription.plan.price }}/month</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
