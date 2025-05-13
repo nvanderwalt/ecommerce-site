@@ -9,11 +9,16 @@ from django.utils import timezone
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
 import logging
+from django.contrib.auth import get_user_model
+
+# Configure logger
+logger = logging.getLogger(__name__)
+User = get_user_model()
 
 # Create your views here.
 
