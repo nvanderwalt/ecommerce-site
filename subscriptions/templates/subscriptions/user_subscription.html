@@ -4,13 +4,13 @@
 {% block title %}My Subscription - FitFusion{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h1 class="mb-4">My Subscription</h1>
+<div class="container">
+    <h1>My Subscription</h1>
 
     {% if messages %}
-    <div class="messages mb-4">
+    <div class="messages">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
+        <div class="alert alert-info">
             {{ message }}
         </div>
         {% endfor %}
@@ -18,28 +18,28 @@
     {% endif %}
 
     {% if active_subscription %}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h4 mb-0">Active Subscription</h2>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Active Subscription</h2>
         </div>
         <div class="card-body">
-            <h3 class="card-title">{{ active_subscription.plan.name }}</h3>
-            <p class="card-text">{{ active_subscription.plan.description }}</p>
+            <h3>{{ active_subscription.plan.name }}</h3>
+            <p>{{ active_subscription.plan.description }}</p>
             
-            <div class="row mb-3">
-                <div class="col-md-6">
+            <div class="subscription-details">
+                <div class="details-column">
                     <p><strong>Status:</strong> {{ active_subscription.get_status_display }}</p>
                     <p><strong>Start Date:</strong> {{ active_subscription.start_date|date:"F j, Y" }}</p>
                     <p><strong>End Date:</strong> {{ active_subscription.end_date|date:"F j, Y" }}</p>
                 </div>
-                <div class="col-md-6">
+                <div class="details-column">
                     <p><strong>Price:</strong> ${{ active_subscription.plan.price }}/month</p>
                     <p><strong>Auto Renewal:</strong> {% if active_subscription.is_auto_renewal %}Yes{% else %}No{% endif %}</p>
                 </div>
             </div>
 
             {% if active_subscription.status == 'ACTIVE' and active_subscription.is_auto_renewal %}
-            <form method="post" class="d-inline">
+            <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="subscription_id" value="{{ active_subscription.id }}">
                 <button type="submit" class="btn btn-danger"
@@ -52,16 +52,16 @@
     </div>
     {% else %}
     <div class="alert alert-info">
-        <p class="mb-0">You don't have any active subscriptions. 
-            <a href="{% url 'subscriptions:plan_list' %}" class="alert-link">View our subscription plans</a>
+        <p>You don't have any active subscriptions. 
+            <a href="{% url 'subscriptions:plan_list' %}">View our subscription plans</a>
         </p>
     </div>
     {% endif %}
 
     {% if subscriptions %}
-    <h2 class="h3 mb-4">Subscription History</h2>
-    <div class="table-responsive">
-        <table class="table table-striped">
+    <h2>Subscription History</h2>
+    <div class="table-container">
+        <table class="table">
             <thead>
                 <tr>
                     <th>Plan</th>
