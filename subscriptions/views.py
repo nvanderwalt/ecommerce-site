@@ -129,12 +129,73 @@ def create_subscription_checkout(request, plan_id):
 
 @login_required
 def subscription_success(request):
-    messages.success(request, "Your subscription has been activated successfully!")
+    """Handle successful subscription checkout.
+    
+    Verifies the subscription was created and shows appropriate success message.
+    Redirects to subscription management page.
+    """
+    try:
+        # Get user's most recent subscription
+        subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status='ACTIVE'
+        ).order_by('-created_at').first()
+
+        if subscription:
+            messages.success(
+                request,
+                f"Your subscription to the {subscription.plan.name} plan has been activated successfully! "
+                "You can manage your subscription from this page."
+            )
+        else:
+            # If no subscription found, might be a delay in webhook processing
+            messages.info(
+                request,
+                "Your subscription is being processed. "
+                "This may take a few moments. Please refresh the page."
+            )
+            
+    except Exception as e:
+        messages.error(
+            request,
+            "There was an issue verifying your subscription. "
+            "If this persists, please contact support."
+        )
+        
     return redirect('subscriptions:user_subscription')
 
 @login_required
 def subscription_cancel(request):
-    messages.info(request, "Your subscription process was cancelled.")
+    """Handle cancelled subscription checkout.
+    
+    Provides appropriate feedback when user cancels the checkout process.
+    Redirects back to plan selection.
+    """
+    try:
+        # Check if user has any pending subscriptions
+        pending_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status='PENDING'
+        ).order_by('-created_at').first()
+        
+        if pending_subscription:
+            # Clean up any pending subscription
+            pending_subscription.status = 'CANCELLED'
+            pending_subscription.save()
+            
+        messages.info(
+            request,
+            "The subscription process was cancelled. "
+            "You can choose a different plan or try again later."
+        )
+            
+    except Exception as e:
+        messages.error(
+            request,
+            "There was an issue processing your cancellation. "
+            "If you continue to see pending charges, please contact support."
+        )
+        
     return redirect('subscriptions:plan_list')
 
 @csrf_exempt
