@@ -51,6 +51,7 @@ class SubscriptionPlanDetailView(DetailView):
                 end_date__gt=timezone.now()
             ).first()
         context['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY
+        context['debug'] = settings.DEBUG
         return context
 
 class UserSubscriptionView(LoginRequiredMixin, TemplateView):

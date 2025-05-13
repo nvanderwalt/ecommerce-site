@@ -5,6 +5,36 @@
 
 {% block content %}
 <div class="container">
+    {% if debug %}
+    <div class="test-cards-section">
+        <h3>Test Card Information</h3>
+        <div class="test-cards-grid">
+            <div class="test-card">
+                <h4>Successful Payment</h4>
+                <p>Card: 4242 4242 4242 4242</p>
+                <p>Expiry: Any future date</p>
+                <p>CVC: Any 3 digits</p>
+            </div>
+            <div class="test-card">
+                <h4>Payment Requires Authentication</h4>
+                <p>Card: 4000 0025 0000 3155</p>
+                <p>Expiry: Any future date</p>
+                <p>CVC: Any 3 digits</p>
+            </div>
+            <div class="test-card">
+                <h4>Payment Declined</h4>
+                <p>Card: 4000 0000 0000 9995</p>
+                <p>Expiry: Any future date</p>
+                <p>CVC: Any 3 digits</p>
+            </div>
+        </div>
+        <div class="alert alert-info">
+            <p><strong>Note:</strong> These are test cards and will only work in test mode. 
+            For more test cards, visit the <a href="https://stripe.com/docs/testing" target="_blank">Stripe Testing Documentation</a>.</p>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="card">
         <div class="card-header">
             <h1 class="card-title">{{ plan.name }}</h1>
@@ -52,6 +82,55 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-cards-section {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .test-cards-section h3 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .test-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .test-card {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .test-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+    }
+
+    .test-card p {
+        margin: 5px 0;
+        color: #666;
+        font-family: monospace;
+    }
+
+    @media (max-width: 768px) {
+        .test-cards-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
