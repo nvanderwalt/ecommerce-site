@@ -1,18 +1,10 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Your Profile</title>
-    <link rel="stylesheet" href="{% static 'inventory/style.css' %}">
-    <style>
-        .inline-form {
-            display: inline;
-        }
-    </style>
-</head>
-<body>
+
+{% block title %}My Profile - FitFusion{% endblock %}
+
+{% block content %}
+<div class="profile-container">
     <h1>Edit Your Profile</h1>
 
     <form method="post">
@@ -40,7 +32,5 @@
     {% else %}
         <p>You haven't shared anything yet.</p>
     {% endif %}
-
-    <p><a href="{% url 'product_list' %}">Back to products</a></p>
-</body>
-</html>
+</div>
+{% endblock %}

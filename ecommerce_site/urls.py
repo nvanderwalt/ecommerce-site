@@ -38,6 +38,7 @@ urlpatterns = [
     path('exercise-plans/', exercise_plan_list, name='exercise_plan_list'),
     path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
+    path('subscriptions/', include('subscriptions.urls')),  # Add subscription URLs
 ]
 
 if settings.DEBUG:

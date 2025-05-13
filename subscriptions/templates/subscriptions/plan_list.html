@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subscription Plans - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Choose Your Fitness Journey</h1>
+
+    {% if current_subscription %}
+    <div class="alert alert-info">
+        <p>You currently have an active subscription to the {{ current_subscription.plan.name }} plan.</p>
+    </div>
+    {% endif %}
+
+    <div class="grid">
+        {% for plan in plans %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ plan.name }}</h3>
+            </div>
+            <div class="card-body">
+                <h4>${{ plan.price }}/month</h4>
+                <p>{{ plan.description }}</p>
+                <ul class="feature-list">
+                    {% for feature in plan.features %}
+                    <li>{{ feature }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'subscriptions:plan_detail' plan.pk %}" 
+                   class="btn btn-primary">
+                    {% if current_subscription and current_subscription.plan == plan %}
+                        Current Plan
+                    {% else %}
+                        Choose Plan
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

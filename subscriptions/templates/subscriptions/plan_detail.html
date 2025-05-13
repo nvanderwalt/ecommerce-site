@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ plan.name }} - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">{{ plan.name }}</h1>
+        </div>
+        <div class="card-body">
+            {% if current_subscription and current_subscription.plan == plan %}
+            <div class="alert alert-info">
+                <p>You are currently subscribed to this plan.</p>
+            </div>
+            {% endif %}
+
+            <div class="price-section">
+                <h2>${{ plan.price }}</h2>
+                <p>per month</p>
+            </div>
+
+            <div class="description-section">
+                <h3>Plan Description</h3>
+                <p>{{ plan.description }}</p>
+            </div>
+
+            <div class="features-section">
+                <h3>Features</h3>
+                <ul class="feature-list">
+                    {% for feature in plan.features %}
+                    <li>{{ feature }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="action-section">
+                {% if current_subscription and current_subscription.plan == plan %}
+                <a href="{% url 'subscriptions:user_subscription' %}" 
+                   class="btn btn-primary">
+                    Manage Subscription
+                </a>
+                {% else %}
+                <button class="btn btn-primary"
+                        id="subscribe-button"
+                        data-plan-id="{{ plan.id }}">
+                    Subscribe Now
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const subscribeButton = document.getElementById('subscribe-button');
+
+    if (subscribeButton) {
+        subscribeButton.addEventListener('click', async function() {
+            try {
+                const response = await fetch(
+                    "{% url 'subscriptions:create_checkout_session' plan.id %}",
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }
+                );
+                
+                const session = await response.json();
+                
+                if (session.error) {
+                    throw new Error(session.error);
+                }
+                
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during checkout. Please try again.');
+            }
+        });
+    }
+</script>
+{% endblock %} 
