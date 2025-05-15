@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; color: #d32f2f; }
+        .content { margin-bottom: 30px; }
+        .footer { text-align: center; font-size: 12px; color: #666; }
+        .button { 
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #d32f2f;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .warning {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Action Required: Payment Failed</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hi {{ user.first_name|default:user.username }},</p>
+            
+            <div class="warning">
+                <p>We were unable to process your payment for the {{ subscription.plan.name }} plan. To avoid any interruption in your service, please update your payment information as soon as possible.</p>
+            </div>
+            
+            <h2>Subscription Details:</h2>
+            <ul>
+                <li>Plan: {{ subscription.plan.name }}</li>
+                <li>Amount Due: ${{ subscription.plan.price }}</li>
+                <li>Due Date: Immediate</li>
+            </ul>
+            
+            <p>To update your payment information:</p>
+            
+            <p style="text-align: center;">
+                <a href="https://fitfusion.com/billing" class="button">Update Payment Method</a>
+            </p>
+            
+            <p>If you don't update your payment information, your subscription may be cancelled, and you'll lose access to premium features.</p>
+        </div>
+        
+        <div class="footer">
+            <p>If you need assistance, please contact our support team.</p>
+            <p>© {% now "Y" %} FitFusion. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

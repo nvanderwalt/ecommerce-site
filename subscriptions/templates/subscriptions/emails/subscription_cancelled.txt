@@ -1,0 +1,18 @@
+Subscription Cancelled
+
+Hi {{ user.first_name|default:user.username }},
+
+Your subscription to the {{ subscription.plan.name }} plan has been cancelled as requested.
+
+Subscription Details:
+- Plan: {{ subscription.plan.name }}
+- Cancellation Date: {{ subscription.end_date|date:"F j, Y" }}
+
+You'll continue to have access to premium features until the end of your current billing period. After that, your account will revert to the free tier.
+
+We're sorry to see you go! If you change your mind, you can resubscribe at any time by visiting:
+https://fitfusion.com/plans
+
+If you have any feedback about your experience with FitFusion, we'd love to hear it.
+
+© {% now "Y" %} FitFusion. All rights reserved. 

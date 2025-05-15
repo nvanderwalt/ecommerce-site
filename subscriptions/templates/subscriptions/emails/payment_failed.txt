@@ -1,0 +1,19 @@
+Action Required: Payment Failed
+
+Hi {{ user.first_name|default:user.username }},
+
+IMPORTANT: We were unable to process your payment for the {{ subscription.plan.name }} plan. To avoid any interruption in your service, please update your payment information as soon as possible.
+
+Subscription Details:
+- Plan: {{ subscription.plan.name }}
+- Amount Due: ${{ subscription.plan.price }}
+- Due Date: Immediate
+
+To update your payment information, please visit:
+https://fitfusion.com/billing
+
+If you don't update your payment information, your subscription may be cancelled, and you'll lose access to premium features.
+
+If you need assistance, please contact our support team.
+
+© {% now "Y" %} FitFusion. All rights reserved. 

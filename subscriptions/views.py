@@ -15,6 +15,12 @@ from django.utils import timezone
 from datetime import timedelta
 import logging
 from django.contrib.auth import get_user_model
+from .utils import (
+    send_subscription_confirmation,
+    send_subscription_cancelled,
+    send_payment_failed,
+    send_subscription_renewed
+)
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -266,6 +272,7 @@ def subscription_cancel(request):
 
 @csrf_exempt
 def stripe_webhook(request):
+    """Handle Stripe webhook events."""
     stripe.api_key = settings.STRIPE_SECRET_KEY
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     payload = request.body
@@ -276,45 +283,120 @@ def stripe_webhook(request):
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
+        logger.error(f"Invalid payload: {str(e)}")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {str(e)}")
         return HttpResponse(status=400)
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        
-        # Handle subscription creation
-        if session.mode == 'subscription':
-            plan_id = session.metadata.get('plan_id')
-            user_id = session.metadata.get('user_id')
-            subscription_id = session.subscription
+    try:
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            
+            # Handle subscription creation
+            if session.mode == 'subscription':
+                plan_id = session.metadata.get('plan_id')
+                user_id = session.metadata.get('user_id')
+                subscription_id = session.subscription
 
+                try:
+                    plan = SubscriptionPlan.objects.get(id=plan_id)
+                    user = User.objects.get(id=user_id)
+                    
+                    # Calculate end date based on plan duration
+                    end_date = timezone.now() + timedelta(days=30 * plan.duration_months)
+                    
+                    # Create user subscription
+                    subscription = UserSubscription.objects.create(
+                        user=user,
+                        plan=plan,
+                        status='ACTIVE',
+                        start_date=timezone.now(),
+                        end_date=end_date,
+                        stripe_subscription_id=subscription_id,
+                        is_auto_renewal=True
+                    )
+
+                    # Send confirmation email
+                    send_subscription_confirmation(user, subscription)
+                    
+                    logger.info(f"Successfully created subscription for user {user.email}")
+
+                except (SubscriptionPlan.DoesNotExist, User.DoesNotExist) as e:
+                    logger.error(f"Failed to create subscription: {str(e)}")
+                    return HttpResponse(status=400)
+                except Exception as e:
+                    logger.error(f"Unexpected error creating subscription: {str(e)}")
+                    return HttpResponse(status=500)
+
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription_id = event['data']['object'].id
             try:
-                plan = SubscriptionPlan.objects.get(id=plan_id)
-                user = User.objects.get(id=user_id)
-                
-                # Calculate end date based on plan duration
-                end_date = timezone.now() + timedelta(days=30 * plan.duration_months)
-                
-                # Create user subscription
-                UserSubscription.objects.create(
-                    user=user,
-                    plan=plan,
-                    status='ACTIVE',
-                    start_date=timezone.now(),
-                    end_date=end_date,
-                    stripe_subscription_id=subscription_id,
-                    is_auto_renewal=True
+                subscription = UserSubscription.objects.get(
+                    stripe_subscription_id=subscription_id
                 )
-            except (SubscriptionPlan.DoesNotExist, User.DoesNotExist):
-                return HttpResponse(status=400)
+                subscription.cancel_subscription()
+                
+                # Send cancellation email
+                send_subscription_cancelled(subscription.user, subscription)
+                
+                logger.info(f"Successfully cancelled subscription for user {subscription.user.email}")
 
-    elif event['type'] == 'customer.subscription.deleted':
-        subscription_id = event['data']['object'].id
-        try:
-            subscription = UserSubscription.objects.get(stripe_subscription_id=subscription_id)
-            subscription.cancel_subscription()
-        except UserSubscription.DoesNotExist:
-            pass
+            except UserSubscription.DoesNotExist:
+                logger.warning(f"Subscription not found for ID: {subscription_id}")
+            except Exception as e:
+                logger.error(f"Error cancelling subscription: {str(e)}")
+                return HttpResponse(status=500)
 
-    return HttpResponse(status=200)
+        elif event['type'] == 'invoice.payment_failed':
+            subscription_id = event['data']['object'].subscription
+            try:
+                subscription = UserSubscription.objects.get(
+                    stripe_subscription_id=subscription_id
+                )
+                subscription.status = 'PAYMENT_FAILED'
+                subscription.save()
+                
+                # Send payment failed email
+                send_payment_failed(subscription.user, subscription)
+                
+                logger.warning(f"Payment failed for subscription: {subscription_id}")
+
+            except UserSubscription.DoesNotExist:
+                logger.warning(f"Subscription not found for failed payment: {subscription_id}")
+            except Exception as e:
+                logger.error(f"Error handling payment failure: {str(e)}")
+                return HttpResponse(status=500)
+
+        elif event['type'] == 'customer.subscription.updated':
+            subscription_id = event['data']['object'].id
+            try:
+                subscription = UserSubscription.objects.get(
+                    stripe_subscription_id=subscription_id
+                )
+                
+                # Update subscription end date
+                current_period_end = event['data']['object'].current_period_end
+                subscription.end_date = timezone.datetime.fromtimestamp(
+                    current_period_end, 
+                    tz=timezone.utc
+                )
+                subscription.save()
+                
+                # Send renewal email if this was a renewal
+                if event['data']['object'].status == 'active':
+                    send_subscription_renewed(subscription.user, subscription)
+                
+                logger.info(f"Successfully updated subscription: {subscription_id}")
+
+            except UserSubscription.DoesNotExist:
+                logger.warning(f"Subscription not found for update: {subscription_id}")
+            except Exception as e:
+                logger.error(f"Error updating subscription: {str(e)}")
+                return HttpResponse(status=500)
+
+        return HttpResponse(status=200)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in webhook handler: {str(e)}")
+        return HttpResponse(status=500)

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .content { margin-bottom: 30px; }
+        .footer { text-align: center; font-size: 12px; color: #666; }
+        .button { 
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Subscription Cancelled</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hi {{ user.first_name|default:user.username }},</p>
+            
+            <p>Your subscription to the {{ subscription.plan.name }} plan has been cancelled as requested.</p>
+            
+            <h2>Subscription Details:</h2>
+            <ul>
+                <li>Plan: {{ subscription.plan.name }}</li>
+                <li>Cancellation Date: {{ subscription.end_date|date:"F j, Y" }}</li>
+            </ul>
+            
+            <p>You'll continue to have access to premium features until the end of your current billing period. After that, your account will revert to the free tier.</p>
+            
+            <p>We're sorry to see you go! If you change your mind, you can resubscribe at any time:</p>
+            
+            <p style="text-align: center;">
+                <a href="https://fitfusion.com/plans" class="button">View Plans</a>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>If you have any feedback about your experience with FitFusion, we'd love to hear it.</p>
+            <p>© {% now "Y" %} FitFusion. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 
