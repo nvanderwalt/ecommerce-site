@@ -44,81 +44,107 @@ class UserSubscription(models.Model):
         ('ACTIVE', 'Active'),
         ('CANCELLED', 'Cancelled'),
         ('EXPIRED', 'Expired'),
-        ('PENDING', 'Pending'),
-        ('SWITCHING', 'Switching'),  # New status for plan switching
+        ('PENDING_RENEWAL', 'Pending Renewal'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
-    start_date = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField()
-    stripe_subscription_id = models.CharField(max_length=100, blank=True)
-    is_auto_renewal = models.BooleanField(default=True)
+    stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    auto_renew = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username}'s {self.plan.name} Subscription"
-
-    def is_active(self):
-        """
-        Checks if the subscription is currently active based on status and dates.
-        Returns True if subscription is active and within valid date range.
-        """
-        now = timezone.now()
-        return (
-            self.status == 'ACTIVE' and
-            self.start_date <= now and
-            self.end_date > now
-        )
+        return f"{self.user.email} - {self.plan.name}"
 
     def cancel_subscription(self, immediate=False):
-        """
-        Cancels the subscription with option for immediate or end-of-period cancellation.
-        
-        Args:
-            immediate (bool): If True, cancels immediately. If False, cancels at period end.
-            
-        Returns:
-            bool: True if cancellation was successful
-        """
+        """Cancel the subscription either immediately or at the end of the billing period."""
         try:
             if self.stripe_subscription_id:
+                # Cancel the subscription in Stripe
                 stripe.api_key = settings.STRIPE_SECRET_KEY
-                stripe.Subscription.modify(
-                    self.stripe_subscription_id,
-                    cancel_at_period_end=not immediate
-                )
-                
                 if immediate:
+                    # Cancel immediately
                     stripe.Subscription.delete(self.stripe_subscription_id)
                     self.status = 'CANCELLED'
                     self.end_date = timezone.now()
+                    self.auto_renew = False
+                else:
+                    # Cancel at period end
+                    stripe.Subscription.modify(
+                        self.stripe_subscription_id,
+                        cancel_at_period_end=True
+                    )
+                    self.status = 'CANCELLED'
+                    self.auto_renew = False
+            else:
+                # Handle non-Stripe subscriptions
+                if immediate:
+                    self.status = 'CANCELLED'
+                    self.end_date = timezone.now()
+                    self.auto_renew = False
                 else:
                     self.status = 'CANCELLED'
+                    self.auto_renew = False
+            
+            self.save()
+            return True
+        except Exception as e:
+            print(f"Error cancelling subscription: {str(e)}")
+            return False
+
+    def is_active(self):
+        """Check if the subscription is currently active."""
+        return (
+            self.status == 'ACTIVE' and
+            self.end_date > timezone.now()
+        )
+
+    def get_remaining_days(self):
+        """Get the number of days remaining in the subscription."""
+        if not self.is_active():
+            return 0
+        return (self.end_date - timezone.now()).days
+
+    def renew_subscription(self):
+        """Renew the subscription for another billing period."""
+        try:
+            if self.stripe_subscription_id:
+                # Handle Stripe subscription renewal
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                subscription = stripe.Subscription.retrieve(self.stripe_subscription_id)
                 
-                self.is_auto_renewal = False
-                self.save()
-                return True
-                
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error cancelling subscription: {str(e)}")
+                if subscription.status == 'active':
+                    # Update end date based on current period end
+                    self.end_date = timezone.datetime.fromtimestamp(
+                        subscription.current_period_end,
+                        tz=timezone.utc
+                    )
+                    self.status = 'ACTIVE'
+                    self.auto_renew = True
+                    self.save()
+                    return True
+            else:
+                # Handle non-Stripe subscription renewal
+                if self.auto_renew:
+                    # Extend the subscription by the plan's duration
+                    self.end_date = self.end_date + timezone.timedelta(
+                        days=30 * self.plan.duration_months
+                    )
+                    self.status = 'ACTIVE'
+                    self.save()
+                    return True
+            
             return False
         except Exception as e:
-            logger.error(f"Error cancelling subscription: {str(e)}")
+            print(f"Error renewing subscription: {str(e)}")
             return False
 
     def switch_plan(self, new_plan):
-        """
-        Initiates a plan switch to a new subscription plan.
-        
-        Args:
-            new_plan: The SubscriptionPlan instance to switch to
-            
-        Returns:
-            bool: True if the switch was initiated successfully
-        """
+        """Switch to a new subscription plan."""
         if not self.is_active():
             return False
             
@@ -135,7 +161,8 @@ class UserSubscription(models.Model):
             status='PENDING',
             start_date=timezone.now(),
             end_date=self.end_date,  # Keep the same end date
-            is_auto_renewal=self.is_auto_renewal
+            stripe_subscription_id=self.stripe_subscription_id,
+            auto_renew=self.auto_renew
         )
         
         return True
