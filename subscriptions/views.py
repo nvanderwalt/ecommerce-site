@@ -400,3 +400,107 @@ def stripe_webhook(request):
     except Exception as e:
         logger.error(f"Unexpected error in webhook handler: {str(e)}")
         return HttpResponse(status=500)
+
+@csrf_exempt
+@login_required
+def switch_subscription_plan(request, plan_id):
+    """Handle subscription plan switching.
+    
+    Args:
+        request: The HTTP request
+        plan_id: ID of the new subscription plan
+        
+    Returns:
+        JsonResponse with session ID or error message
+    """
+    if request.method != 'POST':
+        return JsonResponse(
+            {'error': 'This endpoint only accepts POST requests'}, 
+            status=405
+        )
+
+    try:
+        # Get current active subscription
+        current_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status='ACTIVE',
+            end_date__gt=timezone.now()
+        ).first()
+
+        if not current_subscription:
+            return JsonResponse(
+                {'error': 'No active subscription found'},
+                status=400
+            )
+
+        # Get new plan
+        new_plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+        if not new_plan.is_active:
+            return JsonResponse(
+                {'error': 'This subscription plan is no longer available'},
+                status=400
+            )
+
+        # Check if trying to switch to the same plan
+        if current_subscription.plan == new_plan:
+            return JsonResponse(
+                {'error': 'You are already subscribed to this plan'},
+                status=400
+            )
+
+        # Initiate plan switch
+        if not current_subscription.switch_plan(new_plan):
+            return JsonResponse(
+                {'error': 'Failed to initiate plan switch'},
+                status=400
+            )
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        # Create Stripe Checkout Session for plan switch
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': int(new_plan.price * 100),
+                    'product_data': {
+                        'name': f"Switch to {new_plan.name}",
+                        'description': f"Upgrade from {current_subscription.plan.name} to {new_plan.name}"
+                    },
+                    'recurring': {
+                        'interval': 'month'
+                    }
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.build_absolute_uri('/subscriptions/success/'),
+            cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
+            metadata={
+                'plan_id': str(new_plan.id),
+                'user_id': str(request.user.id),
+                'current_subscription_id': str(current_subscription.id),
+                'is_plan_switch': 'true'
+            }
+        )
+
+        return JsonResponse({'id': checkout_session.id})
+
+    except SubscriptionPlan.DoesNotExist:
+        return JsonResponse(
+            {'error': 'Subscription plan not found'},
+            status=404
+        )
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error during plan switch: {str(e)}")
+        return JsonResponse(
+            {'error': f'An error occurred with Stripe: {str(e)}'},
+            status=400
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during plan switch: {str(e)}")
+        return JsonResponse(
+            {'error': 'An unexpected error occurred. Please try again later'},
+            status=500
+        )
