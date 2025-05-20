@@ -97,16 +97,60 @@ class UserSubscriptionView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """Handle subscription cancellation."""
+        """Handle subscription actions."""
         subscription_id = request.POST.get('subscription_id')
-        if subscription_id:
-            subscription = get_object_or_404(
-                UserSubscription,
-                id=subscription_id,
-                user=request.user
-            )
-            subscription.cancel_subscription()
-            messages.success(request, 'Your subscription has been cancelled.')
+        action = request.POST.get('action')
+        
+        if not subscription_id:
+            messages.error(request, 'Invalid subscription ID')
+            return redirect('subscriptions:user_subscription')
+            
+        subscription = get_object_or_404(
+            UserSubscription,
+            id=subscription_id,
+            user=request.user
+        )
+        
+        if action == 'toggle_renewal':
+            # Handle auto-renewal toggle
+            auto_renew = request.POST.get('auto_renew') == 'on'
+            subscription.auto_renew = auto_renew
+            subscription.save()
+            
+            if auto_renew:
+                messages.success(
+                    request,
+                    'Auto-renewal has been enabled for your subscription.'
+                )
+            else:
+                messages.success(
+                    request,
+                    'Auto-renewal has been disabled for your subscription.'
+                )
+        else:
+            # Handle cancellation
+            immediate = request.POST.get('immediate') == 'true'
+            
+            if subscription.cancel_subscription(immediate=immediate):
+                if immediate:
+                    messages.success(
+                        request,
+                        'Your subscription has been cancelled immediately. '
+                        'You will no longer have access to premium features.'
+                    )
+                else:
+                    messages.success(
+                        request,
+                        'Your subscription has been cancelled. '
+                        'You will continue to have access until the end of your billing period.'
+                    )
+            else:
+                messages.error(
+                    request,
+                    'There was an error cancelling your subscription. '
+                    'Please try again or contact support.'
+                )
+                
         return redirect('subscriptions:user_subscription')
 
 @csrf_exempt
