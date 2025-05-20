@@ -298,29 +298,53 @@ def stripe_webhook(request):
                 plan_id = session.metadata.get('plan_id')
                 user_id = session.metadata.get('user_id')
                 subscription_id = session.subscription
+                is_plan_switch = session.metadata.get('is_plan_switch') == 'true'
 
                 try:
                     plan = SubscriptionPlan.objects.get(id=plan_id)
                     user = User.objects.get(id=user_id)
                     
-                    # Calculate end date based on plan duration
-                    end_date = timezone.now() + timedelta(days=30 * plan.duration_months)
-                    
-                    # Create user subscription
-                    subscription = UserSubscription.objects.create(
-                        user=user,
-                        plan=plan,
-                        status='ACTIVE',
-                        start_date=timezone.now(),
-                        end_date=end_date,
-                        stripe_subscription_id=subscription_id,
-                        is_auto_renewal=True
-                    )
+                    if is_plan_switch:
+                        # Handle plan switch
+                        current_subscription_id = session.metadata.get('current_subscription_id')
+                        current_subscription = UserSubscription.objects.get(
+                            id=current_subscription_id,
+                            user=user,
+                            status='SWITCHING'
+                        )
+                        
+                        # Update current subscription
+                        current_subscription.status = 'CANCELLED'
+                        current_subscription.save()
+                        
+                        # Create new subscription
+                        subscription = UserSubscription.objects.create(
+                            user=user,
+                            plan=plan,
+                            status='ACTIVE',
+                            start_date=timezone.now(),
+                            end_date=current_subscription.end_date,
+                            stripe_subscription_id=subscription_id,
+                            is_auto_renewal=True
+                        )
+                        
+                        logger.info(f"Successfully switched plan for user {user.email}")
+                    else:
+                        # Handle new subscription
+                        end_date = timezone.now() + timedelta(days=30 * plan.duration_months)
+                        subscription = UserSubscription.objects.create(
+                            user=user,
+                            plan=plan,
+                            status='ACTIVE',
+                            start_date=timezone.now(),
+                            end_date=end_date,
+                            stripe_subscription_id=subscription_id,
+                            is_auto_renewal=True
+                        )
+                        logger.info(f"Successfully created subscription for user {user.email}")
 
                     # Send confirmation email
                     send_subscription_confirmation(user, subscription)
-                    
-                    logger.info(f"Successfully created subscription for user {user.email}")
 
                 except (SubscriptionPlan.DoesNotExist, User.DoesNotExist) as e:
                     logger.error(f"Failed to create subscription: {str(e)}")
