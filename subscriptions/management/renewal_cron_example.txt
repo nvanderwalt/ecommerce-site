@@ -1,0 +1,2 @@
+# Run Django subscription renewal every day at midnight
+0 0 * * * /path/to/your/venv/bin/python /path/to/your/project/manage.py renew_subscriptions 
