@@ -13,6 +13,7 @@ FitFusion is a comprehensive fitness platform that combines workout plans, nutri
 4. [Testing](#testing)
 5. [Deployment](#deployment)
 6. [Credits](#credits)
+7. [Subscription Renewal System](#subscription-renewal-system)
 
 ## User Experience (UX)
 
@@ -84,3 +85,33 @@ FitFusion is a comprehensive fitness platform that combines workout plans, nutri
 ### Acknowledgements
 - Code Institute for the project requirements and resources
 - My Mentor for continuous helpful feedback
+
+## Subscription Renewal System
+
+This project includes an automated subscription renewal system:
+
+- Subscriptions with `auto_renew` enabled will be automatically renewed when they are about to expire.
+- The renewal process is handled by a management command: `python manage.py renew_subscriptions`.
+- Expired subscriptions are marked as `EXPIRED` and users are notified by email.
+- Users can enable or disable auto-renewal from their subscription management page.
+
+### Setting up automatic renewals
+
+To run the renewal process daily, set up a cron job (Linux/macOS) or a scheduled task (Windows) to run:
+
+```
+python manage.py renew_subscriptions
+```
+
+### Testing the renewal system
+
+Unit tests for the renewal logic are in `subscriptions/tests/test_renewal.py`:
+
+```
+python manage.py test subscriptions.tests.test_renewal
+```
+
+### Email notifications
+
+- Users receive an email when their subscription is renewed or expired.
+- Make sure to configure `DEFAULT_FROM_EMAIL` in your Django settings.
