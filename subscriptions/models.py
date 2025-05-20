@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+import stripe
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SubscriptionPlan(models.Model):
     """
@@ -40,6 +45,7 @@ class UserSubscription(models.Model):
         ('CANCELLED', 'Cancelled'),
         ('EXPIRED', 'Expired'),
         ('PENDING', 'Pending'),
+        ('SWITCHING', 'Switching'),  # New status for plan switching
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
@@ -67,14 +73,72 @@ class UserSubscription(models.Model):
             self.end_date > now
         )
 
-    def cancel_subscription(self):
+    def cancel_subscription(self, immediate=False):
         """
-        Cancels the subscription by updating status and turning off auto-renewal.
-        The subscription will remain active until the end date.
+        Cancels the subscription with option for immediate or end-of-period cancellation.
+        
+        Args:
+            immediate (bool): If True, cancels immediately. If False, cancels at period end.
+            
+        Returns:
+            bool: True if cancellation was successful
         """
-        self.status = 'CANCELLED'
-        self.is_auto_renewal = False
+        try:
+            if self.stripe_subscription_id:
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                stripe.Subscription.modify(
+                    self.stripe_subscription_id,
+                    cancel_at_period_end=not immediate
+                )
+                
+                if immediate:
+                    stripe.Subscription.delete(self.stripe_subscription_id)
+                    self.status = 'CANCELLED'
+                    self.end_date = timezone.now()
+                else:
+                    self.status = 'CANCELLED'
+                
+                self.is_auto_renewal = False
+                self.save()
+                return True
+                
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error cancelling subscription: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Error cancelling subscription: {str(e)}")
+            return False
+
+    def switch_plan(self, new_plan):
+        """
+        Initiates a plan switch to a new subscription plan.
+        
+        Args:
+            new_plan: The SubscriptionPlan instance to switch to
+            
+        Returns:
+            bool: True if the switch was initiated successfully
+        """
+        if not self.is_active():
+            return False
+            
+        if self.plan == new_plan:
+            return False
+            
+        self.status = 'SWITCHING'
         self.save()
+        
+        # Create a new subscription record for the switch
+        UserSubscription.objects.create(
+            user=self.user,
+            plan=new_plan,
+            status='PENDING',
+            start_date=timezone.now(),
+            end_date=self.end_date,  # Keep the same end date
+            is_auto_renewal=self.is_auto_renewal
+        )
+        
+        return True
 
     class Meta:
         ordering = ['-created_at']
