@@ -81,6 +81,19 @@ class UserSubscriptionView(LoginRequiredMixin, TemplateView):
             status='ACTIVE',
             end_date__gt=timezone.now()
         ).first()
+        
+        # Add available plans for switching
+        context['available_plans'] = SubscriptionPlan.objects.filter(
+            is_active=True
+        ).exclude(
+            usersubscription__user=self.request.user,
+            usersubscription__status='ACTIVE',
+            usersubscription__end_date__gt=timezone.now()
+        )
+        
+        # Add Stripe public key for the template
+        context['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY
+        
         return context
 
     def post(self, request, *args, **kwargs):
@@ -94,7 +107,7 @@ class UserSubscriptionView(LoginRequiredMixin, TemplateView):
             )
             subscription.cancel_subscription()
             messages.success(request, 'Your subscription has been cancelled.')
-        return redirect('user_subscription')
+        return redirect('subscriptions:user_subscription')
 
 @csrf_exempt
 @login_required
