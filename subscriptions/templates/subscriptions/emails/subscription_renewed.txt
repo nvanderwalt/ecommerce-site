@@ -1,0 +1,18 @@
+Subscription Renewed
+
+Hi {{ user.first_name|default:user.username }},
+
+Your subscription to the {{ subscription.plan.name }} plan has been successfully renewed.
+
+Subscription Details:
+- Plan: {{ subscription.plan.name }}
+- Renewal Date: {{ subscription.start_date|date:"F j, Y" }}
+- Next Billing Date: {{ subscription.end_date|date:"F j, Y" }}
+- Monthly Price: ${{ subscription.plan.price }}
+
+Thank you for continuing your fitness journey with FitFusion! To view your subscription details or make changes, visit:
+https://fitfusion.com/dashboard
+
+If you have any questions about your subscription, please don't hesitate to contact our support team.
+
+© {% now "Y" %} FitFusion. All rights reserved. 
