@@ -20,33 +20,46 @@
     {% if active_subscription %}
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">Active Subscription</h2>
+            <h2>Current Plan: {{ active_subscription.plan.name }}</h2>
         </div>
         <div class="card-body">
-            <h3>{{ active_subscription.plan.name }}</h3>
-            <p>{{ active_subscription.plan.description }}</p>
-            
             <div class="subscription-details">
-                <div class="details-column">
-                    <p><strong>Status:</strong> {{ active_subscription.get_status_display }}</p>
-                    <p><strong>Start Date:</strong> {{ active_subscription.start_date|date:"F j, Y" }}</p>
-                    <p><strong>End Date:</strong> {{ active_subscription.end_date|date:"F j, Y" }}</p>
-                </div>
-                <div class="details-column">
-                    <p><strong>Price:</strong> ${{ active_subscription.plan.price }}/month</p>
-                    <p><strong>Auto Renewal:</strong> {% if active_subscription.is_auto_renewal %}Yes{% else %}No{% endif %}</p>
-                </div>
+                <p><strong>Status:</strong> {{ active_subscription.get_status_display }}</p>
+                <p><strong>Start Date:</strong> {{ active_subscription.start_date|date:"F j, Y" }}</p>
+                <p><strong>End Date:</strong> {{ active_subscription.end_date|date:"F j, Y" }}</p>
+                <p><strong>Price:</strong> ${{ active_subscription.plan.price }}/month</p>
             </div>
 
-            {% if active_subscription.status == 'ACTIVE' and active_subscription.is_auto_renewal %}
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="subscription_id" value="{{ active_subscription.id }}">
-                <button type="submit" class="btn btn-danger"
-                        onclick="return confirm('Are you sure you want to cancel your subscription?')">
-                    Cancel Subscription
-                </button>
-            </form>
+            {% if active_subscription.status == 'ACTIVE' %}
+            <div class="subscription-actions">
+                <h3>Available Plans</h3>
+                <div class="plan-options">
+                    {% for plan in available_plans %}
+                        {% if plan != active_subscription.plan %}
+                        <div class="plan-option">
+                            <h4>{{ plan.name }}</h4>
+                            <p>${{ plan.price }}/month</p>
+                            <button class="btn btn-primary switch-plan-btn" 
+                                    data-plan-id="{{ plan.id }}"
+                                    data-plan-name="{{ plan.name }}">
+                                Switch to {{ plan.name }}
+                            </button>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if active_subscription.is_auto_renewal %}
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="subscription_id" value="{{ active_subscription.id }}">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to cancel your subscription?')">
+                        Cancel Subscription
+                    </button>
+                </form>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
     </div>
@@ -86,4 +99,86 @@
     </div>
     {% endif %}
 </div>
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const switchPlanButtons = document.querySelectorAll('.switch-plan-btn');
+
+    switchPlanButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const planId = this.dataset.planId;
+            const planName = this.dataset.planName;
+            
+            if (!confirm(`Are you sure you want to switch to the ${planName} plan?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `/subscriptions/switch-plan/${planId}/`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'An error occurred while switching plans.');
+                }
+                
+                const result = await stripe.redirectToCheckout({
+                    sessionId: data.id
+                });
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscription-details {
+        margin-bottom: 2rem;
+    }
+    
+    .plan-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .plan-option {
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+    }
+    
+    .plan-option h4 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .subscription-actions {
+        margin-top: 2rem;
+    }
+    
+    .table-container {
+        margin-top: 2rem;
+        overflow-x: auto;
+    }
+</style>
+{% endblock %}
 {% endblock %} 
