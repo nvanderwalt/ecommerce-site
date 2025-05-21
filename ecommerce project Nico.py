@@ -195,4 +195,214 @@ def stripe_webhook(request):
 
     except Exception as e:
         logger.error(f"Unexpected error in webhook handler: {str(e)}")
-        return HttpResponse(status=500) 
+        return HttpResponse(status=500)
+
+class SubscriptionPlanListView(ListView):
+    """Display all available subscription plans.
+    
+    This view shows a list of all active subscription plans available to users.
+    For authenticated users, it also shows their current active subscription if any.
+    
+    Attributes:
+        model: The SubscriptionPlan model to use
+        template_name: The template to render
+        context_object_name: The name to use for the plans in the template
+        
+    Template Context:
+        plans: List of active subscription plans
+        current_subscription: User's active subscription (if authenticated)
+    """
+    model = SubscriptionPlan
+    template_name = 'subscriptions/plan_list.html'
+    context_object_name = 'plans'
+
+    def get_queryset(self):
+        """Return only active subscription plans.
+        
+        Returns:
+            QuerySet: Filtered queryset containing only active plans
+        """
+        return SubscriptionPlan.objects.filter(is_active=True)
+
+    def get_context_data(self, **kwargs):
+        """Add current subscription to context if user is authenticated.
+        
+        Args:
+            **kwargs: Additional context data
+            
+        Returns:
+            dict: Context data including plans and current subscription
+        """
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['current_subscription'] = UserSubscription.objects.filter(
+                user=self.request.user,
+                status='ACTIVE',
+                end_date__gt=timezone.now()
+            ).first()
+        return context
+
+class SubscriptionPlanDetailView(DetailView):
+    """Display detailed information about a specific subscription plan.
+    
+    This view shows detailed information about a specific subscription plan,
+    including pricing, features, and subscription options. For authenticated users,
+    it also shows their current subscription status.
+    
+    Attributes:
+        model: The SubscriptionPlan model to use
+        template_name: The template to render
+        context_object_name: The name to use for the plan in the template
+        
+    Template Context:
+        plan: The subscription plan being viewed
+        current_subscription: User's active subscription (if authenticated)
+        stripe_public_key: Stripe public key for payment integration
+        debug: Debug mode status
+    """
+    model = SubscriptionPlan
+    template_name = 'subscriptions/plan_detail.html'
+    context_object_name = 'plan'
+
+    def get_context_data(self, **kwargs):
+        """Add additional context data for the template.
+        
+        Args:
+            **kwargs: Additional context data
+            
+        Returns:
+            dict: Context data including plan details and Stripe configuration
+        """
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['current_subscription'] = UserSubscription.objects.filter(
+                user=self.request.user,
+                status='ACTIVE',
+                end_date__gt=timezone.now()
+            ).first()
+        context['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY
+        context['debug'] = settings.DEBUG
+        return context
+
+class UserSubscriptionView(LoginRequiredMixin, TemplateView):
+    """Display and manage user's current subscription.
+    
+    This view allows users to view and manage their subscription details,
+    including cancellation, renewal settings, and plan switching options.
+    Requires user authentication.
+    
+    Attributes:
+        template_name: The template to render
+        login_url: URL to redirect to if user is not authenticated
+        
+    Template Context:
+        subscriptions: List of user's subscription history
+        active_subscription: User's current active subscription
+        available_plans: List of plans available for switching
+        stripe_public_key: Stripe public key for payment integration
+    """
+    template_name = 'subscriptions/user_subscription.html'
+    login_url = reverse_lazy('login')
+
+    def get_context_data(self, **kwargs):
+        """Add subscription data to context.
+        
+        Args:
+            **kwargs: Additional context data
+            
+        Returns:
+            dict: Context data including subscription details and available plans
+        """
+        context = super().get_context_data(**kwargs)
+        context['subscriptions'] = UserSubscription.objects.filter(
+            user=self.request.user
+        ).order_by('-created_at')
+        context['active_subscription'] = UserSubscription.objects.filter(
+            user=self.request.user,
+            status='ACTIVE',
+            end_date__gt=timezone.now()
+        ).first()
+        
+        # Add available plans for switching
+        context['available_plans'] = SubscriptionPlan.objects.filter(
+            is_active=True
+        ).exclude(
+            usersubscription__user=self.request.user,
+            usersubscription__status='ACTIVE',
+            usersubscription__end_date__gt=timezone.now()
+        )
+        
+        context['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """Handle subscription management actions.
+        
+        Processes subscription-related actions like cancellation and auto-renewal
+        toggling. Validates the subscription belongs to the user before processing.
+        
+        Args:
+            request: The HTTP request
+            *args: Additional positional arguments
+            **kwargs: Additional keyword arguments
+            
+        Returns:
+            HttpResponse: Redirect to subscription management page
+            
+        Raises:
+            Http404: If subscription not found or doesn't belong to user
+        """
+        subscription_id = request.POST.get('subscription_id')
+        action = request.POST.get('action')
+        
+        if not subscription_id:
+            messages.error(request, 'Invalid subscription ID')
+            return redirect('subscriptions:user_subscription')
+            
+        subscription = get_object_or_404(
+            UserSubscription,
+            id=subscription_id,
+            user=request.user
+        )
+        
+        if action == 'toggle_renewal':
+            # Handle auto-renewal toggle
+            auto_renew = request.POST.get('auto_renew') == 'on'
+            subscription.auto_renew = auto_renew
+            subscription.save()
+            
+            if auto_renew:
+                messages.success(
+                    request,
+                    'Auto-renewal has been enabled for your subscription.'
+                )
+            else:
+                messages.success(
+                    request,
+                    'Auto-renewal has been disabled for your subscription.'
+                )
+        else:
+            # Handle cancellation
+            immediate = request.POST.get('immediate') == 'true'
+            
+            if subscription.cancel_subscription(immediate=immediate):
+                if immediate:
+                    messages.success(
+                        request,
+                        'Your subscription has been cancelled immediately. '
+                        'You will no longer have access to premium features.'
+                    )
+                else:
+                    messages.success(
+                        request,
+                        'Your subscription has been cancelled. '
+                        'You will continue to have access until the end of your billing period.'
+                    )
+            else:
+                messages.error(
+                    request,
+                    'There was an error cancelling your subscription. '
+                    'Please try again or contact support.'
+                )
+                
+        return redirect('subscriptions:user_subscription') 
