@@ -381,4 +381,117 @@ class SubscriptionIntegrationTests(TestCase):
         # Test CANCELLED -> EXPIRED
         subscription.end_date = timezone.now() - timedelta(days=1)
         subscription.save()
-        self.assertEqual(subscription.status, 'EXPIRED') 
+        self.assertEqual(subscription.status, 'EXPIRED')
+        
+    def test_trial_period(self):
+        """Test subscription trial period handling."""
+        # Create trial subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='TRIAL',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=14),  # 14-day trial
+            stripe_subscription_id='sub_test123',
+            is_trial=True
+        )
+        
+        # Test trial expiration
+        subscription.end_date = timezone.now() - timedelta(days=1)
+        subscription.save()
+        
+        # Verify subscription status
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'EXPIRED')
+        
+    def test_concurrent_subscriptions(self):
+        """Test handling of concurrent subscription attempts."""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create active subscription
+        UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Try to create another subscription
+        response = self.client.post(
+            reverse('subscriptions:create_checkout', args=[self.premium_plan.id]),
+            content_type='application/json'
+        )
+        
+        # Should be prevented
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertIn('error', data)
+        
+    def test_plan_change_validation(self):
+        """Test validation of plan changes."""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create active subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Try to switch to same plan
+        response = self.client.post(
+            reverse('subscriptions:switch_plan', args=[self.basic_plan.id]),
+            content_type='application/json'
+        )
+        
+        # Should be prevented
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertIn('error', data)
+        
+        # Try to switch to inactive plan
+        self.premium_plan.is_active = False
+        self.premium_plan.save()
+        
+        response = self.client.post(
+            reverse('subscriptions:switch_plan', args=[self.premium_plan.id]),
+            content_type='application/json'
+        )
+        
+        # Should be prevented
+        self.assertEqual(response.status_code, 404)
+        
+    def test_subscription_usage_limits(self):
+        """Test subscription usage limits and restrictions."""
+        # Create subscription with usage limits
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123',
+            usage_count=0,
+            max_usage=100
+        )
+        
+        # Test usage tracking
+        subscription.usage_count += 1
+        subscription.save()
+        
+        # Verify usage count
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.usage_count, 1)
+        
+        # Test usage limit
+        subscription.usage_count = 100
+        subscription.save()
+        
+        # Verify subscription is marked as usage limited
+        subscription.refresh_from_db()
+        self.assertTrue(subscription.is_usage_limited()) 
