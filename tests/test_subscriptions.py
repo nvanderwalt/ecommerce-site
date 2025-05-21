@@ -220,4 +220,165 @@ class SubscriptionIntegrationTests(TestCase):
         
         # Verify subscription status was updated
         subscription.refresh_from_db()
-        self.assertEqual(subscription.status, 'PAYMENT_FAILED') 
+        self.assertEqual(subscription.status, 'PAYMENT_FAILED')
+        
+    def test_subscription_renewal(self):
+        """Test subscription renewal handling."""
+        # Create test subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now() - timedelta(days=30),
+            end_date=timezone.now() + timedelta(days=1),
+            stripe_subscription_id='sub_test123',
+            is_auto_renewal=True
+        )
+        
+        # Create test webhook payload for subscription renewal
+        payload = {
+            'type': 'customer.subscription.updated',
+            'data': {
+                'object': {
+                    'id': 'sub_test123',
+                    'status': 'active',
+                    'current_period_end': int((timezone.now() + timedelta(days=30)).timestamp())
+                }
+            }
+        }
+        
+        # Send webhook request
+        response = self.client.post(
+            reverse('subscriptions:webhook'),
+            data=json.dumps(payload),
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_signature'
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify subscription was renewed
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'ACTIVE')
+        self.assertTrue(subscription.end_date > timezone.now())
+        
+    def test_invalid_webhook_payload(self):
+        """Test handling of invalid webhook payloads."""
+        # Test with missing signature
+        response = self.client.post(
+            reverse('subscriptions:webhook'),
+            data=json.dumps({'type': 'test.event'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+        
+        # Test with invalid JSON
+        response = self.client.post(
+            reverse('subscriptions:webhook'),
+            data='invalid json',
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_signature'
+        )
+        self.assertEqual(response.status_code, 400)
+        
+    def test_subscription_expiration(self):
+        """Test subscription expiration handling."""
+        # Create expired subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now() - timedelta(days=60),
+            end_date=timezone.now() - timedelta(days=1),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Create test webhook payload for subscription expiration
+        payload = {
+            'type': 'customer.subscription.deleted',
+            'data': {
+                'object': {
+                    'id': 'sub_test123'
+                }
+            }
+        }
+        
+        # Send webhook request
+        response = self.client.post(
+            reverse('subscriptions:webhook'),
+            data=json.dumps(payload),
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_signature'
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify subscription was marked as expired
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'EXPIRED')
+        
+    def test_error_handling(self):
+        """Test error handling in subscription operations."""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Test invalid plan ID
+        response = self.client.post(
+            reverse('subscriptions:create_checkout', args=[99999]),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 404)
+        
+        # Test unauthorized subscription access
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123'
+        )
+        subscription = UserSubscription.objects.create(
+            user=other_user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        response = self.client.post(
+            reverse('subscriptions:user_subscription'),
+            {
+                'subscription_id': subscription.id,
+                'action': 'cancel'
+            }
+        )
+        self.assertEqual(response.status_code, 404)
+        
+    def test_subscription_status_transitions(self):
+        """Test various subscription status transitions."""
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Test ACTIVE -> PAYMENT_FAILED
+        subscription.status = 'PAYMENT_FAILED'
+        subscription.save()
+        self.assertEqual(subscription.status, 'PAYMENT_FAILED')
+        
+        # Test PAYMENT_FAILED -> ACTIVE (after successful payment)
+        subscription.status = 'ACTIVE'
+        subscription.save()
+        self.assertEqual(subscription.status, 'ACTIVE')
+        
+        # Test ACTIVE -> CANCELLED
+        subscription.status = 'CANCELLED'
+        subscription.save()
+        self.assertEqual(subscription.status, 'CANCELLED')
+        
+        # Test CANCELLED -> EXPIRED
+        subscription.end_date = timezone.now() - timedelta(days=1)
+        subscription.save()
+        self.assertEqual(subscription.status, 'EXPIRED') 
