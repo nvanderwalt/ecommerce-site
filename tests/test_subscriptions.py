@@ -494,4 +494,159 @@ class SubscriptionIntegrationTests(TestCase):
         
         # Verify subscription is marked as usage limited
         subscription.refresh_from_db()
-        self.assertTrue(subscription.is_usage_limited()) 
+        self.assertTrue(subscription.is_usage_limited())
+        
+    def test_subscription_proration(self):
+        """Test subscription proration handling during plan changes."""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create active subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now() - timedelta(days=15),  # Halfway through billing period
+            end_date=timezone.now() + timedelta(days=15),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Mock Stripe proration calculation
+        with patch('stripe.Subscription.modify') as mock_modify:
+            mock_modify.return_value = MagicMock(
+                id='sub_test123',
+                proration_date=int(timezone.now().timestamp()),
+                items=MagicMock(data=[MagicMock(price=MagicMock(id='price_test'))])
+            )
+            
+            # Test plan upgrade with proration
+            response = self.client.post(
+                reverse('subscriptions:switch_plan', args=[self.premium_plan.id]),
+                content_type='application/json'
+            )
+            
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.content)
+            self.assertIn('proration_amount', data)
+        
+    def test_subscription_pause_resume(self):
+        """Test subscription pause and resume functionality."""
+        # Create active subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Test pausing subscription
+        subscription.pause_subscription()
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'PAUSED')
+        
+        # Test resuming subscription
+        subscription.resume_subscription()
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'ACTIVE')
+        
+        # Test pause during trial
+        trial_subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='TRIAL',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=14),
+            stripe_subscription_id='sub_test456',
+            is_trial=True
+        )
+        
+        # Should not be able to pause trial
+        with self.assertRaises(ValueError):
+            trial_subscription.pause_subscription()
+        
+    def test_subscription_refund(self):
+        """Test subscription refund handling."""
+        # Create subscription with payment
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123',
+            payment_id='pi_test123'
+        )
+        
+        # Mock Stripe refund
+        with patch('stripe.Refund.create') as mock_refund:
+            mock_refund.return_value = MagicMock(id='ref_test123')
+            
+            # Test partial refund
+            refund_amount = 500  # $5.00
+            subscription.refund_subscription(refund_amount)
+            
+            mock_refund.assert_called_once_with(
+                payment_intent='pi_test123',
+                amount=refund_amount
+            )
+            
+            # Test full refund
+            subscription.refund_subscription()
+            self.assertEqual(subscription.status, 'REFUNDED')
+        
+    def test_subscription_grace_period(self):
+        """Test subscription grace period handling."""
+        # Create subscription with grace period
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='ACTIVE',
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30),
+            stripe_subscription_id='sub_test123',
+            grace_period_days=3
+        )
+        
+        # Test entering grace period
+        subscription.end_date = timezone.now() - timedelta(days=1)
+        subscription.save()
+        
+        # Should be in grace period
+        self.assertTrue(subscription.is_in_grace_period())
+        self.assertEqual(subscription.status, 'GRACE_PERIOD')
+        
+        # Test grace period expiration
+        subscription.end_date = timezone.now() - timedelta(days=4)
+        subscription.save()
+        
+        # Should be expired
+        self.assertFalse(subscription.is_in_grace_period())
+        self.assertEqual(subscription.status, 'EXPIRED')
+        
+    def test_subscription_reactivation(self):
+        """Test subscription reactivation after expiration."""
+        # Create expired subscription
+        subscription = UserSubscription.objects.create(
+            user=self.user,
+            plan=self.basic_plan,
+            status='EXPIRED',
+            start_date=timezone.now() - timedelta(days=60),
+            end_date=timezone.now() - timedelta(days=30),
+            stripe_subscription_id='sub_test123'
+        )
+        
+        # Mock Stripe subscription reactivation
+        with patch('stripe.Subscription.modify') as mock_modify:
+            mock_modify.return_value = MagicMock(
+                id='sub_test123',
+                status='active',
+                current_period_end=int((timezone.now() + timedelta(days=30)).timestamp())
+            )
+            
+            # Test reactivation
+            subscription.reactivate_subscription()
+            subscription.refresh_from_db()
+            
+            self.assertEqual(subscription.status, 'ACTIVE')
+            self.assertTrue(subscription.end_date > timezone.now()) 
