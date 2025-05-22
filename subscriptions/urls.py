@@ -12,4 +12,5 @@ urlpatterns = [
     path('success/', views.subscription_success, name='subscription_success'),
     path('cancel/', views.subscription_cancel, name='subscription_cancel'),
     path('webhook/', views.stripe_webhook, name='stripe_webhook'),
+    path('dashboard/', views.dashboard, name='subscription_dashboard'),
 ] 

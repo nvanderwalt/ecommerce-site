@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Subscription Overview Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Subscription Overview</h4>
+                </div>
+                <div class="card-body">
+                    {% if subscription %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="card-title">{{ subscription.plan.name }}</h5>
+                                <p class="text-muted">Status: <span class="badge {% if subscription.status == 'ACTIVE' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ metrics.subscription_status }}
+                                </span></p>
+                                <p>Start Date: {{ subscription.start_date|date:"F j, Y" }}</p>
+                                <p>Renewal Date: {{ metrics.renewal_date|date:"F j, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ metrics.days_remaining }}%;" 
+                                         aria-valuenow="{{ metrics.days_remaining }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ metrics.days_remaining }} days remaining
+                                    </div>
+                                </div>
+                                <p>Total Subscription Days: {{ metrics.total_subscription_days }}</p>
+                                <p>Days Remaining: {{ metrics.days_remaining }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5>No Active Subscription</h5>
+                            <p class="text-muted">You don't have an active subscription at the moment.</p>
+                            <a href="{% url 'plan_list' %}" class="btn btn-primary">View Plans</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subscription History -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">Subscription History</h4>
+                </div>
+                <div class="card-body">
+                    {% if subscription_history %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Status</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in subscription_history %}
+                                        <tr>
+                                            <td>{{ sub.plan.name }}</td>
+                                            <td>
+                                                <span class="badge {% if sub.status == 'ACTIVE' %}bg-success{% elif sub.status == 'CANCELLED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                    {{ sub.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ sub.start_date|date:"M d, Y" }}</td>
+                                            <td>{{ sub.end_date|date:"M d, Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted">No subscription history available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if subscription %}
+                            {% if subscription.status == 'ACTIVE' %}
+                                <a href="{% url 'cancel_subscription' subscription.id %}" class="btn btn-outline-danger">
+                                    Cancel Subscription
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'plan_list' %}" class="btn btn-outline-primary">
+                                Switch Plan
+                            </a>
+                        {% else %}
+                            <a href="{% url 'plan_list' %}" class="btn btn-primary">
+                                Subscribe Now
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'user_subscription' %}" class="btn btn-outline-secondary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Need Help?</h4>
+                </div>
+                <div class="card-body">
+                    <p>Having issues with your subscription?</p>
+                    <a href="{% url 'contact' %}" class="btn btn-success w-100">
+                        Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress {
+        height: 25px;
+    }
+    .progress-bar {
+        background-color: #28a745;
+        transition: width 0.6s ease;
+    }
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        border-bottom: none;
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.8em;
+    }
+</style>
+{% endblock %} 

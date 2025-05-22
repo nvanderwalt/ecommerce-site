@@ -585,3 +585,49 @@ def switch_subscription_plan(request, plan_id):
             {'error': 'An unexpected error occurred. Please try again later'},
             status=500
         )
+
+@login_required
+def dashboard(request):
+    """
+    Display the user's subscription dashboard with overview and metrics.
+    """
+    try:
+        # Get user's active subscription
+        subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status__in=['ACTIVE', 'PENDING_RENEWAL']
+        ).first()
+        
+        # Get subscription history
+        subscription_history = UserSubscription.objects.filter(
+            user=request.user
+        ).order_by('-created_at')[:5]  # Last 5 subscriptions
+        
+        # Calculate metrics
+        metrics = {
+            'total_subscription_days': 0,
+            'days_remaining': 0,
+            'renewal_date': None,
+            'subscription_status': 'No Active Subscription'
+        }
+        
+        if subscription:
+            metrics.update({
+                'total_subscription_days': (timezone.now() - subscription.start_date).days,
+                'days_remaining': subscription.get_remaining_days(),
+                'renewal_date': subscription.end_date,
+                'subscription_status': subscription.get_status_display()
+            })
+        
+        context = {
+            'subscription': subscription,
+            'subscription_history': subscription_history,
+            'metrics': metrics
+        }
+        
+        return render(request, 'subscriptions/dashboard.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in dashboard view: {str(e)}")
+        messages.error(request, "An error occurred while loading the dashboard.")
+        return redirect('home')
