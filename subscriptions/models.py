@@ -4,6 +4,8 @@ from django.utils import timezone
 import stripe
 from django.conf import settings
 import logging
+import random
+import string
 
 logger = logging.getLogger(__name__)
 
@@ -169,3 +171,38 @@ class UserSubscription(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class PaymentRecord(models.Model):
+    """
+    Represents a payment record for a subscription.
+    Stores payment details and invoice information.
+    """
+    PAYMENT_STATUS = [
+        ('SUCCEEDED', 'Succeeded'),
+        ('FAILED', 'Failed'),
+        ('PENDING', 'Pending'),
+        ('REFUNDED', 'Refunded'),
+    ]
+
+    subscription = models.ForeignKey(UserSubscription, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    payment_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=PAYMENT_STATUS, default='PENDING')
+    stripe_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_pdf = models.FileField(upload_to='invoices/', null=True, blank=True)
+    
+    def __str__(self):
+        return f"Invoice #{self.invoice_number} - {self.subscription.user.email}"
+    
+    def generate_invoice_number(self):
+        """Generate a unique invoice number."""
+        timestamp = timezone.now().strftime('%Y%m%d')
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        return f"INV-{timestamp}-{random_suffix}"
+    
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            self.invoice_number = self.generate_invoice_number()
+        super().save(*args, **kwargs)
