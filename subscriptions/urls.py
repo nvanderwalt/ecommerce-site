@@ -13,4 +13,6 @@ urlpatterns = [
     path('cancel/', views.subscription_cancel, name='subscription_cancel'),
     path('webhook/', views.stripe_webhook, name='stripe_webhook'),
     path('dashboard/', views.dashboard, name='subscription_dashboard'),
+    path('payment-history/', views.payment_history, name='payment_history'),
+    path('download-invoice/<int:payment_id>/', views.download_invoice, name='download_invoice'),
 ] 

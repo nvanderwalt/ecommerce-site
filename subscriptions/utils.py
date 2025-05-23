@@ -101,7 +101,7 @@ def send_subscription_renewed(user, subscription):
 
 def generate_invoice_pdf(payment_record):
     """
-    Generate a PDF invoice for a payment record.
+    Generate a professional PDF invoice for a payment record.
     
     Args:
         payment_record: PaymentRecord instance
@@ -136,17 +136,21 @@ def generate_invoice_pdf(payment_record):
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=24,
-        spaceAfter=30
+        spaceAfter=30,
+        textColor=colors.HexColor('#2c3e50')
     )
     
-    # Add company information
+    # Add company information with logo
     elements.append(Paragraph("FitFusion", title_style))
     elements.append(Paragraph("123 Fitness Street", styles["Normal"]))
     elements.append(Paragraph("Fitness City, FC 12345", styles["Normal"]))
+    elements.append(Paragraph("Phone: (555) 123-4567", styles["Normal"]))
+    elements.append(Paragraph("Email: billing@fitfusion.com", styles["Normal"]))
     elements.append(Spacer(1, 30))
     
     # Add invoice information
-    elements.append(Paragraph(f"Invoice #{payment_record.invoice_number}", styles["Heading2"]))
+    elements.append(Paragraph("INVOICE", styles["Heading1"]))
+    elements.append(Paragraph(f"Invoice Number: {payment_record.invoice_number}", styles["Normal"]))
     elements.append(Paragraph(f"Date: {payment_record.payment_date.strftime('%B %d, %Y')}", styles["Normal"]))
     elements.append(Spacer(1, 20))
     
@@ -155,37 +159,74 @@ def generate_invoice_pdf(payment_record):
     elements.append(Paragraph("Bill To:", styles["Heading3"]))
     elements.append(Paragraph(customer.get_full_name() or customer.email, styles["Normal"]))
     elements.append(Paragraph(customer.email, styles["Normal"]))
+    if hasattr(customer, 'profile') and customer.profile.address:
+        elements.append(Paragraph(customer.profile.address, styles["Normal"]))
     elements.append(Spacer(1, 20))
     
     # Add payment details
     data = [
         ['Description', 'Amount'],
-        [f"Subscription: {payment_record.subscription.plan.name}", f"${payment_record.amount}"]
+        [f"Subscription: {payment_record.subscription.plan.name}", f"${payment_record.amount}"],
+        ['', ''],
+        ['Subtotal', f"${payment_record.amount}"],
+        ['Tax (0%)', '$0.00'],
+        ['Total', f"${payment_record.amount}"]
     ]
     
-    # Create the table
+    # Create the table with enhanced styling
     table = Table(data, colWidths=[4*inch, 2*inch])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 14),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        
+        # Body
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, -1), 12),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bdc3c7')),
+        
+        # Total row
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#ecf0f1')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, -1), (-1, -1), 14),
     ]))
     
     elements.append(table)
     elements.append(Spacer(1, 30))
     
-    # Add payment status
+    # Add payment status and details
+    elements.append(Paragraph("Payment Information", styles["Heading3"]))
     elements.append(Paragraph(f"Status: {payment_record.get_status_display()}", styles["Normal"]))
     if payment_record.stripe_payment_id:
         elements.append(Paragraph(f"Payment ID: {payment_record.stripe_payment_id}", styles["Normal"]))
+    elements.append(Spacer(1, 20))
+    
+    # Add terms and conditions
+    elements.append(Paragraph("Terms & Conditions", styles["Heading3"]))
+    elements.append(Paragraph(
+        "This invoice is automatically generated and is valid without signature. "
+        "Payment is due upon receipt. For any questions regarding this invoice, "
+        "please contact our billing department.",
+        styles["Normal"]
+    ))
+    
+    # Add footer
+    elements.append(Spacer(1, 50))
+    elements.append(Paragraph(
+        "Thank you for your business!",
+        ParagraphStyle(
+            'Footer',
+            parent=styles["Normal"],
+            alignment=1,
+            textColor=colors.HexColor('#7f8c8d')
+        )
+    ))
     
     # Build the PDF
     doc.build(elements)

@@ -4,12 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse_lazy
-from .models import SubscriptionPlan, UserSubscription
+from .models import SubscriptionPlan, UserSubscription, PaymentRecord
 from django.utils import timezone
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
@@ -19,8 +19,10 @@ from .utils import (
     send_subscription_confirmation,
     send_subscription_cancelled,
     send_payment_failed,
-    send_subscription_renewed
+    send_subscription_renewed,
+    generate_invoice_pdf
 )
+from django.db import models
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -382,7 +384,15 @@ def stripe_webhook(request):
                             start_date=timezone.now(),
                             end_date=current_subscription.end_date,
                             stripe_subscription_id=subscription_id,
-                            is_auto_renewal=True
+                            auto_renew=True
+                        )
+                        
+                        # Create payment record for plan switch
+                        PaymentRecord.objects.create(
+                            subscription=subscription,
+                            amount=plan.price,
+                            status='SUCCEEDED',
+                            stripe_payment_id=session.payment_intent
                         )
                         
                         logger.info(f"Successfully switched plan for user {user.email}")
@@ -396,8 +406,17 @@ def stripe_webhook(request):
                             start_date=timezone.now(),
                             end_date=end_date,
                             stripe_subscription_id=subscription_id,
-                            is_auto_renewal=True
+                            auto_renew=True
                         )
+                        
+                        # Create payment record for new subscription
+                        PaymentRecord.objects.create(
+                            subscription=subscription,
+                            amount=plan.price,
+                            status='SUCCEEDED',
+                            stripe_payment_id=session.payment_intent
+                        )
+                        
                         logger.info(f"Successfully created subscription for user {user.email}")
 
                     # Send confirmation email
@@ -410,23 +429,30 @@ def stripe_webhook(request):
                     logger.error(f"Unexpected error creating subscription: {str(e)}")
                     return HttpResponse(status=500)
 
-        elif event['type'] == 'customer.subscription.deleted':
-            subscription_id = event['data']['object'].id
+        elif event['type'] == 'invoice.payment_succeeded':
+            # Handle successful recurring payment
+            invoice = event['data']['object']
+            subscription_id = invoice.subscription
+            
             try:
                 subscription = UserSubscription.objects.get(
                     stripe_subscription_id=subscription_id
                 )
-                subscription.cancel_subscription()
                 
-                # Send cancellation email
-                send_subscription_cancelled(subscription.user, subscription)
+                # Create payment record for successful payment
+                PaymentRecord.objects.create(
+                    subscription=subscription,
+                    amount=invoice.amount_paid / 100,  # Convert from cents to dollars
+                    status='SUCCEEDED',
+                    stripe_payment_id=invoice.payment_intent
+                )
                 
-                logger.info(f"Successfully cancelled subscription for user {subscription.user.email}")
-
+                logger.info(f"Successfully recorded payment for subscription: {subscription_id}")
+                
             except UserSubscription.DoesNotExist:
-                logger.warning(f"Subscription not found for ID: {subscription_id}")
+                logger.warning(f"Subscription not found for payment: {subscription_id}")
             except Exception as e:
-                logger.error(f"Error cancelling subscription: {str(e)}")
+                logger.error(f"Error recording payment: {str(e)}")
                 return HttpResponse(status=500)
 
         elif event['type'] == 'invoice.payment_failed':
@@ -438,6 +464,14 @@ def stripe_webhook(request):
                 subscription.status = 'PAYMENT_FAILED'
                 subscription.save()
                 
+                # Create payment record for failed payment
+                PaymentRecord.objects.create(
+                    subscription=subscription,
+                    amount=event['data']['object'].amount_due / 100,
+                    status='FAILED',
+                    stripe_payment_id=event['data']['object'].payment_intent
+                )
+                
                 # Send payment failed email
                 send_payment_failed(subscription.user, subscription)
                 
@@ -447,33 +481,6 @@ def stripe_webhook(request):
                 logger.warning(f"Subscription not found for failed payment: {subscription_id}")
             except Exception as e:
                 logger.error(f"Error handling payment failure: {str(e)}")
-                return HttpResponse(status=500)
-
-        elif event['type'] == 'customer.subscription.updated':
-            subscription_id = event['data']['object'].id
-            try:
-                subscription = UserSubscription.objects.get(
-                    stripe_subscription_id=subscription_id
-                )
-                
-                # Update subscription end date
-                current_period_end = event['data']['object'].current_period_end
-                subscription.end_date = timezone.datetime.fromtimestamp(
-                    current_period_end, 
-                    tz=timezone.utc
-                )
-                subscription.save()
-                
-                # Send renewal email if this was a renewal
-                if event['data']['object'].status == 'active':
-                    send_subscription_renewed(subscription.user, subscription)
-                
-                logger.info(f"Successfully updated subscription: {subscription_id}")
-
-            except UserSubscription.DoesNotExist:
-                logger.warning(f"Subscription not found for update: {subscription_id}")
-            except Exception as e:
-                logger.error(f"Error updating subscription: {str(e)}")
                 return HttpResponse(status=500)
 
         return HttpResponse(status=200)
@@ -631,3 +638,84 @@ def dashboard(request):
         logger.error(f"Error in dashboard view: {str(e)}")
         messages.error(request, "An error occurred while loading the dashboard.")
         return redirect('home')
+
+@login_required
+def payment_history(request):
+    """
+    Display user's payment history with downloadable invoices.
+    Supports filtering by date range and status, and sorting by different fields.
+    """
+    try:
+        # Get all payments for user's subscriptions
+        payments = PaymentRecord.objects.filter(
+            subscription__user=request.user
+        )
+
+        # Apply filters
+        status_filter = request.GET.get('status')
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        sort_by = request.GET.get('sort', '-payment_date')
+
+        if status_filter:
+            payments = payments.filter(status=status_filter)
+        if date_from:
+            payments = payments.filter(payment_date__gte=date_from)
+        if date_to:
+            payments = payments.filter(payment_date__lte=date_to)
+
+        # Apply sorting
+        payments = payments.order_by(sort_by)
+
+        # Calculate summary statistics
+        total_paid = payments.filter(status='SUCCEEDED').aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+
+        context = {
+            'payments': payments,
+            'total_paid': total_paid,
+            'status_choices': PaymentRecord.PAYMENT_STATUS,
+            'current_filters': {
+                'status': status_filter,
+                'date_from': date_from,
+                'date_to': date_to,
+                'sort': sort_by
+            }
+        }
+        
+        return render(request, 'subscriptions/payment_history.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in payment history view: {str(e)}")
+        messages.error(request, "An error occurred while loading payment history.")
+        return redirect('subscriptions:dashboard')
+
+@login_required
+def download_invoice(request, payment_id):
+    """
+    Download invoice PDF for a specific payment.
+    """
+    try:
+        payment = get_object_or_404(
+            PaymentRecord,
+            id=payment_id,
+            subscription__user=request.user
+        )
+        
+        if not payment.invoice_pdf:
+            # Generate PDF if it doesn't exist
+            generate_invoice_pdf(payment)
+        
+        # Serve the PDF file
+        response = FileResponse(
+            payment.invoice_pdf,
+            as_attachment=True,
+            filename=f"invoice_{payment.invoice_number}.pdf"
+        )
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error downloading invoice: {str(e)}")
+        messages.error(request, "An error occurred while downloading the invoice.")
+        return redirect('subscriptions:payment_history')
