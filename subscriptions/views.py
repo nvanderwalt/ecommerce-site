@@ -45,7 +45,7 @@ class SubscriptionPlanListView(ListView):
         if self.request.user.is_authenticated:
             context['current_subscription'] = UserSubscription.objects.filter(
                 user=self.request.user,
-                status='ACTIVE',
+                status__in=['ACTIVE', 'TRIAL'],
                 end_date__gt=timezone.now()
             ).first()
         return context
@@ -719,3 +719,83 @@ def download_invoice(request, payment_id):
         logger.error(f"Error downloading invoice: {str(e)}")
         messages.error(request, "An error occurred while downloading the invoice.")
         return redirect('subscriptions:payment_history')
+
+@login_required
+def start_trial(request, plan_id):
+    """Start a trial period for a subscription plan."""
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+    
+    # Check if user already has an active subscription or trial
+    existing_subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status__in=['ACTIVE', 'TRIAL'],
+        end_date__gt=timezone.now()
+    ).first()
+    
+    if existing_subscription:
+        messages.error(request, 'You already have an active subscription or trial.')
+        return redirect('subscriptions:plan_list')
+    
+    # Create trial subscription
+    subscription = UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        status='TRIAL',
+        start_date=timezone.now(),
+        end_date=timezone.now() + timezone.timedelta(days=14),  # 14-day trial
+        is_trial=True,
+        trial_end_date=timezone.now() + timezone.timedelta(days=14)
+    )
+    
+    messages.success(request, f'Your 14-day trial of {plan.name} has started!')
+    return redirect('subscriptions:user_subscription')
+
+@login_required
+def convert_trial(request, subscription_id):
+    """Convert a trial subscription to a paid subscription."""
+    subscription = get_object_or_404(
+        UserSubscription,
+        id=subscription_id,
+        user=request.user,
+        is_trial=True
+    )
+    
+    if not subscription.is_trial_active():
+        messages.error(request, 'Your trial period has expired.')
+        return redirect('subscriptions:plan_list')
+    
+    # Create Stripe Checkout Session for conversion
+    try:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': int(subscription.plan.price * 100),
+                    'product_data': {
+                        'name': subscription.plan.name,
+                        'description': subscription.plan.description
+                    },
+                    'recurring': {
+                        'interval': 'month'
+                    }
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.build_absolute_uri('/subscriptions/success/'),
+            cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
+            metadata={
+                'plan_id': str(subscription.plan.id),
+                'user_id': str(request.user.id),
+                'is_trial_conversion': 'true',
+                'trial_subscription_id': str(subscription.id)
+            }
+        )
+        
+        return JsonResponse({'id': checkout_session.id})
+        
+    except Exception as e:
+        messages.error(request, 'An error occurred while processing your request.')
+        return redirect('subscriptions:user_subscription')

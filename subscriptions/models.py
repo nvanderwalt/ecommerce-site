@@ -47,6 +47,7 @@ class UserSubscription(models.Model):
         ('CANCELLED', 'Cancelled'),
         ('EXPIRED', 'Expired'),
         ('PENDING_RENEWAL', 'Pending Renewal'),
+        ('TRIAL', 'Trial'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -56,6 +57,8 @@ class UserSubscription(models.Model):
     end_date = models.DateTimeField()
     stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
     auto_renew = models.BooleanField(default=True)
+    is_trial = models.BooleanField(default=False)
+    trial_end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -167,6 +170,42 @@ class UserSubscription(models.Model):
             auto_renew=self.auto_renew
         )
         
+        return True
+
+    def start_trial(self, days=14):
+        """Start a trial period for the subscription."""
+        if self.is_trial:
+            return False
+        
+        self.is_trial = True
+        self.status = 'TRIAL'
+        self.trial_end_date = timezone.now() + timezone.timedelta(days=days)
+        self.save()
+        return True
+
+    def is_trial_active(self):
+        """Check if the trial period is still active."""
+        return (
+            self.is_trial and
+            self.trial_end_date and
+            self.trial_end_date > timezone.now()
+        )
+
+    def get_trial_remaining_days(self):
+        """Get the number of days remaining in the trial period."""
+        if not self.is_trial_active():
+            return 0
+        return (self.trial_end_date - timezone.now()).days
+
+    def convert_trial_to_paid(self):
+        """Convert a trial subscription to a paid subscription."""
+        if not self.is_trial:
+            return False
+        
+        self.is_trial = False
+        self.status = 'ACTIVE'
+        self.trial_end_date = None
+        self.save()
         return True
 
     class Meta:
