@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .warning {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Trial Ending Soon</h1>
+    </div>
+    
+    <div class="content">
+        <p>Hi {{ user.first_name }},</p>
+        
+        <p class="warning">Your trial of the {{ subscription.plan.name }} plan will end in {{ days_remaining }} days (on {{ trial_end_date|date:"F j, Y" }}).</p>
+        
+        <p>To continue enjoying all premium features, you'll need to convert your trial to a paid subscription. Here's what you'll get:</p>
+        
+        <ul>
+            {% for feature in subscription.plan.features %}
+            <li>{{ feature }}</li>
+            {% endfor %}
+        </ul>
+        
+        <p>Don't miss out on these benefits:</p>
+        <ul>
+            <li>Unlimited access to all premium content</li>
+            <li>Priority customer support</li>
+            <li>Exclusive member-only features</li>
+        </ul>
+        
+        <p>Ready to continue your journey?</p>
+        
+        <a href="{{ site_url }}/subscriptions/convert-trial/{{ subscription.id }}" class="button">Convert to Paid Plan</a>
+        
+        <p style="margin-top: 20px;">If you have any questions or need assistance, our support team is here to help!</p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message, please do not reply directly to this email.</p>
+        <p>If you have any questions, please contact our support team.</p>
+    </div>
+</body>
+</html> 
