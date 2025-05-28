@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to Your Trial!</h1>
+    </div>
+    
+    <div class="content">
+        <p>Hi {{ user.first_name }},</p>
+        
+        <p>Great news! Your trial of the {{ subscription.plan.name }} plan has started. You now have access to all premium features for the next 14 days.</p>
+        
+        <p>Your trial will end on {{ trial_end_date|date:"F j, Y" }}. That's {{ days_remaining }} days from now.</p>
+        
+        <p>During your trial, you can:</p>
+        <ul>
+            {% for feature in subscription.plan.features %}
+            <li>{{ feature }}</li>
+            {% endfor %}
+        </ul>
+        
+        <p>To make the most of your trial:</p>
+        <ol>
+            <li>Explore all the features available in your plan</li>
+            <li>Set up your profile and preferences</li>
+            <li>Try out the premium content and tools</li>
+        </ol>
+        
+        <p>If you have any questions or need help, our support team is here for you.</p>
+        
+        <a href="{{ site_url }}/subscriptions/dashboard" class="button">Go to Dashboard</a>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message, please do not reply directly to this email.</p>
+        <p>If you have any questions, please contact our support team.</p>
+    </div>
+</body>
+</html> 

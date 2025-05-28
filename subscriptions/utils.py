@@ -8,6 +8,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 import os
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
 
@@ -235,4 +238,98 @@ def generate_invoice_pdf(payment_record):
     payment_record.invoice_pdf = f'invoices/{pdf_filename}'
     payment_record.save()
     
-    return pdf_path 
+    return pdf_path
+
+def send_trial_started_email(user, subscription):
+    """Send email notification when a trial period starts."""
+    try:
+        subject = f"Your {subscription.plan.name} Trial Has Started!"
+        html_message = render_to_string('subscriptions/emails/trial_started.html', {
+            'user': user,
+            'subscription': subscription,
+            'trial_end_date': subscription.trial_end_date,
+            'days_remaining': subscription.get_trial_remaining_days()
+        })
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message
+        )
+        logger.info(f"Trial started email sent to {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send trial started email: {str(e)}")
+
+def send_trial_reminder_email(user, subscription, days_remaining):
+    """Send reminder email before trial period ends."""
+    try:
+        subject = f"Your {subscription.plan.name} Trial Ends in {days_remaining} Days"
+        html_message = render_to_string('subscriptions/emails/trial_reminder.html', {
+            'user': user,
+            'subscription': subscription,
+            'days_remaining': days_remaining,
+            'trial_end_date': subscription.trial_end_date
+        })
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message
+        )
+        logger.info(f"Trial reminder email sent to {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send trial reminder email: {str(e)}")
+
+def send_trial_ended_email(user, subscription):
+    """Send email notification when a trial period ends."""
+    try:
+        subject = f"Your {subscription.plan.name} Trial Has Ended"
+        html_message = render_to_string('subscriptions/emails/trial_ended.html', {
+            'user': user,
+            'subscription': subscription,
+            'plan': subscription.plan
+        })
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message
+        )
+        logger.info(f"Trial ended email sent to {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send trial ended email: {str(e)}")
+
+def check_trial_notifications():
+    """Check and send trial notifications for all active trials."""
+    from .models import UserSubscription
+    
+    # Get all active trials
+    active_trials = UserSubscription.objects.filter(
+        is_trial=True,
+        trial_end_date__gt=timezone.now()
+    )
+    
+    for subscription in active_trials:
+        days_remaining = subscription.get_trial_remaining_days()
+        
+        # Send reminder at 3 days and 1 day before end
+        if days_remaining in [3, 1]:
+            send_trial_reminder_email(subscription.user, subscription, days_remaining)
+    
+    # Get trials that ended today
+    ended_trials = UserSubscription.objects.filter(
+        is_trial=True,
+        trial_end_date__date=timezone.now().date()
+    )
+    
+    for subscription in ended_trials:
+        send_trial_ended_email(subscription.user, subscription) 
