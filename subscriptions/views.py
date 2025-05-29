@@ -20,7 +20,10 @@ from .utils import (
     send_subscription_cancelled,
     send_payment_failed,
     send_subscription_renewed,
-    generate_invoice_pdf
+    generate_invoice_pdf,
+    send_trial_started_email,
+    send_trial_reminder_email,
+    send_trial_ended_email
 )
 from django.db import models
 
@@ -182,18 +185,29 @@ def create_subscription_checkout(request, plan_id):
                 status=400
             )
 
-        # Check if user already has an active subscription
+        # Check if user already has an active subscription or trial
         active_subscription = UserSubscription.objects.filter(
             user=request.user,
-            status='ACTIVE',
+            status__in=['ACTIVE', 'TRIAL'],
             end_date__gt=timezone.now()
         ).first()
 
         if active_subscription:
+            if active_subscription.is_trial_active():
+                return JsonResponse(
+                    {'error': 'You already have an active trial subscription'},
+                    status=400
+                )
             return JsonResponse(
                 {'error': 'You already have an active subscription'},
                 status=400
             )
+
+        # Check if user has used a trial before
+        has_used_trial = UserSubscription.objects.filter(
+            user=request.user,
+            is_trial=True
+        ).exists()
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -219,7 +233,8 @@ def create_subscription_checkout(request, plan_id):
             cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
             metadata={
                 'plan_id': str(plan.id),
-                'user_id': str(request.user.id)
+                'user_id': str(request.user.id),
+                'has_used_trial': str(has_used_trial)
             }
         )
 
@@ -332,162 +347,209 @@ def subscription_cancel(request):
 @csrf_exempt
 def stripe_webhook(request):
     """Handle Stripe webhook events."""
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    # Get the webhook secret from settings
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
+            payload, sig_header, webhook_secret
         )
     except ValueError as e:
-        logger.error(f"Invalid payload: {str(e)}")
+        # Invalid payload
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
-        logger.error(f"Invalid signature: {str(e)}")
+        # Invalid signature
         return HttpResponse(status=400)
 
-    try:
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
+    # Handle the event
+    if event.type == 'checkout.session.completed':
+        session = event.data.object
+        try:
+            # Get the subscription details
+            subscription = stripe.Subscription.retrieve(
+                session.subscription
+            )
             
-            # Handle subscription creation
-            if session.mode == 'subscription':
-                plan_id = session.metadata.get('plan_id')
-                user_id = session.metadata.get('user_id')
-                subscription_id = session.subscription
-                is_plan_switch = session.metadata.get('is_plan_switch') == 'true'
-
-                try:
-                    plan = SubscriptionPlan.objects.get(id=plan_id)
-                    user = User.objects.get(id=user_id)
-                    
-                    if is_plan_switch:
-                        # Handle plan switch
-                        current_subscription_id = session.metadata.get('current_subscription_id')
-                        current_subscription = UserSubscription.objects.get(
-                            id=current_subscription_id,
-                            user=user,
-                            status='SWITCHING'
-                        )
-                        
-                        # Update current subscription
-                        current_subscription.status = 'CANCELLED'
-                        current_subscription.save()
-                        
-                        # Create new subscription
-                        subscription = UserSubscription.objects.create(
-                            user=user,
-                            plan=plan,
-                            status='ACTIVE',
-                            start_date=timezone.now(),
-                            end_date=current_subscription.end_date,
-                            stripe_subscription_id=subscription_id,
-                            auto_renew=True
-                        )
-                        
-                        # Create payment record for plan switch
-                        PaymentRecord.objects.create(
-                            subscription=subscription,
-                            amount=plan.price,
-                            status='SUCCEEDED',
-                            stripe_payment_id=session.payment_intent
-                        )
-                        
-                        logger.info(f"Successfully switched plan for user {user.email}")
-                    else:
-                        # Handle new subscription
-                        end_date = timezone.now() + timedelta(days=30 * plan.duration_months)
-                        subscription = UserSubscription.objects.create(
-                            user=user,
-                            plan=plan,
-                            status='ACTIVE',
-                            start_date=timezone.now(),
-                            end_date=end_date,
-                            stripe_subscription_id=subscription_id,
-                            auto_renew=True
-                        )
-                        
-                        # Create payment record for new subscription
-                        PaymentRecord.objects.create(
-                            subscription=subscription,
-                            amount=plan.price,
-                            status='SUCCEEDED',
-                            stripe_payment_id=session.payment_intent
-                        )
-                        
-                        logger.info(f"Successfully created subscription for user {user.email}")
-
-                    # Send confirmation email
-                    send_subscription_confirmation(user, subscription)
-
-                except (SubscriptionPlan.DoesNotExist, User.DoesNotExist) as e:
-                    logger.error(f"Failed to create subscription: {str(e)}")
-                    return HttpResponse(status=400)
-                except Exception as e:
-                    logger.error(f"Unexpected error creating subscription: {str(e)}")
-                    return HttpResponse(status=500)
-
-        elif event['type'] == 'invoice.payment_succeeded':
-            # Handle successful recurring payment
-            invoice = event['data']['object']
-            subscription_id = invoice.subscription
+            # Get the plan and user from metadata
+            plan_id = session.metadata.get('plan_id')
+            user_id = session.metadata.get('user_id')
+            has_used_trial = session.metadata.get('has_used_trial') == 'True'
             
-            try:
-                subscription = UserSubscription.objects.get(
-                    stripe_subscription_id=subscription_id
+            if not plan_id or not user_id:
+                logger.error("Missing plan_id or user_id in session metadata")
+                return HttpResponse(status=400)
+                
+            plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+            user = get_object_or_404(User, id=user_id)
+            
+            # Create or update the subscription
+            user_subscription, created = UserSubscription.objects.get_or_create(
+                user=user,
+                plan=plan,
+                defaults={
+                    'status': 'ACTIVE',
+                    'end_date': timezone.datetime.fromtimestamp(
+                        subscription.current_period_end,
+                        tz=timezone.utc
+                    ),
+                    'stripe_subscription_id': subscription.id,
+                    'auto_renew': True
+                }
+            )
+            
+            if not created:
+                # Update existing subscription
+                user_subscription.status = 'ACTIVE'
+                user_subscription.end_date = timezone.datetime.fromtimestamp(
+                    subscription.current_period_end,
+                    tz=timezone.utc
+                )
+                user_subscription.stripe_subscription_id = subscription.id
+                user_subscription.auto_renew = True
+                user_subscription.save()
+            
+            # Create payment record
+            PaymentRecord.objects.create(
+                subscription=user_subscription,
+                amount=plan.price,
+                currency='usd',
+                status='SUCCEEDED',
+                stripe_payment_id=session.payment_intent,
+                invoice_number=session.invoice
+            )
+            
+            # Send confirmation email
+            send_subscription_confirmation(user, user_subscription)
+            
+        except Exception as e:
+            logger.error(f"Error processing checkout.session.completed: {str(e)}")
+            return HttpResponse(status=500)
+            
+    elif event.type == 'customer.subscription.updated':
+        subscription = event.data.object
+        try:
+            # Find the user subscription
+            user_subscription = UserSubscription.objects.get(
+                stripe_subscription_id=subscription.id
+            )
+            
+            # Update subscription status
+            if subscription.status == 'active':
+                user_subscription.status = 'ACTIVE'
+                user_subscription.end_date = timezone.datetime.fromtimestamp(
+                    subscription.current_period_end,
+                    tz=timezone.utc
+                )
+                user_subscription.save()
+                
+                # Send renewal confirmation
+                send_subscription_renewed(user_subscription.user, user_subscription)
+                
+            elif subscription.status == 'canceled':
+                user_subscription.status = 'CANCELLED'
+                user_subscription.end_date = timezone.datetime.fromtimestamp(
+                    subscription.canceled_at,
+                    tz=timezone.utc
+                )
+                user_subscription.auto_renew = False
+                user_subscription.save()
+                
+                # Send cancellation confirmation
+                send_subscription_cancelled(user_subscription.user, user_subscription)
+                
+        except UserSubscription.DoesNotExist:
+            logger.error(f"Subscription {subscription.id} not found")
+            return HttpResponse(status=404)
+        except Exception as e:
+            logger.error(f"Error processing subscription.updated: {str(e)}")
+            return HttpResponse(status=500)
+            
+    elif event.type == 'customer.subscription.deleted':
+        subscription = event.data.object
+        try:
+            # Find the user subscription
+            user_subscription = UserSubscription.objects.get(
+                stripe_subscription_id=subscription.id
+            )
+            
+            # Update subscription status
+            user_subscription.status = 'CANCELLED'
+            user_subscription.end_date = timezone.datetime.fromtimestamp(
+                subscription.canceled_at,
+                tz=timezone.utc
+            )
+            user_subscription.auto_renew = False
+            user_subscription.save()
+            
+            # Send cancellation confirmation
+            send_subscription_cancelled(user_subscription.user, user_subscription)
+            
+        except UserSubscription.DoesNotExist:
+            logger.error(f"Subscription {subscription.id} not found")
+            return HttpResponse(status=404)
+        except Exception as e:
+            logger.error(f"Error processing subscription.deleted: {str(e)}")
+            return HttpResponse(status=500)
+            
+    elif event.type == 'invoice.payment_failed':
+        invoice = event.data.object
+        try:
+            # Find the user subscription
+            user_subscription = UserSubscription.objects.get(
+                stripe_subscription_id=invoice.subscription
+            )
+            
+            # Create failed payment record
+            PaymentRecord.objects.create(
+                subscription=user_subscription,
+                amount=invoice.amount_due / 100,  # Convert from cents
+                currency=invoice.currency,
+                status='FAILED',
+                stripe_payment_id=invoice.payment_intent,
+                invoice_number=invoice.number
+            )
+            
+            # Send payment failed notification
+            send_payment_failed(user_subscription.user, user_subscription)
+            
+        except UserSubscription.DoesNotExist:
+            logger.error(f"Subscription {invoice.subscription} not found")
+            return HttpResponse(status=404)
+        except Exception as e:
+            logger.error(f"Error processing invoice.payment_failed: {str(e)}")
+            return HttpResponse(status=500)
+
+    # Handle trial expiration
+    elif event.type == 'customer.subscription.trial_will_end':
+        subscription = event.data.object
+        try:
+            # Find the user subscription
+            user_subscription = UserSubscription.objects.get(
+                stripe_subscription_id=subscription.id
+            )
+            
+            if user_subscription.is_trial_active():
+                # Send trial ending soon notification
+                days_remaining = user_subscription.get_trial_remaining_days()
+                send_trial_reminder_email(
+                    user_subscription.user,
+                    user_subscription,
+                    days_remaining
                 )
                 
-                # Create payment record for successful payment
-                PaymentRecord.objects.create(
-                    subscription=subscription,
-                    amount=invoice.amount_paid / 100,  # Convert from cents to dollars
-                    status='SUCCEEDED',
-                    stripe_payment_id=invoice.payment_intent
-                )
-                
-                logger.info(f"Successfully recorded payment for subscription: {subscription_id}")
-                
-            except UserSubscription.DoesNotExist:
-                logger.warning(f"Subscription not found for payment: {subscription_id}")
-            except Exception as e:
-                logger.error(f"Error recording payment: {str(e)}")
-                return HttpResponse(status=500)
+        except UserSubscription.DoesNotExist:
+            logger.error(f"Subscription {subscription.id} not found")
+            return HttpResponse(status=404)
+        except Exception as e:
+            logger.error(f"Error processing trial_will_end: {str(e)}")
+            return HttpResponse(status=500)
 
-        elif event['type'] == 'invoice.payment_failed':
-            subscription_id = event['data']['object'].subscription
-            try:
-                subscription = UserSubscription.objects.get(
-                    stripe_subscription_id=subscription_id
-                )
-                subscription.status = 'PAYMENT_FAILED'
-                subscription.save()
-                
-                # Create payment record for failed payment
-                PaymentRecord.objects.create(
-                    subscription=subscription,
-                    amount=event['data']['object'].amount_due / 100,
-                    status='FAILED',
-                    stripe_payment_id=event['data']['object'].payment_intent
-                )
-                
-                # Send payment failed email
-                send_payment_failed(subscription.user, subscription)
-                
-                logger.warning(f"Payment failed for subscription: {subscription_id}")
-
-            except UserSubscription.DoesNotExist:
-                logger.warning(f"Subscription not found for failed payment: {subscription_id}")
-            except Exception as e:
-                logger.error(f"Error handling payment failure: {str(e)}")
-                return HttpResponse(status=500)
-
-        return HttpResponse(status=200)
-
-    except Exception as e:
-        logger.error(f"Unexpected error in webhook handler: {str(e)}")
-        return HttpResponse(status=500)
+    return HttpResponse(status=200)
 
 @csrf_exempt
 @login_required
@@ -722,80 +784,150 @@ def download_invoice(request, payment_id):
 
 @login_required
 def start_trial(request, plan_id):
-    """Start a trial period for a subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+    """Start a trial period for a subscription plan.
     
-    # Check if user already has an active subscription or trial
-    existing_subscription = UserSubscription.objects.filter(
-        user=request.user,
-        status__in=['ACTIVE', 'TRIAL'],
-        end_date__gt=timezone.now()
-    ).first()
-    
-    if existing_subscription:
-        messages.error(request, 'You already have an active subscription or trial.')
+    Args:
+        request: The HTTP request
+        plan_id: ID of the subscription plan
+        
+    Returns:
+        Redirect to subscription page with success/error message
+    """
+    try:
+        # Validate plan exists and is active
+        plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+        if not plan.is_active:
+            logger.warning(f"Attempted to start trial for inactive plan {plan_id}")
+            messages.error(request, 'This subscription plan is no longer available')
+            return redirect('subscriptions:plan_list')
+
+        # Check if user already has an active subscription or trial
+        active_subscription = UserSubscription.objects.filter(
+            user=request.user,
+            status__in=['ACTIVE', 'TRIAL'],
+            end_date__gt=timezone.now()
+        ).first()
+
+        if active_subscription:
+            if active_subscription.is_trial_active():
+                logger.info(f"User {request.user.id} attempted to start trial while having active trial")
+                messages.error(request, 'You already have an active trial subscription')
+            else:
+                logger.info(f"User {request.user.id} attempted to start trial while having active subscription")
+                messages.error(request, 'You already have an active subscription')
+            return redirect('subscriptions:plan_list')
+
+        # Check if user has used a trial before
+        has_used_trial = UserSubscription.objects.filter(
+            user=request.user,
+            is_trial=True
+        ).exists()
+
+        if has_used_trial:
+            logger.info(f"User {request.user.id} attempted to start trial after using one before")
+            messages.error(request, 'You have already used your trial period')
+            return redirect('subscriptions:plan_list')
+
+        # Create new subscription with trial
+        subscription = UserSubscription.objects.create(
+            user=request.user,
+            plan=plan,
+            status='TRIAL',
+            end_date=timezone.now() + timezone.timedelta(days=14),
+            is_trial=True,
+            trial_end_date=timezone.now() + timezone.timedelta(days=14)
+        )
+
+        # Send trial started email
+        try:
+            send_trial_started_email(request.user, subscription)
+        except Exception as e:
+            logger.error(f"Failed to send trial started email to user {request.user.id}: {str(e)}")
+
+        # Schedule trial reminder emails
+        reminder_days = [3, 1]  # Send reminders 3 days and 1 day before trial ends
+        for days in reminder_days:
+            reminder_date = subscription.trial_end_date - timezone.timedelta(days=days)
+            if reminder_date > timezone.now():
+                try:
+                    send_trial_reminder_email(request.user, subscription, days)
+                except Exception as e:
+                    logger.error(f"Failed to send trial reminder email to user {request.user.id}: {str(e)}")
+
+        logger.info(f"Successfully started trial for user {request.user.id} with plan {plan_id}")
+        messages.success(
+            request,
+            'Your trial period has started. You have 14 days to try out our premium features.'
+        )
+        return redirect('subscriptions:user_subscription')
+
+    except Exception as e:
+        logger.error(f"Error starting trial for user {request.user.id}: {str(e)}")
+        messages.error(
+            request,
+            'There was an error starting your trial. Please try again or contact support.'
+        )
         return redirect('subscriptions:plan_list')
-    
-    # Create trial subscription
-    subscription = UserSubscription.objects.create(
-        user=request.user,
-        plan=plan,
-        status='TRIAL',
-        start_date=timezone.now(),
-        end_date=timezone.now() + timezone.timedelta(days=14),  # 14-day trial
-        is_trial=True,
-        trial_end_date=timezone.now() + timezone.timedelta(days=14)
-    )
-    
-    messages.success(request, f'Your 14-day trial of {plan.name} has started!')
-    return redirect('subscriptions:user_subscription')
 
 @login_required
 def convert_trial(request, subscription_id):
     """Convert a trial subscription to a paid subscription."""
-    subscription = get_object_or_404(
-        UserSubscription,
-        id=subscription_id,
-        user=request.user,
-        is_trial=True
-    )
-    
-    if not subscription.is_trial_active():
-        messages.error(request, 'Your trial period has expired.')
-        return redirect('subscriptions:plan_list')
-    
-    # Create Stripe Checkout Session for conversion
     try:
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'unit_amount': int(subscription.plan.price * 100),
-                    'product_data': {
-                        'name': subscription.plan.name,
-                        'description': subscription.plan.description
-                    },
-                    'recurring': {
-                        'interval': 'month'
-                    }
-                },
-                'quantity': 1,
-            }],
-            mode='subscription',
-            success_url=request.build_absolute_uri('/subscriptions/success/'),
-            cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
-            metadata={
-                'plan_id': str(subscription.plan.id),
-                'user_id': str(request.user.id),
-                'is_trial_conversion': 'true',
-                'trial_subscription_id': str(subscription.id)
-            }
+        subscription = get_object_or_404(
+            UserSubscription,
+            id=subscription_id,
+            user=request.user,
+            is_trial=True
         )
         
-        return JsonResponse({'id': checkout_session.id})
+        if not subscription.is_trial_active():
+            logger.warning(f"User {request.user.id} attempted to convert expired trial")
+            messages.error(request, 'Your trial period has expired.')
+            return redirect('subscriptions:plan_list')
         
+        # Create Stripe Checkout Session for conversion
+        try:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'unit_amount': int(subscription.plan.price * 100),
+                        'product_data': {
+                            'name': subscription.plan.name,
+                            'description': subscription.plan.description
+                        },
+                        'recurring': {
+                            'interval': 'month'
+                        }
+                    },
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=request.build_absolute_uri('/subscriptions/success/'),
+                cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
+                metadata={
+                    'plan_id': str(subscription.plan.id),
+                    'user_id': str(request.user.id),
+                    'is_trial_conversion': 'true',
+                    'trial_subscription_id': str(subscription.id)
+                }
+            )
+            
+            logger.info(f"Created checkout session for trial conversion: user {request.user.id}")
+            return JsonResponse({'id': checkout_session.id})
+            
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error during trial conversion: {str(e)}")
+            messages.error(request, 'An error occurred while processing your payment. Please try again.')
+            return redirect('subscriptions:user_subscription')
+            
+    except UserSubscription.DoesNotExist:
+        logger.warning(f"Attempted to convert non-existent trial subscription {subscription_id}")
+        messages.error(request, 'Invalid subscription.')
+        return redirect('subscriptions:plan_list')
     except Exception as e:
+        logger.error(f"Error converting trial: {str(e)}")
         messages.error(request, 'An error occurred while processing your request.')
         return redirect('subscriptions:user_subscription')

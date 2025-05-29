@@ -115,3 +115,64 @@ python manage.py test subscriptions.tests.test_renewal
 
 - Users receive an email when their subscription is renewed or expired.
 - Make sure to configure `DEFAULT_FROM_EMAIL` in your Django settings.
+
+## Trial Period Feature
+
+The platform includes a 14-day trial period for new users to experience premium features before committing to a paid subscription.
+
+### Trial Period Features
+
+- 14-day free trial for all subscription plans
+- Automatic trial expiration
+- Email notifications:
+  - Trial started confirmation
+  - Reminder emails at 3 days and 1 day before trial ends
+  - Trial ended notification
+- Easy conversion from trial to paid subscription
+- One trial per user policy
+
+### Trial Period Workflow
+
+1. **Starting a Trial**
+   - Users can start a trial from the subscription plan page
+   - Trial period begins immediately upon selection
+   - Users receive a welcome email with trial details
+
+2. **During Trial**
+   - Full access to premium features
+   - Trial status displayed in user dashboard
+   - Remaining days shown
+   - Option to convert to paid plan at any time
+
+3. **Trial Conversion**
+   - Users can convert to paid plan during or after trial
+   - Seamless transition through Stripe checkout
+   - Maintains access to premium features
+
+4. **Trial Expiration**
+   - Automatic expiration after 14 days
+   - Email notification sent
+   - Option to subscribe to paid plan
+   - Special offer for conversion (20% off first month)
+
+### Technical Implementation
+
+- Trial status tracked in `UserSubscription` model
+- Email notifications handled by Django's email system
+- Stripe integration for trial conversion
+- Comprehensive test coverage for all trial features
+
+### Usage Statistics
+
+The platform tracks various metrics related to trial usage:
+- Trial conversion rate
+- Average time to conversion
+- Trial expiration rate
+- Feature usage during trial
+
+### Security and Validation
+
+- One trial per user enforced
+- Trial status validation on all premium features
+- Secure conversion process through Stripe
+- Protection against trial abuse

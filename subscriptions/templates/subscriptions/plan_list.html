@@ -27,17 +27,77 @@
                     <li>{{ feature }}</li>
                     {% endfor %}
                 </ul>
-                <a href="{% url 'subscriptions:plan_detail' plan.pk %}" 
-                   class="btn btn-primary">
+                <div class="d-grid gap-2">
                     {% if current_subscription and current_subscription.plan == plan %}
-                        Current Plan
+                        <a href="{% url 'subscriptions:user_subscription' %}" class="btn btn-primary">
+                            Current Plan
+                        </a>
                     {% else %}
-                        Choose Plan
+                        {% if not current_subscription %}
+                            <a href="{% url 'subscriptions:start_trial' plan.pk %}" class="btn btn-outline-primary">
+                                Start 14-Day Trial
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'subscriptions:plan_detail' plan.pk %}" class="btn btn-primary">
+                            Subscribe Now
+                        </a>
                     {% endif %}
-                </a>
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+    
+    .feature-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .btn {
+        margin-top: 1rem;
+    }
+</style>
 {% endblock %} 

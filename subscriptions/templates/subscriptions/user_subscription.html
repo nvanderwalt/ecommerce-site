@@ -216,15 +216,18 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     const stripe = Stripe('{{ stripe_public_key }}');
-    
+
     async function convertTrial(subscriptionId) {
         try {
-            const response = await fetch(`/subscriptions/convert-trial/${subscriptionId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
+            const response = await fetch(
+                `/subscriptions/convert-trial/${subscriptionId}/`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
                 }
-            });
+            );
             
             const data = await response.json();
             
@@ -244,17 +247,12 @@
         }
     }
 
-    const switchPlanButtons = document.querySelectorAll('.switch-plan-btn');
-
-    switchPlanButtons.forEach(button => {
-        button.addEventListener('click', async function() {
+    // Handle subscription switching
+    document.querySelectorAll('.switch-plan-btn').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
             const planId = this.dataset.planId;
-            const planName = this.dataset.planName;
             
-            if (!confirm(`Are you sure you want to switch to the ${planName} plan?`)) {
-                return;
-            }
-
             try {
                 const response = await fetch(
                     `/subscriptions/switch-plan/${planId}/`,

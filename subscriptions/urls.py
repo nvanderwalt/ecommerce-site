@@ -15,4 +15,6 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='subscription_dashboard'),
     path('payment-history/', views.payment_history, name='payment_history'),
     path('download-invoice/<int:payment_id>/', views.download_invoice, name='download_invoice'),
+    path('start-trial/<int:plan_id>/', views.start_trial, name='start_trial'),
+    path('convert-trial/<int:subscription_id>/', views.convert_trial, name='convert_trial'),
 ] 
