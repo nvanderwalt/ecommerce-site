@@ -245,3 +245,30 @@ class PaymentRecord(models.Model):
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
         super().save(*args, **kwargs)
+
+class TrialUsageStats(models.Model):
+    """Track usage statistics for trial subscriptions."""
+    subscription = models.OneToOneField(
+        UserSubscription,
+        on_delete=models.CASCADE,
+        related_name='usage_stats'
+    )
+    feature_usage_count = models.JSONField(default=dict)  # Track feature usage counts
+    last_active = models.DateTimeField(auto_now=True)
+    conversion_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Usage stats for {self.subscription.user.email}"
+
+    def track_feature_usage(self, feature_name):
+        """Increment usage count for a specific feature."""
+        if feature_name not in self.feature_usage_count:
+            self.feature_usage_count[feature_name] = 0
+        self.feature_usage_count[feature_name] += 1
+        self.save()
+
+    def record_conversion(self):
+        """Record when a trial is converted to paid subscription."""
+        self.conversion_date = timezone.now()
+        self.save()
