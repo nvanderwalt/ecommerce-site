@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, UserProfile, ExercisePlan
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -30,6 +30,24 @@ def product_list(request):
 
     return render(request, 'inventory/product_list.html', {
         'products': products,
+        'form': form,
+    })
+
+def product_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    form = ReviewForm()
+    
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.product = product
+            review.save()
+            return redirect('product_detail', slug=slug)
+    
+    return render(request, 'inventory/product_detail.html', {
+        'product': product,
         'form': form,
     })
 
@@ -206,6 +224,17 @@ def remove_from_cart(request, product_id):
 @login_required
 def exercise_plan_list(request):
     plans = ExercisePlan.objects.all()
+    
+    # Filter by difficulty
+    difficulty = request.GET.get('difficulty')
+    if difficulty:
+        plans = plans.filter(difficulty=difficulty)
+    
+    # Filter by max duration
+    max_duration = request.GET.get('max_duration')
+    if max_duration:
+        plans = plans.filter(duration_minutes__lte=int(max_duration))
+    
     return render(request, 'inventory/exercise_plans.html', {
         'plans': plans
     })
@@ -239,7 +268,7 @@ def create_plan_checkout_session(request, plan_id):
                     'currency': 'eur',
                     'product_data': {
                         'name': plan.name,
-                        'description': f"{plan.get_difficulty_display()} level, {plan.duration} minutes"
+                        'description': f"{plan.get_difficulty_display()} level, {plan.duration_minutes} minutes"
                     },
                     'unit_amount': int(plan.price * 100),
                 },
