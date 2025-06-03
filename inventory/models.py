@@ -91,39 +91,38 @@ class Review(models.Model):
 
 class ExercisePlan(models.Model):
     DIFFICULTY_CHOICES = [
-        ('BEG', 'Beginner'),
-        ('INT', 'Intermediate'),
-        ('ADV', 'Advanced'),
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
     ]
     
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     description = models.TextField()
-    difficulty = models.CharField(max_length=3, choices=DIFFICULTY_CHOICES)
-    duration_minutes = models.PositiveIntegerField(help_text="Duration in minutes", default=30)
-    calories_burn = models.PositiveIntegerField(help_text="Estimated calories burned per session")
-    equipment_needed = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    duration_weeks = models.IntegerField(null=True, blank=True)
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    image = models.ImageField(upload_to='exercise_plans/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    instructor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=29.99)
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
     
     class Meta:
         ordering = ['-created_at']
+
+class Exercise(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    sets = models.IntegerField()
+    reps = models.IntegerField()
+    rest_time = models.IntegerField(help_text="Rest time in seconds")
+    exercise_plan = models.ForeignKey(ExercisePlan, related_name='exercises', on_delete=models.CASCADE)
     
     def __str__(self):
-        return f"{self.name} - {self.get_difficulty_display()}"
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-    
-    @property
-    def current_price(self):
-        return self.sale_price if self.sale_price else self.price
+        return self.name
 
 class ExerciseStep(models.Model):
     """Represents a single exercise step within a workout plan."""

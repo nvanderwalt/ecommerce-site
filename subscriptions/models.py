@@ -6,6 +6,9 @@ from django.conf import settings
 import logging
 import random
 import string
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -14,28 +17,32 @@ class SubscriptionPlan(models.Model):
     Represents a subscription plan that users can subscribe to.
     Each plan has specific features, duration, and pricing.
     """
-    PLAN_TYPES = [
-        ('BASIC', 'Basic'),
-        ('PREMIUM', 'Premium'),
-        ('PRO', 'Professional'),
-    ]
-
     name = models.CharField(max_length=100)
-    plan_type = models.CharField(max_length=10, choices=PLAN_TYPES)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    plan_type = models.CharField(
+        max_length=10,
+        choices=[
+            ('BASIC', 'Basic'),
+            ('PREMIUM', 'Premium'),
+            ('PRO', 'Professional')
+        ]
+    )
     description = models.TextField()
-    features = models.JSONField(default=list)  # Store features as a JSON array
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_months = models.IntegerField(default=1)
+    features = models.JSONField(default=list)
+    stripe_price_id = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
-    stripe_price_id = models.CharField(max_length=100, blank=True)  # Stripe price ID
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.name} - {self.get_plan_type_display()}"
-
     class Meta:
         ordering = ['price']
+
+    def __str__(self):
+        return self.name
+
+    def get_features_list(self):
+        return json.loads(self.features) if isinstance(self.features, str) else self.features
 
 class UserSubscription(models.Model):
     """
@@ -47,169 +54,58 @@ class UserSubscription(models.Model):
         ('CANCELLED', 'Cancelled'),
         ('EXPIRED', 'Expired'),
         ('PENDING_RENEWAL', 'Pending Renewal'),
-        ('TRIAL', 'Trial'),
+        ('TRIAL', 'Trial')
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     plan = models.ForeignKey(SubscriptionPlan, on_delete=models.PROTECT)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
-    start_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField()
     stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
     auto_renew = models.BooleanField(default=True)
     is_trial = models.BooleanField(default=False)
-    trial_end_date = models.DateTimeField(null=True, blank=True)
+    trial_end_date = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.user.email} - {self.plan.name}"
-
-    def cancel_subscription(self, immediate=False):
-        """Cancel the subscription either immediately or at the end of the billing period."""
-        try:
-            if self.stripe_subscription_id:
-                # Cancel the subscription in Stripe
-                stripe.api_key = settings.STRIPE_SECRET_KEY
-                if immediate:
-                    # Cancel immediately
-                    stripe.Subscription.delete(self.stripe_subscription_id)
-                    self.status = 'CANCELLED'
-                    self.end_date = timezone.now()
-                    self.auto_renew = False
-                else:
-                    # Cancel at period end
-                    stripe.Subscription.modify(
-                        self.stripe_subscription_id,
-                        cancel_at_period_end=True
-                    )
-                    self.status = 'CANCELLED'
-                    self.auto_renew = False
-            else:
-                # Handle non-Stripe subscriptions
-                if immediate:
-                    self.status = 'CANCELLED'
-                    self.end_date = timezone.now()
-                    self.auto_renew = False
-                else:
-                    self.status = 'CANCELLED'
-                    self.auto_renew = False
-            
-            self.save()
-            return True
-        except Exception as e:
-            print(f"Error cancelling subscription: {str(e)}")
-            return False
-
-    def is_active(self):
-        """Check if the subscription is currently active."""
-        return (
-            self.status == 'ACTIVE' and
-            self.end_date > timezone.now()
-        )
-
-    def get_remaining_days(self):
-        """Get the number of days remaining in the subscription."""
-        if not self.is_active():
-            return 0
-        return (self.end_date - timezone.now()).days
-
-    def renew_subscription(self):
-        """Renew the subscription for another billing period."""
-        try:
-            if self.stripe_subscription_id:
-                # Handle Stripe subscription renewal
-                stripe.api_key = settings.STRIPE_SECRET_KEY
-                subscription = stripe.Subscription.retrieve(self.stripe_subscription_id)
-                
-                if subscription.status == 'active':
-                    # Update end date based on current period end
-                    self.end_date = timezone.datetime.fromtimestamp(
-                        subscription.current_period_end,
-                        tz=timezone.utc
-                    )
-                    self.status = 'ACTIVE'
-                    self.auto_renew = True
-                    self.save()
-                    return True
-            else:
-                # Handle non-Stripe subscription renewal
-                if self.auto_renew:
-                    # Extend the subscription by the plan's duration
-                    self.end_date = self.end_date + timezone.timedelta(
-                        days=30 * self.plan.duration_months
-                    )
-                    self.status = 'ACTIVE'
-                    self.save()
-                    return True
-            
-            return False
-        except Exception as e:
-            print(f"Error renewing subscription: {str(e)}")
-            return False
-
-    def switch_plan(self, new_plan):
-        """Switch to a new subscription plan."""
-        if not self.is_active():
-            return False
-            
-        if self.plan == new_plan:
-            return False
-            
-        self.status = 'SWITCHING'
-        self.save()
-        
-        # Create a new subscription record for the switch
-        UserSubscription.objects.create(
-            user=self.user,
-            plan=new_plan,
-            status='PENDING',
-            start_date=timezone.now(),
-            end_date=self.end_date,  # Keep the same end date
-            stripe_subscription_id=self.stripe_subscription_id,
-            auto_renew=self.auto_renew
-        )
-        
-        return True
-
-    def start_trial(self, days=14):
-        """Start a trial period for the subscription."""
-        if self.is_trial:
-            return False
-        
-        self.is_trial = True
-        self.status = 'TRIAL'
-        self.trial_end_date = timezone.now() + timezone.timedelta(days=days)
-        self.save()
-        return True
-
-    def is_trial_active(self):
-        """Check if the trial period is still active."""
-        return (
-            self.is_trial and
-            self.trial_end_date and
-            self.trial_end_date > timezone.now()
-        )
-
-    def get_trial_remaining_days(self):
-        """Get the number of days remaining in the trial period."""
-        if not self.is_trial_active():
-            return 0
-        return (self.trial_end_date - timezone.now()).days
-
-    def convert_trial_to_paid(self):
-        """Convert a trial subscription to a paid subscription."""
-        if not self.is_trial:
-            return False
-        
-        self.is_trial = False
-        self.status = 'ACTIVE'
-        self.trial_end_date = None
-        self.save()
-        return True
-
     class Meta:
         ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.plan.name}"
+
+    @property
+    def is_active(self):
+        return self.status == 'ACTIVE' and self.end_date > timezone.now()
+
+    @property
+    def can_renew(self):
+        return self.status == 'CANCELLED' and self.end_date > timezone.now()
+
+    def get_remaining_days(self):
+        if not self.is_active:
+            return 0
+        remaining = self.end_date - timezone.now()
+        return max(0, remaining.days)
+
+    def get_progress_percentage(self):
+        if not self.is_active:
+            return 100
+        total_days = (self.end_date - self.start_date).days
+        remaining_days = self.get_remaining_days()
+        return int(((total_days - remaining_days) / total_days) * 100)
+
+    def cancel(self):
+        self.status = 'CANCELLED'
+        self.save()
+
+    def renew(self):
+        if self.can_renew:
+            self.status = 'ACTIVE'
+            self.save()
+            return True
+        return False
 
 class PaymentRecord(models.Model):
     """
@@ -231,6 +127,8 @@ class PaymentRecord(models.Model):
     stripe_payment_id = models.CharField(max_length=100, blank=True, null=True)
     invoice_number = models.CharField(max_length=50, unique=True)
     invoice_pdf = models.FileField(upload_to='invoices/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"Invoice #{self.invoice_number} - {self.subscription.user.email}"

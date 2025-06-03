@@ -424,3 +424,7 @@ def newsletter_signup(request):
         else:
             messages.error(request, 'Please provide a valid email address.')
     return redirect('home')
+
+def facebook_mockup(request):
+    """View to display the Facebook business page mockup."""
+    return render(request, 'facebook_mockup.html')

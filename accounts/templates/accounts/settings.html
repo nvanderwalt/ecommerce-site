@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Settings - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Account Settings</h5>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:settings' %}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-cog"></i> General Settings
+                        </a>
+                        <a href="{% url 'accounts:profile_edit' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user"></i> Profile Information
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock"></i> Change Password
+                        </a>
+                        <a href="{% url 'accounts:security_logs' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shield-alt"></i> Security Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">General Settings</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h5>Email Preferences</h5>
+                            <div class="form-check mb-2">
+                                {{ settings_form.email_notifications }}
+                                <label class="form-check-label" for="{{ settings_form.email_notifications.id_for_label }}">
+                                    Receive email notifications
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ settings_form.marketing_emails }}
+                                <label class="form-check-label" for="{{ settings_form.marketing_emails.id_for_label }}">
+                                    Receive marketing emails
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                {{ settings_form.login_notifications }}
+                                <label class="form-check-label" for="{{ settings_form.login_notifications.id_for_label }}">
+                                    Receive login notifications
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Security Activity -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Recent Security Activity</h4>
+                </div>
+                <div class="card-body">
+                    {% if security_logs %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>IP Address</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in security_logs %}
+                                        <tr>
+                                            <td>{{ log.get_event_type_display }}</td>
+                                            <td>{{ log.ip_address|default:"N/A" }}</td>
+                                            <td>{{ log.created_at|date:"M d, Y H:i" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'accounts:security_logs' %}" class="btn btn-outline-primary">View All Activity</a>
+                    {% else %}
+                        <p class="text-muted">No recent security activity.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 1rem;
+    }
+    .list-group-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+    .list-group-item.active {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .form-check {
+        padding-left: 2rem;
+    }
+    .form-check-input {
+        margin-left: -2rem;
+    }
+</style>
+{% endblock %} 

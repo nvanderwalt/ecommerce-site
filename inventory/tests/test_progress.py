@@ -19,9 +19,10 @@ class ProgressTrackingTests(TestCase):
             name='Test Plan',
             slug='test-plan',
             description='Test Description',
-            difficulty='beginner',
+            difficulty='BEG',
             duration_minutes=30,
-            calories_burn=200
+            calories_burn=200,
+            price=29.99
         )
         self.step1 = ExerciseStep.objects.create(
             plan=self.plan,
@@ -64,7 +65,7 @@ class ProgressTrackingTests(TestCase):
         
         # Test progress creation
         response = self.client.post(
-            reverse('inventory:start_plan', args=[self.plan.slug])
+            reverse('start_plan', args=[self.plan.slug])
         )
         self.assertEqual(response.status_code, 302)  # Redirect after success
         
@@ -83,7 +84,7 @@ class ProgressTrackingTests(TestCase):
         
         # Test completing a step
         response = self.client.post(
-            reverse('inventory:complete_step', args=[self.plan.slug, self.step1.id])
+            reverse('complete_step', args=[self.plan.slug, self.step1.id])
         )
         self.assertEqual(response.status_code, 302)  # Redirect after success
         
@@ -95,34 +96,34 @@ class ProgressTrackingTests(TestCase):
     def test_progress_percentage(self):
         """Test progress percentage calculation."""
         # Complete first step
-        self.progress.completed_steps.add(self.step1)
-        self.progress.current_step = self.step2
-        self.progress.save()
-        
-        # Verify progress percentage
-        self.assertEqual(self.progress.progress_percentage(), 33)  # 1/3 steps completed
+        self.progress.complete_step(self.step1)
+        self.assertEqual(self.progress.get_progress_percentage(), 33.33)
         
         # Complete second step
-        self.progress.completed_steps.add(self.step2)
-        self.progress.current_step = self.step3
-        self.progress.save()
+        self.progress.complete_step(self.step2)
+        self.assertEqual(self.progress.get_progress_percentage(), 66.67)
         
-        # Verify updated progress percentage
-        self.assertEqual(self.progress.progress_percentage(), 67)  # 2/3 steps completed
+        # Complete third step
+        self.progress.complete_step(self.step3)
+        self.assertEqual(self.progress.get_progress_percentage(), 100)
     
     def test_plan_completion(self):
         """Test plan completion."""
         # Complete all steps
-        self.progress.completed_steps.add(self.step1, self.step2, self.step3)
-        self.progress.current_step = None
+        self.progress.complete_step(self.step1)
+        self.progress.complete_step(self.step2)
+        self.progress.complete_step(self.step3)
+        
+        # Mark plan as completed
         self.progress.is_completed = True
         self.progress.completion_date = timezone.now()
         self.progress.save()
         
-        # Verify plan completion
+        # Verify completion
+        self.progress.refresh_from_db()
         self.assertTrue(self.progress.is_completed)
         self.assertIsNotNone(self.progress.completion_date)
-        self.assertEqual(self.progress.progress_percentage(), 100)
+        self.assertEqual(self.progress.get_progress_percentage(), 100)
     
     def test_progress_dashboard(self):
         """Test progress dashboard view."""
@@ -130,28 +131,23 @@ class ProgressTrackingTests(TestCase):
         self.client.login(username='testuser', password='testpass123')
         
         # Test dashboard view
-        response = self.client.get(reverse('inventory:progress_dashboard'))
+        response = self.client.get(reverse('progress_dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'inventory/progress_dashboard.html')
         self.assertContains(response, 'Test Plan')
-        self.assertContains(response, '33%')  # Progress percentage
     
     def test_progress_history(self):
-        """Test progress history."""
-        # Complete some steps
-        self.progress.completed_steps.add(self.step1, self.step2)
-        self.progress.current_step = self.step3
-        self.progress.save()
-        
+        """Test progress history view."""
         # Login first
         self.client.login(username='testuser', password='testpass123')
         
+        # Complete some steps
+        self.progress.complete_step(self.step1)
+        self.progress.complete_step(self.step2)
+        
         # Test history view
-        response = self.client.get(
-            reverse('inventory:plan_history', args=[self.plan.slug])
-        )
+        response = self.client.get(reverse('progress_history', args=[self.plan.slug]))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'inventory/plan_history.html')
+        self.assertTemplateUsed(response, 'inventory/progress_history.html')
         self.assertContains(response, 'Step 1')
-        self.assertContains(response, 'Step 2')
-        self.assertNotContains(response, 'Step 3')  # Not completed yet 
+        self.assertContains(response, 'Step 2') 

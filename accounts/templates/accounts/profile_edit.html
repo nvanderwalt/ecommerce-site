@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Account Settings</h5>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:settings' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog"></i> General Settings
+                        </a>
+                        <a href="{% url 'accounts:profile_edit' %}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-user"></i> Profile Information
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock"></i> Change Password
+                        </a>
+                        <a href="{% url 'accounts:security_logs' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shield-alt"></i> Security Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Profile Information</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ profile_form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ profile_form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ profile_form.email.id_for_label }}" class="form-label">Email Address</label>
+                            {{ profile_form.email }}
+                            <div class="form-text">This email will be used for account notifications and password recovery.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 1rem;
+    }
+    .list-group-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+    .list-group-item.active {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .form-control {
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+{% endblock %} 

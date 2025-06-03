@@ -2,130 +2,142 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container mt-4">
+    <h1 class="mb-4">Subscription Dashboard</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Subscription Overview Card -->
+        <div class="col-md-8">
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Subscription Overview</h4>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Current Subscription</h5>
                 </div>
                 <div class="card-body">
-                    {% if subscription %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="card-title">{{ subscription.plan.name }}</h5>
-                                <p class="text-muted">Status: <span class="badge {% if subscription.status == 'ACTIVE' %}bg-success{% else %}bg-warning{% endif %}">
-                                    {{ metrics.subscription_status }}
-                                </span></p>
-                                <p>Start Date: {{ subscription.start_date|date:"F j, Y" }}</p>
-                                <p>Renewal Date: {{ metrics.renewal_date|date:"F j, Y" }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="progress mb-3">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ metrics.days_remaining }}%;" 
-                                         aria-valuenow="{{ metrics.days_remaining }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                        {{ metrics.days_remaining }} days remaining
-                                    </div>
-                                </div>
-                                <p>Total Subscription Days: {{ metrics.total_subscription_days }}</p>
-                                <p>Days Remaining: {{ metrics.days_remaining }}</p>
-                            </div>
+                    {% if current_subscription %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4>{{ current_subscription.plan.name }}</h4>
+                            <p class="text-muted mb-0">Started on {{ current_subscription.start_date|date:"F j, Y" }}</p>
                         </div>
+                        <div class="text-end">
+                            <h5>${{ current_subscription.plan.price }}/month</h5>
+                            <p class="text-muted mb-0">{{ current_subscription.get_remaining_days }} days remaining</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mb-3">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: {{ current_subscription.get_progress_percentage }}%;"
+                             aria-valuenow="{{ current_subscription.get_progress_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ current_subscription.get_progress_percentage }}%
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {% if current_subscription.is_active %}
+                        <form method="post" action="{% url 'subscriptions:cancel' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure you want to cancel your subscription?')">
+                                Cancel Subscription
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if current_subscription.can_renew %}
+                        <form method="post" action="{% url 'subscriptions:renew' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                Renew Subscription
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <h5>No Active Subscription</h5>
-                            <p class="text-muted">You don't have an active subscription at the moment.</p>
-                            <a href="{% url 'plan_list' %}" class="btn btn-primary">View Plans</a>
-                        </div>
+                    <div class="text-center py-4">
+                        <p class="mb-3">You don't have an active subscription.</p>
+                        <a href="{% url 'subscriptions:plan_list' %}" class="btn btn-primary">
+                            View Available Plans
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Subscription History -->
+            
             <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h4 class="mb-0">Subscription History</h4>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Subscription History</h5>
                 </div>
                 <div class="card-body">
                     {% if subscription_history %}
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Plan</th>
-                                        <th>Status</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for sub in subscription_history %}
-                                        <tr>
-                                            <td>{{ sub.plan.name }}</td>
-                                            <td>
-                                                <span class="badge {% if sub.status == 'ACTIVE' %}bg-success{% elif sub.status == 'CANCELLED' %}bg-danger{% else %}bg-warning{% endif %}">
-                                                    {{ sub.get_status_display }}
-                                                </span>
-                                            </td>
-                                            <td>{{ sub.start_date|date:"M d, Y" }}</td>
-                                            <td>{{ sub.end_date|date:"M d, Y" }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in subscription_history %}
+                                <tr>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.start_date|date:"M d, Y" }}</td>
+                                    <td>{{ subscription.end_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if subscription.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ subscription.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                        <p class="text-center text-muted">No subscription history available.</p>
+                    <p class="text-center text-muted">No subscription history available.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions Card -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">Quick Actions</h4>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        {% if subscription %}
-                            {% if subscription.status == 'ACTIVE' %}
-                                <a href="{% url 'cancel_subscription' subscription.id %}" class="btn btn-outline-danger">
-                                    Cancel Subscription
-                                </a>
-                            {% endif %}
-                            <a href="{% url 'plan_list' %}" class="btn btn-outline-primary">
-                                Switch Plan
-                            </a>
-                        {% else %}
-                            <a href="{% url 'plan_list' %}" class="btn btn-primary">
-                                Subscribe Now
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'user_subscription' %}" class="btn btn-outline-secondary">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Support Card -->
+        
+        <div class="col-md-4">
             <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Need Help?</h4>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Subscription Benefits</h5>
                 </div>
                 <div class="card-body">
-                    <p>Having issues with your subscription?</p>
-                    <a href="{% url 'contact' %}" class="btn btn-success w-100">
-                        Contact Support
+                    {% if current_subscription %}
+                    <ul class="list-unstyled">
+                        {% for feature in current_subscription.plan.features %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            {{ feature }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-center text-muted">
+                        Subscribe to a plan to unlock premium features.
+                    </p>
+                    <a href="{% url 'subscriptions:plan_list' %}" class="btn btn-primary w-100">
+                        View Plans
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

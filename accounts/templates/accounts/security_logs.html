@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Security Logs - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Account Settings</h5>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:settings' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog"></i> General Settings
+                        </a>
+                        <a href="{% url 'accounts:profile_edit' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user"></i> Profile Information
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock"></i> Change Password
+                        </a>
+                        <a href="{% url 'accounts:security_logs' %}" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-shield-alt"></i> Security Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Security Activity Log</h4>
+                </div>
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>IP Address</th>
+                                        <th>Device</th>
+                                        <th>Date & Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge {% if log.event_type == 'LOGIN_FAILED' %}bg-danger{% elif log.event_type == 'PASSWORD_CHANGE' %}bg-warning{% else %}bg-info{% endif %}">
+                                                    {{ log.get_event_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ log.ip_address|default:"N/A" }}</td>
+                                            <td>{{ log.user_agent|truncatechars:50 }}</td>
+                                            <td>{{ log.created_at|date:"M d, Y H:i" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No security activity logged yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 1rem;
+    }
+    .list-group-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+    .list-group-item.active {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 0.5em 0.75em;
+    }
+</style>
+{% endblock %} 

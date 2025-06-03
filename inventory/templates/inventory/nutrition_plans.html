@@ -13,17 +13,16 @@
                     <label for="diet_type" class="form-label">Diet Type</label>
                     <select name="diet_type" id="diet_type" class="form-select">
                         <option value="">All Types</option>
-                        {% for code, name in diet_types %}
-                        <option value="{{ code }}" {% if request.GET.diet_type == code %}selected{% endif %}>
-                            {{ name }}
-                        </option>
-                        {% endfor %}
+                        <option value="VEG" {% if request.GET.diet_type == 'VEG' %}selected{% endif %}>Vegetarian</option>
+                        <option value="VEGAN" {% if request.GET.diet_type == 'VEGAN' %}selected{% endif %}>Vegan</option>
+                        <option value="KETO" {% if request.GET.diet_type == 'KETO' %}selected{% endif %}>Keto</option>
+                        <option value="PALEO" {% if request.GET.diet_type == 'PALEO' %}selected{% endif %}>Paleo</option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="max_calories" class="form-label">Max Calories per Day</label>
-                    <input type="number" name="max_calories" id="max_calories" class="form-control"
-                           value="{{ request.GET.max_calories }}" min="0">
+                    <label for="max_calories" class="form-label">Max Calories</label>
+                    <input type="number" name="max_calories" id="max_calories" class="form-control" 
+                           value="{{ request.GET.max_calories }}" placeholder="e.g., 2000">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary">Apply Filters</button>
@@ -46,7 +45,9 @@
                     <ul class="list-unstyled">
                         <li><strong>Diet Type:</strong> {{ plan.get_diet_type_display }}</li>
                         <li><strong>Calories:</strong> {{ plan.calories_per_day }}/day</li>
-                        <li><strong>Macros:</strong> P:{{ plan.protein_grams }}g C:{{ plan.carbs_grams }}g F:{{ plan.fat_grams }}g</li>
+                        <li><strong>Protein:</strong> {{ plan.protein_grams }}g</li>
+                        <li><strong>Carbs:</strong> {{ plan.carbs_grams }}g</li>
+                        <li><strong>Fat:</strong> {{ plan.fat_grams }}g</li>
                     </ul>
                 </div>
                 <div class="card-footer">

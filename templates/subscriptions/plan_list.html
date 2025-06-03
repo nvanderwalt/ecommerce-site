@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subscription Plans - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Choose Your Fitness Journey</h1>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for plan in plans %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="my-0 fw-normal">{{ plan.name }}</h3>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title text-center">${{ plan.price }}<small class="text-muted fw-light">/mo</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        {% for feature in plan.features %}
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>{{ feature }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="mt-auto">
+                        <a href="{% url 'subscription_plan_detail' plan.id %}" class="btn btn-lg btn-block btn-outline-primary w-100">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if current_subscription %}
+    <div class="alert alert-info mt-4">
+        <h4 class="alert-heading">Current Subscription</h4>
+        <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
+        <hr>
+        <p class="mb-0">
+            <a href="{% url 'user_subscription' %}" class="btn btn-outline-primary">Manage Subscription</a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

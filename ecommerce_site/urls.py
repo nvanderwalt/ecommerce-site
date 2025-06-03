@@ -29,7 +29,7 @@ urlpatterns = [
     path('success/', payment_success, name='payment_success'),
     path('cancel/', payment_cancel, name='payment_cancel'),
     path('profile/', profile_view, name='profile'),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('allauth.urls')),
     path('post/', include('posts.urls')),  # Changed from posts/ to post/ for consistency
     path('checkout/', include('checkout.urls')),
     path('error/', error_view, name='error'),  # ✅ Only this one
@@ -39,6 +39,9 @@ urlpatterns = [
     path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
     path('subscriptions/', include('subscriptions.urls')),  # Add subscription URLs
+    path('inventory/', include('inventory.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('accounts/logout/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:

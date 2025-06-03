@@ -4,50 +4,112 @@
 {% block title %}Subscription Plans - FitFusion{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Choose Your Fitness Journey</h1>
-
+<div class="container mt-4">
+    <h1 class="mb-4">Subscription Plans</h1>
+    
     {% if current_subscription %}
     <div class="alert alert-info">
-        <p>You currently have an active subscription to the {{ current_subscription.plan.name }} plan.</p>
+        <h5>Current Subscription</h5>
+        <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
+        <p>Days remaining: {{ current_subscription.get_remaining_days }}</p>
+        <a href="{% url 'subscriptions:dashboard' %}" class="btn btn-primary">Manage Subscription</a>
     </div>
     {% endif %}
-
-    <div class="grid">
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for plan in plans %}
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">{{ plan.name }}</h3>
-            </div>
-            <div class="card-body">
-                <h4>${{ plan.price }}/month</h4>
-                <p>{{ plan.description }}</p>
-                <ul class="feature-list">
-                    {% for feature in plan.features %}
-                    <li>{{ feature }}</li>
-                    {% endfor %}
-                </ul>
-                <div class="d-grid gap-2">
-                    {% if current_subscription and current_subscription.plan == plan %}
-                        <a href="{% url 'subscriptions:user_subscription' %}" class="btn btn-primary">
-                            Current Plan
-                        </a>
-                    {% else %}
-                        {% if not current_subscription %}
-                            <a href="{% url 'subscriptions:start_trial' plan.pk %}" class="btn btn-outline-primary">
-                                Start 14-Day Trial
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'subscriptions:plan_detail' plan.pk %}" class="btn btn-primary">
-                            Subscribe Now
-                        </a>
-                    {% endif %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ plan.name }}</h5>
+                    <p class="card-text">{{ plan.description }}</p>
+                    <ul class="list-unstyled">
+                        {% for feature in plan.features %}
+                        <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">${{ plan.price }}/month</h4>
+                            <small class="text-muted">{{ plan.duration_days }} days</small>
+                        </div>
+                        {% if not current_subscription %}
+                        <button class="btn btn-primary subscribe-btn" data-plan-id="{{ plan.id }}">
+                            Subscribe Now
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No subscription plans available at the moment.
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    
+    document.querySelectorAll('.subscribe-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const planId = e.target.dataset.planId;
+            
+            try {
+                const response = await fetch(`/subscriptions/create/${planId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                const result = await stripe.redirectToCheckout({
+                    sessionId: data.id
+                });
+                
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}
 {% endblock %}
 
 {% block extra_css %}

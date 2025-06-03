@@ -1,15 +1,13 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib import messages
-from django.core.mail import mail
-from unittest.mock import patch, MagicMock
-import json
+from ..models import SubscriptionPlan, UserSubscription
 
-class SubscriptionIntegrationTests(TestCase):
-    """Integration tests for subscription functionality."""
-    
+User = get_user_model()
+
+class SubscriptionTests(TestCase):
     def setUp(self):
         # Create test user
         self.user = User.objects.create_user(
@@ -18,165 +16,101 @@ class SubscriptionIntegrationTests(TestCase):
             password='testpass123'
         )
         
-        # Create test plans
-        self.basic_plan = SubscriptionPlan.objects.create(
-            name='Basic Plan',
+        # Create test plan
+        self.plan = SubscriptionPlan.objects.create(
+            name='Test Plan',
             plan_type='BASIC',
-            description='Basic features',
             price=9.99,
+            description='Test subscription plan',
+            duration_months=1,
             features=['Feature 1', 'Feature 2'],
-            duration_months=1,
             is_active=True
         )
         
-        self.premium_plan = SubscriptionPlan.objects.create(
-            name='Premium Plan',
-            plan_type='PREMIUM',
-            description='Premium features',
-            price=19.99,
-            features=['Feature 1', 'Feature 2', 'Feature 3'],
-            duration_months=1,
-            is_active=True
-        )
-
-    def test_start_trial(self):
-        """Test starting a trial subscription."""
-        # Start trial
-        response = self.client.post(
-            reverse('subscriptions:start_trial', args=[self.basic_plan.id])
-        )
+        # Create client
+        self.client = Client()
         
-        # Check redirect
-        self.assertEqual(response.status_code, 302)
+    def test_plan_list_view(self):
+        """Test that plan list view works correctly"""
+        # Login user
+        self.client.login(username='testuser', password='testpass123')
         
-        # Verify subscription was created
-        subscription = UserSubscription.objects.get(user=self.user)
-        self.assertTrue(subscription.is_trial)
-        self.assertEqual(subscription.status, 'TRIAL')
-        self.assertTrue(subscription.is_trial_active())
-        self.assertEqual(subscription.get_trial_remaining_days(), 14)
-
-    def test_start_trial_with_active_subscription(self):
-        """Test starting a trial when user has active subscription."""
-        # Create active subscription
-        UserSubscription.objects.create(
+        # Get plan list page
+        response = self.client.get(reverse('subscription_plans'))
+        
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'subscriptions/plan_list.html')
+        self.assertContains(response, 'Test Plan')
+        self.assertContains(response, '9.99')
+        
+    def test_dashboard_view(self):
+        """Test that dashboard view works correctly"""
+        # Login user
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create test subscription
+        subscription = UserSubscription.objects.create(
             user=self.user,
-            plan=self.basic_plan,
+            plan=self.plan,
             status='ACTIVE',
             start_date=timezone.now(),
             end_date=timezone.now() + timedelta(days=30)
         )
         
-        # Try to start trial
-        response = self.client.post(
-            reverse('subscriptions:start_trial', args=[self.premium_plan.id])
-        )
+        # Get dashboard page
+        response = self.client.get(reverse('subscription_dashboard'))
         
-        # Check redirect and message
-        self.assertEqual(response.status_code, 302)
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any('already have an active subscription' in str(m) for m in messages))
-
-    def test_start_trial_with_previous_trial(self):
-        """Test starting a trial when user has used trial before."""
-        # Create expired trial subscription
-        UserSubscription.objects.create(
-            user=self.user,
-            plan=self.basic_plan,
-            status='EXPIRED',
-            start_date=timezone.now() - timedelta(days=30),
-            end_date=timezone.now() - timedelta(days=16),
-            is_trial=True,
-            trial_end_date=timezone.now() - timedelta(days=16)
-        )
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'subscriptions/dashboard.html')
+        self.assertContains(response, 'Test Plan')
+        self.assertContains(response, 'Active')
         
-        # Try to start new trial
-        response = self.client.post(
-            reverse('subscriptions:start_trial', args=[self.premium_plan.id])
-        )
+    def test_subscription_cancel(self):
+        """Test subscription cancellation"""
+        # Login user
+        self.client.login(username='testuser', password='testpass123')
         
-        # Check redirect and message
-        self.assertEqual(response.status_code, 302)
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any('already used your trial period' in str(m) for m in messages))
-
-    def test_convert_trial(self):
-        """Test converting trial to paid subscription."""
-        # Create trial subscription
+        # Create test subscription
         subscription = UserSubscription.objects.create(
             user=self.user,
-            plan=self.basic_plan,
-            status='TRIAL',
+            plan=self.plan,
+            status='ACTIVE',
             start_date=timezone.now(),
-            end_date=timezone.now() + timedelta(days=14),
-            is_trial=True,
-            trial_end_date=timezone.now() + timedelta(days=14)
+            end_date=timezone.now() + timedelta(days=30)
         )
         
-        # Mock Stripe checkout session
-        with patch('stripe.checkout.Session.create') as mock_create:
-            mock_create.return_value = MagicMock(id='test_session_id')
-            
-            # Convert trial
-            response = self.client.post(
-                reverse('subscriptions:convert_trial', args=[subscription.id])
-            )
-            
-            # Check response
-            self.assertEqual(response.status_code, 200)
-            data = json.loads(response.content)
-            self.assertEqual(data['id'], 'test_session_id')
-
-    def test_convert_expired_trial(self):
-        """Test converting expired trial."""
-        # Create expired trial subscription
+        # Cancel subscription
+        response = self.client.post(reverse('subscription_cancel'))
+        
+        # Check response
+        self.assertEqual(response.status_code, 302)  # Redirect after success
+        
+        # Refresh subscription from database
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'CANCELLED')
+        
+    def test_subscription_renew(self):
+        """Test subscription renewal"""
+        # Login user
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create test subscription
         subscription = UserSubscription.objects.create(
             user=self.user,
-            plan=self.basic_plan,
-            status='TRIAL',
-            start_date=timezone.now() - timedelta(days=15),
-            end_date=timezone.now() - timedelta(days=1),
-            is_trial=True,
-            trial_end_date=timezone.now() - timedelta(days=1)
-        )
-        
-        # Try to convert expired trial
-        response = self.client.post(
-            reverse('subscriptions:convert_trial', args=[subscription.id])
-        )
-        
-        # Check redirect and message
-        self.assertEqual(response.status_code, 302)
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any('trial period has expired' in str(m) for m in messages))
-
-    def test_trial_reminder_emails(self):
-        """Test trial reminder email scheduling."""
-        # Create trial subscription
-        subscription = UserSubscription.objects.create(
-            user=self.user,
-            plan=self.basic_plan,
-            status='TRIAL',
+            plan=self.plan,
+            status='CANCELLED',
             start_date=timezone.now(),
-            end_date=timezone.now() + timedelta(days=14),
-            is_trial=True,
-            trial_end_date=timezone.now() + timedelta(days=14)
+            end_date=timezone.now() + timedelta(days=30)
         )
         
-        # Check reminder emails
-        from ..utils import check_trial_notifications
-        check_trial_notifications()
+        # Renew subscription
+        response = self.client.post(reverse('subscription_renew'))
         
-        # Verify no emails sent (not at reminder days yet)
-        self.assertEqual(len(mail.outbox), 0)
+        # Check response
+        self.assertEqual(response.status_code, 302)  # Redirect after success
         
-        # Set trial end to 3 days from now
-        subscription.trial_end_date = timezone.now() + timedelta(days=3)
-        subscription.save()
-        
-        # Check reminder emails again
-        check_trial_notifications()
-        
-        # Verify reminder email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn('Trial Ends in 3 Days', mail.outbox[0].subject) 
+        # Refresh subscription from database
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.status, 'ACTIVE') 

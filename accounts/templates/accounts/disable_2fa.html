@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Disable Two-Factor Authentication - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Account Settings</h5>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:settings' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog"></i> General Settings
+                        </a>
+                        <a href="{% url 'accounts:profile_edit' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user"></i> Profile Information
+                        </a>
+                        <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lock"></i> Change Password
+                        </a>
+                        <a href="{% url 'accounts:security_logs' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-shield-alt"></i> Security Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Disable Two-Factor Authentication</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Warning: Disabling two-factor authentication will make your account less secure.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="token" class="form-label">Verification Code</label>
+                            <input type="text" class="form-control" id="token" name="token" required
+                                   placeholder="Enter the 6-digit code from your authenticator app">
+                            <div class="form-text">
+                                You must enter a valid verification code to disable 2FA.
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Disable 2FA</button>
+                        <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 1rem;
+    }
+    .list-group-item i {
+        width: 20px;
+        margin-right: 10px;
+    }
+    .list-group-item.active {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .alert i {
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %} 

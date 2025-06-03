@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ exercise_plan.name }} - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Exercise Plan Details -->
+        <div class="col-md-8">
+            <h1>{{ exercise_plan.name }}</h1>
+            <div class="mb-4">
+                <span class="badge bg-primary me-2">{{ exercise_plan.get_difficulty_display }}</span>
+                <span class="text-muted">{{ exercise_plan.duration_weeks }} weeks</span>
+            </div>
+            
+            {% if exercise_plan.image %}
+            <img src="{{ exercise_plan.image.url }}" class="img-fluid rounded mb-4" alt="{{ exercise_plan.name }}">
+            {% endif %}
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ exercise_plan.description }}</p>
+                </div>
+            </div>
+            
+            <!-- Exercise List -->
+            <h3>Workout Plan</h3>
+            <div class="list-group mb-4">
+                {% for exercise in exercises %}
+                <div class="list-group-item">
+                    <h5 class="mb-1">{{ exercise.name }}</h5>
+                    <p class="mb-1">{{ exercise.description }}</p>
+                    <div class="d-flex gap-3">
+                        <small class="text-muted">Sets: {{ exercise.sets }}</small>
+                        <small class="text-muted">Reps: {{ exercise.reps }}</small>
+                        <small class="text-muted">Rest: {{ exercise.rest_time }}s</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Purchase Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">${{ exercise_plan.price }}</h3>
+                    <p class="card-text">Get access to this complete workout plan and start your fitness journey today!</p>
+                    <form action="{% url 'checkout:add_to_cart' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan_id" value="{{ exercise_plan.id }}">
+                        <input type="hidden" name="plan_type" value="exercise">
+                        <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Category Info -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Category</h5>
+                    <p class="card-text">{{ exercise_plan.category.name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

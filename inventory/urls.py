@@ -28,4 +28,5 @@ urlpatterns = [
     path('nutrition-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
     path('nutrition-plan/<int:plan_id>/meal/<int:meal_id>/complete/', views.complete_meal, name='complete_meal'),
     path('newsletter/signup/', views.newsletter_signup, name='newsletter_signup'),
+    path('facebook-mockup/', views.facebook_mockup, name='facebook_mockup'),
 ] 

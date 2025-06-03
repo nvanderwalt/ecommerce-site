@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load inventory_tags %}
 
 {% block content %}
 <div class="container mt-4">
@@ -26,26 +27,65 @@
                 </div>
             </div>
             
-            <!-- Progress -->
+            <!-- Enhanced Progress Tracking -->
             {% if progress %}
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Your Progress</h5>
+                    
+                    <!-- Overall Progress -->
                     <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" 
+                        <div class="progress-bar bg-success" role="progressbar" 
                              style="width: {{ progress.get_progress_percentage }}%"
                              aria-valuenow="{{ progress.get_progress_percentage }}" 
                              aria-valuemin="0" aria-valuemax="100">
                             {{ progress.get_progress_percentage }}%
                         </div>
                     </div>
-                    <p class="card-text">
+                    
+                    <!-- Progress Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <h6 class="text-muted">Completed</h6>
+                            <h4>{{ progress.completed_meals.count }}</h4>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Remaining</h6>
+                            <h4>{{ plan.meals.count|sub:progress.completed_meals.count }}</h4>
+                        </div>
+                    </div>
+                    
+                    <!-- Meal Type Progress -->
+                    <h6 class="mt-3">Meal Type Progress</h6>
+                    <div class="row">
+                        {% for meal_type in meal_types %}
+                        <div class="col-6 mb-2">
+                            <small class="text-muted">{{ meal_type.1 }}</small>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {{ meal_type.2 }}%"
+                                     aria-valuenow="{{ meal_type.2 }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Completion Status -->
+                    <div class="mt-3">
                         {% if progress.is_completed %}
-                        <span class="badge bg-success">Completed!</span>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Plan Completed!
+                            <small class="d-block">Completed on {{ progress.completion_date|date:"M d, Y" }}</small>
+                        </div>
                         {% else %}
-                        {{ progress.completed_meals.count }} of {{ plan.meals.count }} meals completed
+                        <div class="alert alert-info">
+                            <i class="fas fa-clock"></i> In Progress
+                            <small class="d-block">Started {{ progress.start_date|date:"M d, Y" }}</small>
+                        </div>
                         {% endif %}
-                    </p>
+                    </div>
                 </div>
             </div>
             {% endif %}

@@ -1,9 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import reverse
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse
 from .models import SubscriptionPlan, UserSubscription, PaymentRecord
 from django.utils import timezone
 import stripe
@@ -74,7 +74,7 @@ class SubscriptionPlanDetailView(DetailView):
 class UserSubscriptionView(LoginRequiredMixin, TemplateView):
     """Display and manage user's current subscription."""
     template_name = 'subscriptions/user_subscription.html'
-    login_url = reverse_lazy('login')
+    login_url = reverse
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -158,191 +158,122 @@ class UserSubscriptionView(LoginRequiredMixin, TemplateView):
                 
         return redirect('subscriptions:user_subscription')
 
-@csrf_exempt
 @login_required
-def create_subscription_checkout(request, plan_id):
-    """Create a Stripe Checkout Session for subscription.
+def plan_list(request):
+    plans = SubscriptionPlan.objects.filter(is_active=True)
+    current_subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status='active',
+        end_date__gt=timezone.now()
+    ).first()
     
-    Args:
-        request: The HTTP request
-        plan_id: ID of the subscription plan
-        
-    Returns:
-        JsonResponse with session ID or error message
-    """
+    context = {
+        'plans': plans,
+        'current_subscription': current_subscription,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+    }
+    return render(request, 'subscriptions/plan_list.html', context)
+
+@login_required
+def dashboard(request):
+    current_subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status='active',
+        end_date__gt=timezone.now()
+    ).first()
+    
+    subscription_history = UserSubscription.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+    
+    context = {
+        'current_subscription': current_subscription,
+        'subscription_history': subscription_history
+    }
+    return render(request, 'subscriptions/dashboard.html', context)
+
+@login_required
+def create_subscription(request, plan_id):
     if request.method != 'POST':
-        return JsonResponse(
-            {'error': 'This endpoint only accepts POST requests'}, 
-            status=405
-        )
-
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+    
+    # Check if user already has an active subscription
+    active_subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status='active',
+        end_date__gt=timezone.now()
+    ).first()
+    
+    if active_subscription:
+        return JsonResponse({
+            'error': 'You already have an active subscription'
+        }, status=400)
+    
     try:
-        # Validate plan exists and is active
-        plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-        if not plan.is_active:
-            return JsonResponse(
-                {'error': 'This subscription plan is no longer available'},
-                status=400
-            )
-
-        # Check if user already has an active subscription or trial
-        active_subscription = UserSubscription.objects.filter(
-            user=request.user,
-            status__in=['ACTIVE', 'TRIAL'],
-            end_date__gt=timezone.now()
-        ).first()
-
-        if active_subscription:
-            if active_subscription.is_trial_active():
-                return JsonResponse(
-                    {'error': 'You already have an active trial subscription'},
-                    status=400
-                )
-            return JsonResponse(
-                {'error': 'You already have an active subscription'},
-                status=400
-            )
-
-        # Check if user has used a trial before
-        has_used_trial = UserSubscription.objects.filter(
-            user=request.user,
-            is_trial=True
-        ).exists()
-
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-
-        # Create Stripe Checkout Session
+        # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'unit_amount': int(plan.price * 100),
-                    'product_data': {
-                        'name': plan.name,
-                        'description': plan.description
-                    },
-                    'recurring': {
-                        'interval': 'month'
-                    }
-                },
+                'price': plan.stripe_price_id,
                 'quantity': 1,
             }],
             mode='subscription',
             success_url=request.build_absolute_uri('/subscriptions/success/'),
-            cancel_url=request.build_absolute_uri('/subscriptions/cancel/'),
+            cancel_url=request.build_absolute_uri('/subscriptions/'),
+            customer_email=request.user.email,
             metadata={
-                'plan_id': str(plan.id),
-                'user_id': str(request.user.id),
-                'has_used_trial': str(has_used_trial)
+                'user_id': request.user.id,
+                'plan_id': plan.id
             }
         )
-
+        
         return JsonResponse({'id': checkout_session.id})
-
-    except SubscriptionPlan.DoesNotExist:
-        return JsonResponse(
-            {'error': 'Subscription plan not found'},
-            status=404
-        )
-    except stripe.error.AuthenticationError:
-        return JsonResponse(
-            {'error': 'Failed to authenticate with Stripe. Please check your API keys'},
-            status=401
-        )
-    except stripe.error.InvalidRequestError as e:
-        return JsonResponse(
-            {'error': str(e)},
-            status=400
-        )
-    except stripe.error.RateLimitError:
-        return JsonResponse(
-            {'error': 'Too many requests to Stripe. Please try again in a moment'},
-            status=429
-        )
-    except stripe.error.StripeError as e:
-        return JsonResponse(
-            {'error': f'An error occurred with Stripe: {str(e)}'},
-            status=400
-        )
     except Exception as e:
-        # Log unexpected errors
-        logger.error(f'Unexpected error in create_subscription_checkout: {str(e)}')
-        return JsonResponse(
-            {'error': 'An unexpected error occurred. Please try again later'},
-            status=500
-        )
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 def subscription_success(request):
-    """Handle successful subscription checkout.
-    
-    Verifies the subscription was created and shows appropriate success message.
-    Redirects to subscription management page.
-    """
-    try:
-        # Get user's most recent subscription
-        subscription = UserSubscription.objects.filter(
-            user=request.user,
-            status='ACTIVE'
-        ).order_by('-created_at').first()
-
-        if subscription:
-            messages.success(
-                request,
-                f"Your subscription to the {subscription.plan.name} plan has been activated successfully! "
-                "You can manage your subscription from this page."
-            )
-        else:
-            # If no subscription found, might be a delay in webhook processing
-            messages.info(
-                request,
-                "Your subscription is being processed. "
-                "This may take a few moments. Please refresh the page."
-            )
-            
-    except Exception as e:
-        messages.error(
-            request,
-            "There was an issue verifying your subscription. "
-            "If this persists, please contact support."
-        )
-        
-    return redirect('subscriptions:user_subscription')
+    messages.success(request, 'Your subscription has been activated successfully!')
+    return redirect('subscriptions:dashboard')
 
 @login_required
 def subscription_cancel(request):
-    """Handle cancelled subscription checkout.
+    if request.method != 'POST':
+        return redirect('subscriptions:dashboard')
     
-    Provides appropriate feedback when user cancels the checkout process.
-    Redirects back to plan selection.
-    """
-    try:
-        # Check if user has any pending subscriptions
-        pending_subscription = UserSubscription.objects.filter(
-            user=request.user,
-            status='PENDING'
-        ).order_by('-created_at').first()
-        
-        if pending_subscription:
-            # Clean up any pending subscription
-            pending_subscription.status = 'CANCELLED'
-            pending_subscription.save()
-            
-        messages.info(
-            request,
-            "The subscription process was cancelled. "
-            "You can choose a different plan or try again later."
-        )
-            
-    except Exception as e:
-        messages.error(
-            request,
-            "There was an issue processing your cancellation. "
-            "If you continue to see pending charges, please contact support."
-        )
-        
-    return redirect('subscriptions:plan_list')
+    subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status='active',
+        end_date__gt=timezone.now()
+    ).first()
+    
+    if subscription:
+        subscription.cancel()
+        messages.success(request, 'Your subscription has been cancelled.')
+    else:
+        messages.error(request, 'No active subscription found.')
+    
+    return redirect('subscriptions:dashboard')
+
+@login_required
+def subscription_renew(request):
+    if request.method != 'POST':
+        return redirect('subscriptions:dashboard')
+    
+    subscription = UserSubscription.objects.filter(
+        user=request.user,
+        status='cancelled',
+        end_date__gt=timezone.now()
+    ).first()
+    
+    if subscription and subscription.renew():
+        messages.success(request, 'Your subscription has been renewed.')
+    else:
+        messages.error(request, 'Unable to renew subscription.')
+    
+    return redirect('subscriptions:dashboard')
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -625,52 +556,6 @@ def switch_subscription_plan(request, plan_id):
             {'error': 'An unexpected error occurred. Please try again later'},
             status=500
         )
-
-@login_required
-def dashboard(request):
-    """
-    Display the user's subscription dashboard with overview and metrics.
-    """
-    try:
-        # Get user's active subscription
-        subscription = UserSubscription.objects.filter(
-            user=request.user,
-            status__in=['ACTIVE', 'PENDING_RENEWAL']
-        ).first()
-        
-        # Get subscription history
-        subscription_history = UserSubscription.objects.filter(
-            user=request.user
-        ).order_by('-created_at')[:5]  # Last 5 subscriptions
-        
-        # Calculate metrics
-        metrics = {
-            'total_subscription_days': 0,
-            'days_remaining': 0,
-            'renewal_date': None,
-            'subscription_status': 'No Active Subscription'
-        }
-        
-        if subscription:
-            metrics.update({
-                'total_subscription_days': (timezone.now() - subscription.start_date).days,
-                'days_remaining': subscription.get_remaining_days(),
-                'renewal_date': subscription.end_date,
-                'subscription_status': subscription.get_status_display()
-            })
-        
-        context = {
-            'subscription': subscription,
-            'subscription_history': subscription_history,
-            'metrics': metrics
-        }
-        
-        return render(request, 'subscriptions/dashboard.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in dashboard view: {str(e)}")
-        messages.error(request, "An error occurred while loading the dashboard.")
-        return redirect('home')
 
 @login_required
 def payment_history(request):
