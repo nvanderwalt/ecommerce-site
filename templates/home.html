@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <h1>Transform Your Fitness Journey</h1>
+            <p class="lead">Join FitFusion for personalized workout plans, nutrition guidance, and community support.</p>
+            <a href="{% url 'inventory:exercise_plan_list' %}" class="btn btn-primary btn-lg">Get Started</a>
+        </div>
+    </div>
+
+    <!-- Newsletter Section -->
+    <div class="row mb-5">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3>Stay Updated</h3>
+                    <p>Subscribe to our newsletter for fitness tips, exclusive offers, and community updates.</p>
+                    <form action="{% url 'inventory:newsletter_signup' %}" method="post" class="mt-3">
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Plans -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Featured Plans</h2>
+        </div>
+        <!-- Add featured plans here -->
+    </div>
+</div>
+{% endblock %} 

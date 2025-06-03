@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
+from django.utils import timezone
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -105,7 +106,7 @@ class ExercisePlan(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     instructor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=29.99)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     
@@ -123,6 +124,58 @@ class ExercisePlan(models.Model):
     @property
     def current_price(self):
         return self.sale_price if self.sale_price else self.price
+
+class ExerciseStep(models.Model):
+    """Represents a single exercise step within a workout plan."""
+    plan = models.ForeignKey(ExercisePlan, on_delete=models.CASCADE, related_name='steps')
+    order = models.PositiveIntegerField(default=0)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    duration_minutes = models.PositiveIntegerField(default=5)
+    sets = models.PositiveIntegerField(default=1)
+    reps = models.PositiveIntegerField(default=10)
+    rest_minutes = models.PositiveIntegerField(default=1)
+    video_url = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='exercise_steps/', blank=True, null=True)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['plan', 'order']
+
+    def __str__(self):
+        return f"{self.plan.name} - Step {self.order}: {self.name}"
+
+class ExercisePlanProgress(models.Model):
+    """Tracks user progress through exercise plans."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(ExercisePlan, on_delete=models.CASCADE)
+    current_step = models.ForeignKey(ExerciseStep, on_delete=models.SET_NULL, null=True)
+    completed_steps = models.ManyToManyField(ExerciseStep, related_name='completed_by')
+    start_date = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
+    completion_date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['user', 'plan']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.plan.name} Progress"
+
+    def complete_step(self, step):
+        """Mark a step as completed and update progress."""
+        if step.plan == self.plan:
+            self.completed_steps.add(step)
+            self.last_activity = timezone.now()
+            self.save()
+
+    def get_progress_percentage(self):
+        """Calculate progress percentage."""
+        total_steps = self.plan.steps.count()
+        if total_steps == 0:
+            return 0
+        completed = self.completed_steps.count()
+        return (completed / total_steps) * 100
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -157,3 +210,104 @@ class CartItem(models.Model):
     @property
     def total_price(self):
         return self.quantity * self.product.current_price
+
+class NutritionPlan(models.Model):
+    DIET_TYPE_CHOICES = [
+        ('VEG', 'Vegetarian'),
+        ('VEGAN', 'Vegan'),
+        ('PALEO', 'Paleo'),
+        ('KETO', 'Ketogenic'),
+        ('BAL', 'Balanced'),
+    ]
+    
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    description = models.TextField()
+    diet_type = models.CharField(max_length=5, choices=DIET_TYPE_CHOICES)
+    calories_per_day = models.PositiveIntegerField(help_text="Target calories per day")
+    protein_grams = models.PositiveIntegerField(help_text="Target protein in grams")
+    carbs_grams = models.PositiveIntegerField(help_text="Target carbs in grams")
+    fat_grams = models.PositiveIntegerField(help_text="Target fat in grams")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    nutritionist = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=29.99)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.name} - {self.get_diet_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    @property
+    def current_price(self):
+        return self.sale_price if self.sale_price else self.price
+
+class NutritionMeal(models.Model):
+    MEAL_TYPE_CHOICES = [
+        ('BRK', 'Breakfast'),
+        ('LUN', 'Lunch'),
+        ('DIN', 'Dinner'),
+        ('SNK', 'Snack'),
+    ]
+    
+    plan = models.ForeignKey(NutritionPlan, on_delete=models.CASCADE, related_name='meals')
+    order = models.PositiveIntegerField(default=0)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    meal_type = models.CharField(max_length=3, choices=MEAL_TYPE_CHOICES)
+    calories = models.PositiveIntegerField()
+    protein_grams = models.PositiveIntegerField()
+    carbs_grams = models.PositiveIntegerField()
+    fat_grams = models.PositiveIntegerField()
+    ingredients = models.TextField()
+    instructions = models.TextField()
+    prep_time_minutes = models.PositiveIntegerField(default=15)
+    cooking_time_minutes = models.PositiveIntegerField(default=30)
+    image = models.ImageField(upload_to='nutrition_meals/', blank=True, null=True)
+    
+    class Meta:
+        ordering = ['order']
+        unique_together = ['plan', 'order']
+    
+    def __str__(self):
+        return f"{self.plan.name} - {self.get_meal_type_display()}: {self.name}"
+
+class NutritionPlanProgress(models.Model):
+    """Tracks user progress through nutrition plans."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(NutritionPlan, on_delete=models.CASCADE)
+    current_meal = models.ForeignKey(NutritionMeal, on_delete=models.SET_NULL, null=True)
+    completed_meals = models.ManyToManyField(NutritionMeal, related_name='completed_by')
+    start_date = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['user', 'plan']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan.name} Progress"
+    
+    def complete_meal(self, meal):
+        """Mark a meal as completed and update progress."""
+        if meal.plan == self.plan:
+            self.completed_meals.add(meal)
+            self.last_activity = timezone.now()
+            self.save()
+    
+    def get_progress_percentage(self):
+        """Calculate progress percentage."""
+        total_meals = self.plan.meals.count()
+        if total_meals == 0:
+            return 0
+        completed = self.completed_meals.count()
+        return (completed / total_meals) * 100

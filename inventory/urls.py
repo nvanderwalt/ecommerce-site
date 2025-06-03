@@ -18,7 +18,14 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     
     # Exercise plan URLs
-    path('exercise-plans/', views.exercise_plan_list, name='exercise_plan_list'),
-    path('exercise-plan/<int:plan_id>/', views.exercise_plan_detail, name='exercise_plan_detail'),
+    path('exercise-plans/', views.ExercisePlanListView.as_view(), name='exercise_plan_list'),
+    path('exercise-plans/<slug:slug>/', views.ExercisePlanDetailView.as_view(), name='exercise_plan_detail'),
     path('exercise-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
+    
+    # Nutrition Plan URLs
+    path('nutrition-plans/', views.nutrition_plan_list, name='nutrition_plan_list'),
+    path('nutrition-plan/<int:plan_id>/', views.nutrition_plan_detail, name='nutrition_plan_detail'),
+    path('nutrition-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
+    path('nutrition-plan/<int:plan_id>/meal/<int:meal_id>/complete/', views.complete_meal, name='complete_meal'),
+    path('newsletter/signup/', views.newsletter_signup, name='newsletter_signup'),
 ] 
