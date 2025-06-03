@@ -67,11 +67,103 @@ FitFusion is a comprehensive fitness platform that combines workout plans, nutri
 
 ## Testing
 
-*Testing documentation will be added as features are implemented.*
+### Automated Testing
+The project includes automated tests for core functionality:
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run specific app tests
+python manage.py test inventory
+```
+
+Test coverage includes:
+- User authentication
+- Exercise plan views
+- Newsletter signup
+- Protected routes
+- Form validation
+
+### Manual Testing
+The following features have been manually tested:
+- User registration and login
+- Exercise plan browsing and filtering
+- Shopping cart functionality
+- Checkout process
+- Newsletter subscription
+- Responsive design on different devices
 
 ## Deployment
 
-*Deployment instructions will be added when the project is ready for production.*
+### Prerequisites
+- Python 3.8+
+- PostgreSQL
+- Stripe account
+- Email service (for newsletter)
+
+### Environment Variables
+Create a `.env` file with the following variables:
+```
+DEBUG=False
+SECRET_KEY=your-secret-key
+DATABASE_URL=your-database-url
+STRIPE_PUBLIC_KEY=your-stripe-public-key
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+EMAIL_HOST=your-email-host
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email-user
+EMAIL_HOST_PASSWORD=your-email-password
+DEFAULT_FROM_EMAIL=your-from-email
+```
+
+### Deployment Steps
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/fitfusion.git
+cd fitfusion
+```
+
+2. Create and activate virtual environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+4. Set up the database
+```bash
+python manage.py migrate
+```
+
+5. Create superuser
+```bash
+python manage.py createsuperuser
+```
+
+6. Collect static files
+```bash
+python manage.py collectstatic
+```
+
+7. Run the development server
+```bash
+python manage.py runserver
+```
+
+### Production Deployment
+For production deployment:
+1. Set DEBUG=False in settings.py
+2. Configure your web server (e.g., Nginx)
+3. Set up SSL certificate
+4. Configure your domain
+5. Set up database backups
+6. Configure error monitoring
 
 ## Credits
 
