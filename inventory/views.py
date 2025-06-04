@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 
 def product_list(request):
     products = Product.objects.all()
-    form = ReviewForm()
+    form = ReviewForm() if request.user.is_authenticated else None
 
     if request.method == 'POST' and request.user.is_authenticated:
         product_id = request.POST.get('product_id')
@@ -28,14 +28,18 @@ def product_list(request):
                 review.user = request.user
                 review.product = product
                 review.save()
+                messages.success(request, 'Your review has been posted!')
                 return redirect('product_list')
         except Product.DoesNotExist:
-            pass  # Optionally add logging or an error message
+            messages.error(request, 'Product not found.')
+            return redirect('product_list')
 
-    return render(request, 'inventory/product_list.html', {
+    context = {
         'products': products,
         'form': form,
-    })
+        'user': request.user,
+    }
+    return render(request, 'inventory/product_list.html', context)
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
