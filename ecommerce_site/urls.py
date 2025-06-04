@@ -22,7 +22,6 @@ from inventory.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', product_list, name='product_list'),
-    path('add-to-cart/<int:product_id>/', add_to_cart, name='add_to_cart'),
     path('cart/', cart_view, name='cart'),
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
@@ -33,8 +32,6 @@ urlpatterns = [
     path('post/', include('posts.urls')),  # Changed from posts/ to post/ for consistency
     path('checkout/', include('checkout.urls')),
     path('error/', error_view, name='error'),  # ✅ Only this one
-    path('update-cart/<int:product_id>/', update_cart, name='update_cart'),  # Add these URLs
-    path('remove-from-cart/<int:product_id>/', remove_from_cart, name='remove_from_cart'),
     path('exercise-plans/', exercise_plan_list, name='exercise_plan_list'),
     path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),

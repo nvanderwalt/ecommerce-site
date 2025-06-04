@@ -55,30 +55,52 @@ def product_detail(request, slug):
         'form': form,
     })
 
-def add_to_cart(request, product_id):
+def add_to_cart(request, item_type, item_id):
     cart = request.session.get('cart', {})
-    cart[str(product_id)] = cart.get(str(product_id), 0) + 1
+    item_key = f"{item_type}-{item_id}"
+    cart[item_key] = cart.get(item_key, 0) + 1
     request.session['cart'] = cart
-    return redirect('product_list')
+    
+    if item_type == 'product':
+        return redirect('product_list')
+    else:
+        return redirect('exercise_plan_list')
 
 @login_required
 def cart_view(request):
     cart = request.session.get('cart', {})
     cart_items = []
     total = 0
+    invalid_keys = []
 
-    for product_id, quantity in cart.items():
+    for item_key, quantity in cart.items():
+        if '-' not in item_key:
+            invalid_keys.append(item_key)
+            continue
         try:
-            product = Product.objects.get(id=product_id)
-            item_total = product.price * quantity
+            item_type, item_id = item_key.split('-', 1)
+            if item_type == 'product':
+                item = Product.objects.get(id=item_id)
+            else:  # exercise plan
+                item = ExercisePlan.objects.get(id=item_id)
+            item_total = item.price * quantity
             total += item_total
             cart_items.append({
-                'product': product,
+                'item': item,
+                'item_type': item_type,
                 'quantity': quantity,
                 'item_total': item_total,
             })
-        except Product.DoesNotExist:
-            pass
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+            invalid_keys.append(item_key)
+            continue
+
+    # Remove any invalid keys from the cart
+    if invalid_keys:
+        for key in invalid_keys:
+            cart.pop(key, None)
+        request.session['cart'] = cart
+        messages.info(request, "Some invalid items were removed from your cart.")
 
     context = {
         'cart_items': cart_items,
@@ -108,21 +130,26 @@ def create_checkout_session(request):
     cart = request.session.get('cart', {})
     line_items = []
 
-    for product_id, quantity in cart.items():
+    for item_key, quantity in cart.items():
+        item_type, item_id = item_key.split('-')
         try:
-            product = Product.objects.get(id=product_id)
+            if item_type == 'product':
+                item = Product.objects.get(id=item_id)
+            else:  # exercise plan
+                item = ExercisePlan.objects.get(id=item_id)
+                
             line_items.append({
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {
-                        'name': product.name,
-                        'description': product.description[:100],
+                        'name': item.name,
+                        'description': item.description[:100] if hasattr(item, 'description') else '',
                     },
-                    'unit_amount': int(product.price * 100),
+                    'unit_amount': int(item.price * 100),
                 },
                 'quantity': quantity,
             })
-        except Product.DoesNotExist:
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
             pass
 
     if not line_items:
@@ -181,49 +208,52 @@ def error_view(request):
     return render(request, 'error.html')
 
 @login_required
-def update_cart(request, product_id):
+def update_cart(request, item_type, item_id):
     if request.method == 'POST':
         action = request.POST.get('action')
         cart = request.session.get('cart', {})
-        product_id_str = str(product_id)
+        item_key = f"{item_type}-{item_id}"
         
         try:
-            product = Product.objects.get(id=product_id)
+            if item_type == 'product':
+                item = Product.objects.get(id=item_id)
+            else:  # exercise plan
+                item = ExercisePlan.objects.get(id=item_id)
+                
             if action == 'increase':
-                cart[product_id_str] = cart.get(product_id_str, 0) + 1
-                messages.success(request, f'Added another {product.name} to your cart.')
+                cart[item_key] = cart.get(item_key, 0) + 1
+                messages.success(request, f'Added another {item.name} to your cart.')
             elif action == 'decrease':
-                if cart.get(product_id_str, 0) > 1:
-                    cart[product_id_str] = cart[product_id_str] - 1
-                    messages.success(request, f'Reduced quantity of {product.name} in your cart.')
+                if cart.get(item_key, 0) > 1:
+                    cart[item_key] = cart[item_key] - 1
+                    messages.success(request, f'Reduced quantity of {item.name} in your cart.')
                 else:
                     messages.warning(request, f'Quantity cannot be less than 1.')
-            
             request.session['cart'] = cart
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+            messages.error(request, 'Item not found.')
             
-        except Product.DoesNotExist:
-            messages.error(request, "Product not found.")
-    
-    return redirect('cart')
+    return redirect('cart_view')
 
 @login_required
-def remove_from_cart(request, product_id):
+def remove_from_cart(request, item_type, item_id):
     if request.method == 'POST':
         cart = request.session.get('cart', {})
-        product_id_str = str(product_id)
+        item_key = f"{item_type}-{item_id}"
         
-        try:
-            product = Product.objects.get(id=product_id)
-            if product_id_str in cart:
-                del cart[product_id_str]
+        if item_key in cart:
+            try:
+                if item_type == 'product':
+                    item = Product.objects.get(id=item_id)
+                else:  # exercise plan
+                    item = ExercisePlan.objects.get(id=item_id)
+                del cart[item_key]
                 request.session['cart'] = cart
-                messages.success(request, f'Removed {product.name} from your cart.')
-            else:
-                messages.warning(request, "This item wasn't in your cart.")
-        except Product.DoesNotExist:
-            messages.error(request, "Product not found.")
-    
-    return redirect('cart')
+                messages.success(request, f'{item.name} removed from cart.')
+            except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+                messages.error(request, 'Item not found.')
+                
+    return redirect('cart_view')
 
 @login_required
 def exercise_plan_list(request):

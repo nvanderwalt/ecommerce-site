@@ -28,7 +28,7 @@
                     <h4 class="card-title">{{ product.name }}</h4>
                     <p class="card-text">{{ product.description }}</p>
                     <p class="card-text fw-bold">€{{ product.price }}</p>
-                    <form method="POST" action="{% url 'add_to_cart' product.id %}" class="mb-2 mt-auto">
+                    <form method="POST" action="{% url 'inventory:add_to_cart' 'product' product.id %}" class="mb-2 mt-auto">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-success w-100">Add to Cart</button>
                     </form>
