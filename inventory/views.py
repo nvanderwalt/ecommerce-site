@@ -70,7 +70,6 @@ def add_to_cart(request, item_type, item_id):
     else:
         return redirect('exercise_plan_list')
 
-@login_required
 def cart_view(request):
     cart = request.session.get('cart', {})
     cart_items = []
@@ -259,7 +258,6 @@ def remove_from_cart(request, item_type, item_id):
                 
     return redirect('cart_view')
 
-@login_required
 def exercise_plan_list(request):
     plans = ExercisePlan.objects.all()
     
@@ -277,7 +275,6 @@ def exercise_plan_list(request):
         'plans': plans
     })
 
-@login_required
 def exercise_plan_detail(request, plan_id):
     try:
         plan = ExercisePlan.objects.get(id=plan_id)

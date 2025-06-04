@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'subscriptions',
     'accounts',
     'analytics',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -134,14 +136,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary configuration
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
+    'CLOUD_NAME': 'dmsbohddm',
+    'API_KEY': '669264135811788',
+    'API_SECRET': 'qo1Qrk_Eja3Ft5D2PtI_mgUwQV8',
 }
-
-if 'CLOUDINARY_CLOUD_NAME' in os.environ:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = '/media/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
