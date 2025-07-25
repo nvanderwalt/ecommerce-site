@@ -10,7 +10,7 @@ from .models import Order
 
 logger = logging.getLogger(__name__)
 
-class CreateCheckoutSessionView(LoginRequiredMixin, View):
+class CreateCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -18,14 +18,15 @@ class CreateCheckoutSessionView(LoginRequiredMixin, View):
             product_id = self.kwargs["pk"]
             product = Product.objects.get(id=product_id)
             
-            # Create a pending order
+            # Create a pending order (handle anonymous users)
+            user = request.user if request.user.is_authenticated else None
             order = Order.objects.create(
-                user=request.user,
+                user=user,
                 product=product,
                 amount=product.price,
                 status='PENDING'
             )
-            logger.info(f"Created pending order {order.id} for user {request.user.username}")
+            logger.info(f"Created pending order {order.id} for user {user.username if user else 'anonymous'}")
 
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
@@ -73,25 +74,25 @@ class CreateCheckoutSessionView(LoginRequiredMixin, View):
 
 def success_view(request, order_id):
     try:
-        order = Order.objects.get(id=order_id, user=request.user)
+        order = Order.objects.get(id=order_id)
         order.status = 'COMPLETED'
         order.save()
         logger.info(f"Order {order_id} completed successfully")
         messages.success(request, "Payment successful! Thank you for your purchase.")
     except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found for user {request.user.username}")
+        logger.error(f"Order {order_id} not found")
         messages.error(request, "Order not found.")
     return redirect('order_confirmation')
 
 def cancel_view(request, order_id):
     try:
-        order = Order.objects.get(id=order_id, user=request.user)
+        order = Order.objects.get(id=order_id)
         order.status = 'CANCELLED'
         order.save()
-        logger.info(f"Order {order_id} cancelled by user {request.user.username}")
+        logger.info(f"Order {order_id} cancelled")
         messages.info(request, "Your order has been cancelled.")
     except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found for user {request.user.username}")
+        logger.error(f"Order {order_id} not found")
         messages.error(request, "Order not found.")
     return redirect('product_list')
 
