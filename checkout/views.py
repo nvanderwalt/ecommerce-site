@@ -5,10 +5,54 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from inventory.models import Product
 from .models import Order
 
 logger = logging.getLogger(__name__)
+
+def send_order_confirmation_email(order):
+    """Send confirmation email for successful order."""
+    try:
+        subject = f'Order Confirmation - {order.product.name}'
+        
+        # Create email content
+        context = {
+            'order': order,
+            'product': order.product,
+        }
+        
+        html_message = render_to_string('checkout/email/order_confirmation.html', context)
+        plain_message = f"""
+        Thank you for your purchase!
+        
+        Order ID: {order.id}
+        Product: {order.product.name}
+        Amount: €{order.amount}
+        Date: {order.created_at.strftime('%Y-%m-%d %H:%M')}
+        
+        We'll process your order shortly.
+        """
+        
+        # Determine recipient email
+        recipient_email = order.user.email if order.user else order.email
+        
+        if recipient_email:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient_email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            logger.info(f"Order confirmation email sent to {recipient_email} for order {order.id}")
+        else:
+            logger.warning(f"No email address found for order {order.id}")
+            
+    except Exception as e:
+        logger.error(f"Failed to send order confirmation email for order {order.id}: {str(e)}")
 
 class CreateCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
@@ -18,13 +62,17 @@ class CreateCheckoutSessionView(View):
             product_id = self.kwargs["pk"]
             product = Product.objects.get(id=product_id)
             
+            # Get email from form data for anonymous users
+            email = request.POST.get('email', '') if not request.user.is_authenticated else ''
+            
             # Create a pending order (handle anonymous users)
             user = request.user if request.user.is_authenticated else None
             order = Order.objects.create(
                 user=user,
                 product=product,
                 amount=product.price,
-                status='PENDING'
+                status='PENDING',
+                email=email
             )
             logger.info(f"Created pending order {order.id} for user {user.username if user else 'anonymous'}")
 
@@ -77,8 +125,12 @@ def success_view(request, order_id):
         order = Order.objects.get(id=order_id)
         order.status = 'COMPLETED'
         order.save()
+        
+        # Send confirmation email
+        send_order_confirmation_email(order)
+        
         logger.info(f"Order {order_id} completed successfully")
-        messages.success(request, "Payment successful! Thank you for your purchase.")
+        messages.success(request, "Payment successful! Thank you for your purchase. A confirmation email has been sent.")
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
         messages.error(request, "Order not found.")
