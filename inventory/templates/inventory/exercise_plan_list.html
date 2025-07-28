@@ -1,35 +1,77 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Exercise Plans - FitFusion{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <h1>Exercise Plans</h1>
-        
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center mb-4">
+                <i class="fas fa-running me-2"></i>Exercise Plans
+            </h1>
+            <p class="text-center text-muted lead">Transform your fitness journey with our expert-designed workout plans</p>
         </div>
-        {% endif %}
-
-        <div class="exercise-plans">
-            {% for plan in plans %}
-                <div class="plan-card">
-                    <h2>{{ plan.name }}</h2>
-                    <p class="difficulty">{{ plan.get_difficulty_display }}</p>
-                    <p class="duration">Duration: {{ plan.duration }} minutes</p>
-                    <p class="calories">Estimated calories: {{ plan.calories_burn }}</p>
-                    <p class="price">€{{ plan.price }}</p>
-                    <a href="{% url 'exercise_plan_detail' plan.id %}" class="view-plan-btn">View Details</a>
-                </div>
-            {% empty %}
-                <p>No exercise plans available at the moment.</p>
-            {% endfor %}
-        </div>
-
-        <p class="back-link"><a href="{% url 'product_list' %}">← Back to Products</a></p>
     </div>
+
+    <div class="row g-4">
+        {% for plan in plans %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm exercise-plan-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-dumbbell fa-3x text-primary"></i>
+                    </div>
+                    
+                    <h5 class="card-title text-center fw-bold">{{ plan.name }}</h5>
+                    
+                    <div class="plan-details mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Difficulty:</span>
+                            <span class="badge bg-{% if plan.difficulty == 'beginner' %}success{% elif plan.difficulty == 'intermediate' %}warning{% else %}danger{% endif %}">
+                                {{ plan.get_difficulty_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Duration:</span>
+                            <span class="fw-bold">{{ plan.duration_weeks|default:"8" }} weeks</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Price:</span>
+                            <span class="fw-bold text-primary fs-5">€{{ plan.price }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <a href="{% url 'exercise_plan_detail' plan.id %}" class="btn btn-primary w-100">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+            <h3 class="text-muted">No exercise plans available</h3>
+            <p class="text-muted">Check back soon for new workout programs!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.exercise-plan-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    border-radius: 1rem;
+}
+
+.exercise-plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %} 
