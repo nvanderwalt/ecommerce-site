@@ -1,62 +1,164 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Our Gym Equipment{% endblock %}
+{% block title %}FitFusion - Premium Fitness Equipment{% endblock %}
 
 {% block content %}
-<div class="container mt-4" style="max-width: 1200px;">
+<div class="container-fluid px-4 py-5">
     <!-- Hero Section -->
-    <div class="jumbotron fitfusion-hero p-5 mb-4 rounded-3 text-center">
+    <div class="hero-section text-center mb-5">
         <div class="container">
-            <h1 class="display-4">Transform Your Fitness Journey</h1>
-            <p class="lead">Join FitFusion for personalized workout plans, nutrition guidance, and community support. Start shopping for the best equipment and plans today!</p>
-            <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg">Join Now</a>
+            <h1 class="display-3 fw-bold text-primary mb-4">Transform Your Fitness Journey</h1>
+            <p class="lead fs-4 mb-4">Discover premium fitness equipment and personalized workout plans designed to help you achieve your goals faster.</p>
+            <div class="hero-buttons">
+                <a href="{% url 'exercise_plan_list' %}" class="btn btn-primary btn-lg me-3">View Exercise Plans</a>
+                <a href="{% url 'account_signup' %}" class="btn btn-outline-primary btn-lg">Join FitFusion</a>
+            </div>
         </div>
     </div>
-    <h1 class="mb-4 text-center">Our Gym Equipment</h1>
-    <div class="d-flex justify-content-center mb-4">
-        <a href="{% url 'cart' %}" class="btn btn-outline-primary btn-lg">🛒 View Cart</a>
-    </div>
-    <div class="row justify-content-center g-4">
-        {% for product in products %}
-        <div class="col-md-4 d-flex align-items-stretch">
-            <div class="card h-100 w-100">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                {% endif %}
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">{{ product.name }}</h4>
-                    <p class="card-text">{{ product.description }}</p>
-                    <p class="card-text fw-bold">€{{ product.price }}</p>
-                    <form method="POST" action="{% url 'inventory:add_to_cart' 'product' product.id %}" class="mb-2 mt-auto">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100">Add to Cart</button>
-                    </form>
-                    <h6>Reviews:</h6>
-                    <ul class="list-unstyled mb-2">
-                        {% for review in product.reviews.all %}
-                            <li>
-                                <strong>{{ review.rating }}★</strong> by {{ review.user.username }}<br>
-                                {{ review.comment }}
-                            </li>
-                        {% empty %}
-                            <li>No reviews yet.</li>
-                        {% endfor %}
-                    </ul>
-                    {% if user.is_authenticated %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <input type="hidden" name="product_id" value="{{ product.id }}">
-                        <button type="submit" class="btn btn-outline-secondary btn-sm">Submit Review</button>
-                    </form>
-                    {% else %}
-                        <p><em>Log in to leave a review.</em></p>
-                    {% endif %}
+
+    <!-- Navigation Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Premium Fitness Equipment</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'cart' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                        <span class="badge bg-primary ms-1">{{ cart_count|default:0 }}</span>
+                    </a>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card product-card h-100 shadow-sm">
+                {% if product.image %}
+                    <div class="product-image-container">
+                        <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        {% if product.sale_price %}
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-2">SALE</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="product-image-placeholder">
+                        <i class="fas fa-dumbbell fa-3x text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                    <p class="card-text text-muted">{{ product.description|truncatewords:20 }}</p>
+                    
+                    <div class="price-section mb-3">
+                        {% if product.sale_price %}
+                            <span class="text-decoration-line-through text-muted">€{{ product.price }}</span>
+                            <span class="fs-5 fw-bold text-danger ms-2">€{{ product.sale_price }}</span>
+                        {% else %}
+                            <span class="fs-5 fw-bold text-primary">€{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <form method="POST" action="{% url 'inventory:add_to_cart' 'product' product.id %}" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No products available</h3>
+            <p class="text-muted">Check back soon for new fitness equipment!</p>
+        </div>
         {% endfor %}
     </div>
+
+    <!-- Call to Action -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <div class="cta-section p-4 bg-light rounded">
+                <h3>Ready to Start Your Fitness Journey?</h3>
+                <p class="mb-3">Join thousands of users who have transformed their lives with FitFusion.</p>
+                <a href="{% url 'exercise_plan_list' %}" class="btn btn-primary btn-lg me-3">View Exercise Plans</a>
+                <a href="{% url 'account_signup' %}" class="btn btn-outline-primary btn-lg">Sign Up Now</a>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    border-radius: 1rem;
+    margin-bottom: 3rem;
+}
+
+.product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    border-radius: 1rem;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.product-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.product-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.product-image-placeholder {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
 {% endblock %}
