@@ -1,84 +1,176 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Shopping Cart - FitFusion{% endblock %}
+
 {% block content %}
-<div class="cart-container">
-    <h1>Your Cart</h1>
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-4">
+                <i class="fas fa-shopping-cart me-2"></i>Your Shopping Cart
+            </h1>
+            
+            {% if cart_items %}
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center">
+                                            <div class="item-icon me-3">
+                                                {% if item.item_type == 'product' %}
+                                                    <i class="fas fa-dumbbell fa-2x text-primary"></i>
+                                                {% else %}
+                                                    <i class="fas fa-running fa-2x text-success"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ item.item.name }}</h5>
+                                                <p class="text-muted mb-2">
+                                                    <span class="badge bg-secondary">{{ item.item_type|title }}</span>
+                                                </p>
+                                                <p class="text-primary fw-bold mb-0">€{{ item.item.price }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <div class="quantity-controls mb-2">
+                                                <form method="POST" action="{% url 'inventory:update_cart' item.item_type item.item.id %}" class="d-flex align-items-center">
+                                                    {% csrf_token %}
+                                                    <button type="submit" name="action" value="decrease" class="btn btn-outline-secondary btn-sm"
+                                                        {% if item.quantity == 1 %}disabled{% endif %}>
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                    <span class="mx-3 fw-bold">{{ item.quantity }}</span>
+                                                    <button type="submit" name="action" value="increase" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            
+                                            <p class="fw-bold text-success mb-2">Subtotal: €{{ item.item_total }}</p>
+                                            
+                                            <form method="POST" action="{% url 'inventory:remove_from_cart' item.item_type item.item.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash me-1"></i>Remove
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                    <h3 class="text-muted">Your cart is empty</h3>
+                    <p class="text-muted mb-4">Start your fitness journey by adding some products or exercise plans to your cart!</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'product_list' %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                        </a>
+                        <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-running me-2"></i>View Exercise Plans
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if cart_items %}
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 2rem;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt me-2"></i>Order Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Items ({{ cart_items|length }}):</span>
+                            <span class="fw-bold">€{{ total }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="fs-5 fw-bold">Total:</span>
+                            <span class="fs-5 fw-bold text-primary">€{{ total }}</span>
+                        </div>
+                        
+                        <form id="payment-form" class="d-grid">
+                            {% csrf_token %}
+                            <button type="button" id="checkout-button" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i>Secure payment powered by Stripe
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
     
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     {% if cart_items %}
-        <ul class="cart-items">
-            {% for item in cart_items %}
-                <li class="cart-item">
-                    <div class="item-details">
-                        <h2>{{ item.item.name }}</h2>
-                        <p class="item-type">{{ item.item_type|title }}</p>
-                        <p class="price">Price: €{{ item.item.price }}</p>
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                        </a>
                     </div>
-                    <div class="item-controls">
-                        <form method="POST" action="{% url 'inventory:update_cart' item.item_type item.item.id %}" class="quantity-form">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="decrease" class="qty-btn"
-                                {% if item.quantity == 1 %}disabled{% endif %}>-</button>
-                            <span class="quantity">{{ item.quantity }}</span>
-                            <button type="submit" name="action" value="increase" class="qty-btn">+</button>
-                        </form>
-                        <p class="item-total">Subtotal: €{{ item.item_total }}</p>
-                        <form method="POST" action="{% url 'inventory:remove_from_cart' item.item_type item.item.id %}" class="remove-form">
-                            {% csrf_token %}
-                            <button type="submit" class="remove-btn">Remove</button>
-                        </form>
+                    <div>
+                        <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-running me-2"></i>Browse Exercise Plans
+                        </a>
                     </div>
-                </li>
-            {% endfor %}
-        </ul>
-
-        <div class="cart-summary">
-            <h3>Total: €{{ total }}</h3>
-            <form id="payment-form">
-                {% csrf_token %}
-                <button type="button" id="checkout-button" class="checkout-btn">Checkout with Stripe</button>
-            </form>
-        </div>
-
-        <script src="https://js.stripe.com/v3/"></script>
-        <script>
-            const stripe = Stripe("{{ stripe_public_key }}");
-
-            document.getElementById("checkout-button").addEventListener("click", function () {
-                fetch("{% url 'create_checkout_session' %}", {
-                    method: "POST",
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    }
-                })
-                .then(response => response.json())
-                .then(session => stripe.redirectToCheckout({ sessionId: session.id }))
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred during checkout. Please try again.');
-                });
-            });
-        </script>
-    {% else %}
-        <div class="empty-cart">
-            <p>Your cart is empty.</p>
-            <p>Check out our products and exercise plans to start your fitness journey today!</p>
+                </div>
+            </div>
         </div>
     {% endif %}
-
-    <div class="cart-links">
-        <p class="back-link"><a href="{% url 'product_list' %}">← Continue Shopping Products</a></p>
-        <p class="back-link"><a href="{% url 'exercise_plan_list' %}">← Browse Exercise Plans</a></p>
-    </div>
 </div>
+
+{% if cart_items %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe("{{ stripe_public_key }}");
+
+    document.getElementById("checkout-button").addEventListener("click", function () {
+        const button = this;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        fetch("{% url 'create_checkout_session' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(session => {
+            if (session.error) {
+                throw new Error(session.error);
+            }
+            return stripe.redirectToCheckout({ sessionId: session.id });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
+            alert('An error occurred during checkout. Please try again.');
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}
