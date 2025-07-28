@@ -255,6 +255,8 @@ FitFusion maintains an active presence on Facebook through our business page. Th
 - Fitness tips and health advice
 - Special offers and promotions
 
+**Facebook Business Page:** [FitFusion Facebook Page](https://www.facebook.com/fitfusion)
+
 ![Facebook Business Page](static/images/facebook_page.png)
 
 ### Newsletter
