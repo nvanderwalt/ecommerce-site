@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /checkout/
+Disallow: /static/admin/
+
+# Allow important pages
+Allow: /products/
+Allow: /exercise-plans/
+Allow: /about/
+Allow: /contact/
+
+# Sitemap location
+Sitemap: https://ecommerce-site-gym-781f127062c6.herokuapp.com/sitemap.xml 

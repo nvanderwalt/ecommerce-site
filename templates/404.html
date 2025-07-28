@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Page Not Found - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="display-1 text-muted">404</h1>
+            <h2 class="mb-4">Page Not Found</h2>
+            <p class="lead mb-4">Sorry, the page you're looking for doesn't exist.</p>
+            <p class="mb-4">The page might have been moved, deleted, or you entered the wrong URL.</p>
+            
+            <div class="mb-4">
+                <a href="{% url 'product_list' %}" class="btn btn-primary me-3">Go to Home</a>
+                <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-primary">View Exercise Plans</a>
+            </div>
+            
+            <div class="mt-5">
+                <h4>Popular Pages</h4>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'product_list' %}">Our Products</a></li>
+                    <li><a href="{% url 'exercise_plan_list' %}">Exercise Plans</a></li>
+                    <li><a href="{% url 'account_login' %}">Sign In</a></li>
+                    <li><a href="{% url 'account_signup' %}">Sign Up</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -2,6 +2,15 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import (
+    StaticViewSitemap,
+    ProductSitemap,
+    ExercisePlanSitemap,
+    NutritionPlanSitemap,
+    PostSitemap,
+)
+from .views import robots_txt
 from inventory.views import (
     product_list,
     add_to_cart,
@@ -18,6 +27,15 @@ from inventory.views import (
     exercise_plan_detail,
     create_plan_checkout_session,
 )
+
+# Sitemap configuration
+sitemaps = {
+    'static': StaticViewSitemap,
+    'products': ProductSitemap,
+    'exercise_plans': ExercisePlanSitemap,
+    'nutrition_plans': NutritionPlanSitemap,
+    'posts': PostSitemap,
+}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,6 +57,10 @@ urlpatterns = [
     path('inventory/', include('inventory.urls')),
     path('accounts/', include('accounts.urls')),
     path('accounts/logout/', include('django.contrib.auth.urls')),
+    
+    # SEO URLs
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', robots_txt, name='robots_txt'),
 ]
 
 if settings.DEBUG:
