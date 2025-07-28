@@ -123,7 +123,6 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
-@login_required
 @csrf_exempt
 def create_checkout_session(request):
     if request.method != 'POST':
