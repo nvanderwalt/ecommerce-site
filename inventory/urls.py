@@ -18,8 +18,6 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     
     # Exercise plan URLs
-    path('exercise-plans/', views.ExercisePlanListView.as_view(), name='exercise_plan_list'),
-    path('exercise-plans/<slug:slug>/', views.ExercisePlanDetailView.as_view(), name='exercise_plan_detail'),
     path('exercise-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
     
     # Nutrition Plan URLs
