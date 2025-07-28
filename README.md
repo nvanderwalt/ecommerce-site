@@ -211,6 +211,41 @@ python manage.py test subscriptions.tests.test_renewal
 - Users receive an email when their subscription is renewed or expired.
 - Make sure to configure `DEFAULT_FROM_EMAIL` in your Django settings.
 
+## E-commerce Business Model
+
+### Revenue Streams
+1. **Individual Product Sales**
+   - Fitness equipment and accessories
+   - One-time purchases with immediate delivery
+   - Price range: €20-€200 per item
+
+2. **Subscription Services**
+   - Monthly/Annual fitness and nutrition plans
+   - Premium workout programs with personal coaching
+   - Price range: €29.99-€99.99 per month
+
+3. **Premium Content**
+   - Exclusive workout videos and tutorials
+   - Personalized nutrition guidance
+   - Progress tracking and analytics
+
+### Target Market
+- **Primary**: Fitness enthusiasts aged 18-45
+- **Secondary**: Beginners looking to start their fitness journey
+- **Tertiary**: Health-conscious individuals seeking nutrition guidance
+
+### Value Proposition
+- Comprehensive fitness solutions in one platform
+- Expert-designed workout and nutrition plans
+- Community support and progress tracking
+- Flexible pricing options for different budgets
+
+### Customer Acquisition Strategy
+- Social media marketing (Facebook, Instagram)
+- Content marketing through fitness blogs
+- Email marketing campaigns
+- Referral programs and loyalty rewards
+
 ## Marketing
 
 ### Facebook Business Page
