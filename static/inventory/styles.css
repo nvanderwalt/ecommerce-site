@@ -10,24 +10,40 @@
     --transition: all 0.3s ease;
 }
 
-/* Modern Navigation Bar */
-.navbar {
+/* Modern Navigation Bar - Ensure consistency across all pages */
+body .navbar, html .navbar {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
     padding: 15px 0 !important;
+    width: 100% !important;
+    position: relative !important;
 }
 
-.navbar-brand {
+body .navbar .container, html .navbar .container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 15px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+body .navbar-brand, html .navbar-brand {
     font-size: 2.2rem !important;
     font-weight: 800 !important;
     color: white !important;
     text-decoration: none;
     margin-right: 40px !important;
+    position: static !important;
+    transform: none !important;
+    transition: none !important;
 }
 
-.navbar-brand:hover {
+body .navbar-brand:hover, html .navbar-brand:hover {
     color: #e8f5e8 !important;
     text-decoration: none;
+    transform: none !important;
+    position: static !important;
 }
 
 .navbar-brand i {
@@ -36,15 +52,18 @@
     font-size: 2rem !important;
 }
 
-.navbar-nav {
+body .navbar-nav, html .navbar-nav {
     align-items: center !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
 }
 
-.nav-item {
+body .nav-item, html .nav-item {
     margin: 0 8px !important;
+    flex-shrink: 0 !important;
 }
 
-.nav-link {
+body .nav-link, html .nav-link {
     color: white !important;
     font-weight: 700 !important;
     font-size: 1.1rem !important;
@@ -383,13 +402,36 @@ body {
 }
 
 /* Remove purple gradients from main content (but not navbar) */
-.container:not(.navbar), .row, .col-md-6, .col-12 {
+main .container, main .row, main .col-md-6, main .col-12 {
     background: transparent !important;
 }
 
-/* Override any Bootstrap purple gradients (but not navbar) */
-.bg-primary:not(.navbar), .bg-gradient:not(.navbar) {
+/* Override any Bootstrap purple gradients in main content (but not navbar) */
+main .bg-primary, main .bg-gradient {
     background: transparent !important;
+}
+
+/* Force navbar to always be visible on all pages */
+.navbar, nav.navbar, .navbar-expand-lg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+.navbar-nav, .navbar-nav * {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Specific override for exercise plans page */
+body:has(.exercise-plan-card) .navbar,
+body:has(.exercise-plan-card) nav.navbar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
  

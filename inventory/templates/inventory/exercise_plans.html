@@ -1,15 +1,11 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise Plans - FitFusion</title>
-    <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
-</head>
-<body>
-    <div class="container">
-        <h1>Exercise Plans</h1>
+
+{% block title %}Exercise Plans - FitFusion{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Exercise Plans</h1>
         
         {% if messages %}
         <div class="messages">
@@ -38,5 +34,4 @@
 
         <p class="back-link"><a href="{% url 'product_list' %}">← Back to Products</a></p>
     </div>
-</body>
-</html> 
+{% endblock %} 
