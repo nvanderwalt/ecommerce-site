@@ -10,6 +10,73 @@
     --transition: all 0.3s ease;
 }
 
+/* Modern Navigation Bar */
+.navbar {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 15px 0 !important;
+}
+
+.navbar-brand {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    color: white !important;
+    text-decoration: none;
+    margin-right: 40px !important;
+}
+
+.navbar-brand:hover {
+    color: #e8f5e8 !important;
+    text-decoration: none;
+}
+
+.navbar-brand i {
+    color: #4CAF50;
+    margin-right: 10px;
+    font-size: 2rem !important;
+}
+
+.navbar-nav {
+    align-items: center !important;
+}
+
+.nav-item {
+    margin: 0 8px !important;
+}
+
+.nav-link {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 10px 16px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important;
+}
+
+.nav-link:hover {
+    color: #e8f5e8 !important;
+    transform: translateY(-2px) !important;
+}
+
+.btn-outline-light {
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    padding: 8px 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+    transform: translateY(-2px) !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #4CAF50 !important;
+    border-color: #4CAF50 !important;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
@@ -24,6 +91,8 @@ body {
     margin: 0 auto;
     padding: 20px;
 }
+
+
 
 /* Cart Styles */
 .cart-container {
@@ -313,46 +382,14 @@ body {
     text-decoration: underline;
 }
 
-/* Navigation styles */
-.navbar {
-    background: white;
-    padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
+/* Remove purple gradients from main content (but not navbar) */
+.container:not(.navbar), .row, .col-md-6, .col-12 {
+    background: transparent !important;
 }
 
-.nav-brand a {
-    color: #4CAF50;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-decoration: none;
+/* Override any Bootstrap purple gradients (but not navbar) */
+.bg-primary:not(.navbar), .bg-gradient:not(.navbar) {
+    background: transparent !important;
 }
 
-.nav-links {
-    display: flex;
-    gap: 1rem;
-}
-
-.nav-item {
-    color: #333;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-}
-
-.nav-item:hover {
-    background: #f5f5f5;
-    border-radius: 4px;
-}
-
-.logout-form {
-    margin: 0;
-}
-
-.logout-form button {
-    background: none;
-    border: none;
-    color: #333;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-} 
+ 

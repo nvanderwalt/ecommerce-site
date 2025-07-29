@@ -8,27 +8,19 @@
     <!-- Hero Section -->
     <div class="hero-section text-center mb-5">
         <div class="container">
-            <h1 class="display-3 fw-bold text-primary mb-4">Transform Your Fitness Journey</h1>
+            <h1 class="display-3 fw-bold text-success mb-4">Transform Your Fitness Journey</h1>
             <p class="lead fs-4 mb-4">Discover premium fitness equipment and personalized workout plans designed to help you achieve your goals faster.</p>
             <div class="hero-buttons">
-                <a href="{% url 'exercise_plan_list' %}" class="btn btn-primary btn-lg me-3">View Exercise Plans</a>
+                <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-primary btn-lg me-3">View Our Exercise Plans</a>
                 <a href="{% url 'account_signup' %}" class="btn btn-outline-primary btn-lg">Join FitFusion</a>
             </div>
         </div>
     </div>
 
-    <!-- Navigation Bar -->
+    <!-- Section Title -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">Premium Fitness Equipment</h2>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'cart' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-shopping-cart"></i> Cart
-                        <span class="badge bg-primary ms-1">{{ cart_count|default:0 }}</span>
-                    </a>
-                </div>
-            </div>
+            <h2 class="mb-0">Premium Fitness Equipment</h2>
         </div>
     </div>
 
@@ -89,7 +81,6 @@
             <div class="cta-section p-4 bg-light rounded">
                 <h3>Ready to Start Your Fitness Journey?</h3>
                 <p class="mb-3">Join thousands of users who have transformed their lives with FitFusion.</p>
-                <a href="{% url 'exercise_plan_list' %}" class="btn btn-primary btn-lg me-3">View Exercise Plans</a>
                 <a href="{% url 'account_signup' %}" class="btn btn-outline-primary btn-lg">Sign Up Now</a>
             </div>
         </div>
@@ -98,8 +89,8 @@
 
 <style>
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: transparent;
+    color: #333;
     padding: 4rem 0;
     border-radius: 1rem;
     margin-bottom: 3rem;
@@ -123,9 +114,11 @@
 }
 
 .product-image {
-    height: 200px;
-    object-fit: cover;
+    height: 250px;
+    width: 100%;
+    object-fit: contain;
     transition: transform 0.3s ease;
+    background-color: #f8f9fa;
 }
 
 .product-card:hover .product-image {
@@ -151,14 +144,16 @@
         padding: 2rem 0;
     }
     
-    .hero-buttons {
-        flex-direction: column;
-        gap: 1rem;
-    }
     
-    .hero-buttons .btn {
-        width: 100%;
-    }
+
+.hero-buttons {
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hero-buttons .btn {
+    width: 100%;
+}
 }
 </style>
 {% endblock %}
