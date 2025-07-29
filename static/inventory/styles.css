@@ -71,6 +71,8 @@ body .nav-link, html .nav-link {
     border-radius: 6px !important;
     transition: all 0.3s ease !important;
     white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .nav-link:hover {
@@ -83,6 +85,8 @@ body .nav-link, html .nav-link {
     font-weight: 600 !important;
     padding: 8px 20px !important;
     transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .btn-outline-light:hover {
