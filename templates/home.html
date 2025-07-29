@@ -1,45 +1,375 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}FitFusion - Transform Your Fitness Journey{% endblock %}
-{% block meta_description %}Join FitFusion for personalized workout plans, nutrition guidance, and community support. Start your fitness transformation today.{% endblock %}
+{% block title %}FitFusion - Your Health is Your Wealth{% endblock %}
+{% block meta_description %}Discover why your health should be your first priority. FitFusion helps you transform your life through personalized fitness, nutrition, and wellness programs.{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Hero Section -->
-    <div class="row mb-5">
-        <div class="col-md-6">
-            <h1>Transform Your Fitness Journey</h1>
-            <p class="lead">Join FitFusion for personalized workout plans, nutrition guidance, and community support.</p>
-            <a href="{% url 'inventory:exercise_plan_list' %}" class="btn btn-primary btn-lg">Get Started</a>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="hero-title">Your Health, Our<br>Priority</h1>
+                <p class="hero-subtitle">Every decision you make today shapes your tomorrow. At FitFusion, we believe that investing in your health is the most important investment you can make.</p>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Newsletter Section -->
-    <div class="row mb-5">
-        <div class="col-md-6 mx-auto">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h3>Stay Updated</h3>
-                    <p>Subscribe to our newsletter for fitness tips, exclusive offers, and community updates.</p>
-                    <form action="{% url 'inventory:newsletter_signup' %}" method="post" class="mt-3">
+<!-- Why Health Matters Section -->
+<div id="why-health" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2>Why Your Health Should Be Your First Priority</h2>
+                <p class="lead">Your body is the only place you have to live. Here's why taking care of it matters more than anything else.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="health-card">
+                    <div class="health-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Longevity</h3>
+                    <p>Regular exercise and proper nutrition can add years to your life and life to your years. Your future self will thank you.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="health-card">
+                    <div class="health-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Mental Clarity</h3>
+                    <p>Physical fitness directly impacts your mental health. A healthy body leads to a sharper mind and better decision-making.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="health-card">
+                    <div class="health-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Quality of Life</h3>
+                    <p>Being fit means more energy for your family, career, and passions. Don't let poor health hold you back.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- What is FitFusion Section -->
+<div class="section bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2>Why FitFusion?</h2>
+                <p class="lead">FitFusion is more than just a fitness platform. We're your partner in creating a healthier, stronger, and more vibrant life.</p>
+                <div class="feature-list text-center">
+                    <div class="feature-item text-center">
+                        <i class="fas fa-dumbbell text-success"></i>
+                        <div>
+                            <h4>Personalized Workout Plans</h4>
+                            <p>Customized exercise routines that fit your lifestyle and goals</p>
+                        </div>
+                    </div>
+                    <div class="feature-item text-center">
+                        <i class="fas fa-apple-alt text-success"></i>
+                        <div>
+                            <h4>Nutrition Guidance</h4>
+                            <p>Expert advice on fueling your body for optimal performance</p>
+                        </div>
+                    </div>
+                    <div class="feature-item text-center">
+                        <i class="fas fa-users text-success"></i>
+                        <div>
+                            <h4>Community Support</h4>
+                            <p>Connect with like-minded individuals on the same journey</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Stories Section -->
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2>Real Stories, Real Results</h2>
+                <p class="lead">See how FitFusion has transformed lives and helped people prioritize their health.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left text-success mb-3" style="font-size: 2rem;"></i>
+                        <p>"FitFusion helped me realize that my health wasn't just about looking good—it was about being there for my family."</p>
+                        <h5>Sarah M.</h5>
+                        <small>Lost 30 pounds, gained confidence</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left text-success mb-3" style="font-size: 2rem;"></i>
+                        <p>"I was always putting work first. FitFusion taught me that my health is my foundation for everything else."</p>
+                        <h5>Mike R.</h5>
+                        <small>Improved energy, better sleep</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <i class="fas fa-quote-left text-success mb-3" style="font-size: 2rem;"></i>
+                        <p>"At 45, I thought it was too late. FitFusion showed me that it's never too late to prioritize your health."</p>
+                        <h5>Jennifer L.</h5>
+                        <small>Reversed health markers, active lifestyle</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="section bg-success text-white">
+    <div class="container text-center">
+        <h2>Ready to Make Your Health a Priority?</h2>
+        <p class="lead">Join thousands of people who have decided that their health comes first.</p>
+        <div class="cta-buttons">
+            <a href="{% url 'exercise_plan_list' %}" class="btn btn-light btn-lg me-3">Our Exercise Plans</a>
+            <a href="{% url 'subscriptions:plan_list' %}" class="btn btn-light btn-lg">Become a Premium Member</a>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Section -->
+<div class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="newsletter-card">
+                    <h3>Stay Motivated</h3>
+                    <p>Get weekly inspiration, fitness tips, and success stories delivered to your inbox.</p>
+                    <form action="#" method="post" class="newsletter-form">
                         {% csrf_token %}
-                        <div class="input-group mb-3">
+                        <div class="input-group">
                             <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
-                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                            <button class="btn btn-outline-success" type="submit">Subscribe</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Featured Plans -->
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-center mb-4">Featured Plans</h2>
-        </div>
-        <!-- Add featured plans here -->
-    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Force override external CSS */
+.hero-section {
+    background: transparent !important;
+    color: #333 !important;
+    padding: 60px 0 0px 0 !important;
+    margin: 15px 0 0px 0 !important;
+}
+
+.hero-title {
+    font-size: 3rem !important;
+    font-weight: 900 !important;
+    margin-bottom: 1.5rem !important;
+    color: #28a745 !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* Additional specific overrides */
+h1.hero-title {
+    color: #28a745 !important;
+    font-size: 5.5rem !important;
+    font-weight: 900 !important;
+}
+
+.hero-section h1 {
+    color: #28a745 !important;
+    font-size: 5.5rem !important;
+    font-weight: 900 !important;
+}
+
+/* Make navbar thicker */
+.navbar {
+    padding: 20px 0 !important;
+    min-height: 80px !important;
+}
+
+.navbar-brand {
+    font-size: 2.5rem !important;
+    font-weight: 900 !important;
+}
+
+.navbar-brand i {
+    font-size: 2.3rem !important;
+}
+
+.nav-link {
+    font-size: 1.2rem !important;
+    padding: 12px 18px !important;
+    font-weight: 700 !important;
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-image {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.section {
+    padding: 20px 0;
+}
+
+.section-image {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.health-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.health-card:hover {
+    transform: translateY(-5px);
+}
+
+.health-icon {
+    font-size: 3rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.health-card h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.health-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.feature-list {
+    margin-top: 30px;
+}
+
+.feature-item {
+    display: block;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.feature-item i {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.feature-item h4 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.feature-item p {
+    color: #666;
+    margin: 0;
+}
+
+.testimonial-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+.testimonial-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.testimonial-content {
+    padding: 25px;
+}
+
+.testimonial-content p {
+    font-style: italic;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.testimonial-content h5 {
+    color: #28a745;
+    margin-bottom: 5px;
+}
+
+.testimonial-content small {
+    color: #666;
+}
+
+.newsletter-card {
+    background: #f8f9fa;
+    padding: 40px;
+    border-radius: 15px;
+    border: 2px solid #e9ecef;
+}
+
+.newsletter-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.cta-buttons {
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .section {
+        padding: 60px 0;
+    }
+    
+    .cta-buttons .btn {
+        margin-bottom: 10px !important;
+    }
+}
+</style>
 {% endblock %} 

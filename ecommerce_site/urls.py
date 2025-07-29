@@ -27,6 +27,7 @@ from inventory.views import (
     exercise_plan_detail,
     create_plan_checkout_session,
 )
+from .views import home_view
 
 # Sitemap configuration
 sitemaps = {
@@ -39,7 +40,8 @@ sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', product_list, name='product_list'),
+    path('', home_view, name='home'),
+    path('products/', product_list, name='product_list'),
     path('cart/', cart_view, name='cart'),
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),

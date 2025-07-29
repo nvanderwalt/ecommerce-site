@@ -1,5 +1,11 @@
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.shortcuts import render
+
+
+def home_view(request):
+    """Home page view"""
+    return render(request, 'home.html')
 
 
 def robots_txt(request):
