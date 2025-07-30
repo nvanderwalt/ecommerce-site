@@ -35,15 +35,15 @@ class Command(BaseCommand):
         # Exercise Plans
         ExercisePlan.objects.get_or_create(
             name='Beginner Strength Plan', slug='beginner-strength', description='A 4-week plan for beginners.',
-            price=19.99, duration_weeks=4, difficulty='beginner', category=cat_strength
+            price=29.99, duration_weeks=4, difficulty='beginner', category=cat_strength
         )
         ExercisePlan.objects.get_or_create(
             name='Cardio Blast', slug='cardio-blast', description='Intense cardio program.',
-            price=14.99, duration_weeks=3, difficulty='intermediate', category=cat_cardio
+            price=49.99, duration_weeks=6, difficulty='intermediate', category=cat_cardio
         )
         ExercisePlan.objects.get_or_create(
             name='Total Body Burn', slug='total-body-burn', description='Full body workout plan.',
-            price=24.99, duration_weeks=6, difficulty='advanced', category=cat_strength
+            price=89.99, duration_weeks=8, difficulty='advanced', category=cat_strength
         )
 
         # Nutrition Plans

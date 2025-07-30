@@ -101,6 +101,7 @@ class ExercisePlan(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_weeks = models.IntegerField(null=True, blank=True)
+    daily_exercise_minutes = models.PositiveIntegerField(default=30, help_text="Minutes of exercise per day")
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     image = models.ImageField(upload_to='exercise_plans/', null=True, blank=True)
@@ -109,6 +110,16 @@ class ExercisePlan(models.Model):
     
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        # Set daily exercise minutes based on difficulty
+        if self.difficulty == 'beginner':
+            self.daily_exercise_minutes = 30
+        elif self.difficulty == 'intermediate':
+            self.daily_exercise_minutes = 50
+        elif self.difficulty == 'advanced':
+            self.daily_exercise_minutes = 90
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-created_at']

@@ -3,9 +3,209 @@
 
 {% block title %}Exercise Plans - FitFusion{% endblock %}
 
+{% block extra_css %}
+<style>
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .hero-title {
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 1.5rem !important;
+        color: #28a745 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    .plan-card h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 1.5rem;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    }
+    
+    .plan-badges {
+        margin-bottom: 1rem;
+    }
+    
+    .difficulty-badge {
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+    }
+    
+    .difficulty-beginner {
+        background-color: #90EE90;
+        color: #333;
+    }
+    
+    .difficulty-intermediate {
+        background-color: #FFD700;
+        color: #333;
+    }
+    
+    .difficulty-advanced {
+        background-color: #FF6B6B;
+        color: white;
+    }
+    
+    .focus-badge {
+        background-color: #007bff;
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .plan-card p {
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .plan-card .price {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .plan-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+    
+    .cart-form {
+        flex: 1;
+        display: flex;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .view-plan-btn {
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        padding: 0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease;
+        flex: 1;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        border: none;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1;
+        margin: 0;
+    }
+    
+    .view-plan-btn:hover {
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .add-to-cart-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1;
+        width: 100%;
+        margin: 0;
+    }
+    
+    .add-to-cart-btn:hover {
+        background-color: #218838;
+    }
+    
+    .nutrition-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .nutrition-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .nutrition-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .nutrition-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .nutrition-card h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .nutrition-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+        .plan-buttons {
+            flex-direction: column;
+        }
+        
+        .plan-buttons .view-plan-btn,
+        .plan-buttons .add-to-cart-btn {
+            flex: none;
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1 class="text-center mb-4">Exercise Plans</h1>
+    <h1 class="hero-title text-center mb-4">Exercise Plans</h1>
         
         {% if messages %}
         <div class="messages">
@@ -21,15 +221,69 @@
             {% for plan in plans %}
                 <div class="plan-card">
                     <h2>{{ plan.name }}</h2>
-                    <p class="difficulty">{{ plan.get_difficulty_display }}</p>
-                    <p class="duration">Duration: {{ plan.duration }} minutes</p>
-                    <p class="calories">Estimated calories: {{ plan.calories_burn }}</p>
+                    <div class="plan-badges">
+                        <span class="badge difficulty-badge difficulty-{{ plan.difficulty }}">{{ plan.get_difficulty_display }}</span>
+                        {% if plan.category %}
+                            <span class="badge focus-badge">{{ plan.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="duration">Duration: {{ plan.duration_weeks }} weeks</p>
+                    <p class="daily-time">Daily Exercise: {{ plan.daily_exercise_minutes }} minutes</p>
                     <p class="price">€{{ plan.price }}</p>
-                    <a href="{% url 'exercise_plan_detail' plan.id %}" class="view-plan-btn">View Details</a>
+                    <div class="plan-buttons">
+                        <a href="{% url 'exercise_plan_detail' plan.id %}" class="view-plan-btn">View Details</a>
+                        <form method="POST" action="{% url 'inventory:add_to_cart' 'plan' plan.id %}" class="d-inline cart-form">
+                            {% csrf_token %}
+                            <button type="submit" class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                            </button>
+                        </form>
+                    </div>
                 </div>
             {% empty %}
                 <p>No exercise plans available at the moment.</p>
             {% endfor %}
+        </div>
+
+        <!-- Nutrition Plans Section -->
+        <div class="section mt-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 text-center mb-5">
+                        <h2 class="hero-title">Complete Your Journey with Nutrition</h2>
+                        <p class="lead">Fuel your workouts and achieve your goals with personalized nutrition plans designed by experts.</p>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fas fa-apple-alt"></i>
+                            </div>
+                            <h3>Balanced Nutrition</h3>
+                            <p>Comprehensive meal plans that provide the perfect balance of macronutrients for your fitness goals.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3>Specialized Diets</h3>
+                            <p>Vegan, keto, paleo, and other specialized nutrition plans tailored to your dietary preferences.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Progress Tracking</h3>
+                            <p>Monitor your nutrition progress and see how proper fueling accelerates your fitness results.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
