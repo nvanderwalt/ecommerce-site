@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">Subscription Plans</h1>
+    <h1 class="hero-title text-center mb-4">Subscription Plans</h1>
     
     {% if current_subscription %}
     <div class="alert alert-info">
@@ -19,28 +19,24 @@
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for plan in plans %}
         <div class="col">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">{{ plan.name }}</h5>
-                    <p class="card-text">{{ plan.description }}</p>
-                    <ul class="list-unstyled">
-                        {% for feature in plan.features %}
-                        <li><i class="fas fa-check text-success"></i> {{ feature }}</li>
-                        {% endfor %}
-                    </ul>
+            <div class="plan-card">
+                <h2>{{ plan.name }}</h2>
+                <div class="plan-badges">
+                    <span class="badge difficulty-badge difficulty-{{ plan.plan_type|lower }}">{{ plan.plan_type }}</span>
                 </div>
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-0">${{ plan.price }}/month</h4>
-                            <small class="text-muted">{{ plan.duration_days }} days</small>
-                        </div>
-                        {% if not current_subscription %}
-                        <button class="btn btn-primary subscribe-btn" data-plan-id="{{ plan.id }}">
-                            Subscribe Now
-                        </button>
-                        {% endif %}
-                    </div>
+                <p class="description">{{ plan.description }}</p>
+                <div class="features">
+                    {% for feature in plan.features %}
+                    <p class="feature"><i class="fas fa-check text-success"></i> {{ feature }}</p>
+                    {% endfor %}
+                </div>
+                <p class="price">€{{ plan.price }}/month</p>
+                <div class="plan-buttons">
+                    {% if not current_subscription %}
+                    <button class="subscribe-btn" data-plan-id="{{ plan.id }}">
+                        Subscribe Now
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -114,52 +110,119 @@
 
 {% block extra_css %}
 <style>
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin: 2rem 0;
+    .hero-title {
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 1.5rem !important;
+        color: #28a745 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
     }
     
-    .card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: transform 0.2s;
-    }
-    
-    .card:hover {
-        transform: translateY(-5px);
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 3px solid #28a745;
     }
     
-    .card-header {
-        background-color: #f8f9fa;
-        padding: 1.5rem;
-        border-bottom: 1px solid #e0e0e0;
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     }
     
-    .card-body {
-        padding: 1.5rem;
+    .plan-card h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 1.5rem;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
     }
     
-    .feature-list {
-        list-style: none;
+    .plan-badges {
+        margin-bottom: 1rem;
+    }
+    
+    .difficulty-badge {
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+    }
+    
+    .difficulty-basic {
+        background-color: #90EE90;
+        color: #333;
+    }
+    
+    .difficulty-premium {
+        background-color: #FFD700;
+        color: #333;
+    }
+    
+    .difficulty-pro {
+        background-color: #FF6B6B;
+        color: white;
+    }
+    
+    .plan-card p {
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .plan-card .price {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .plan-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .subscribe-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
         padding: 0;
-        margin: 1.5rem 0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1;
+        width: 100%;
+        margin: 0;
     }
     
-    .feature-list li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f0f0f0;
+    .subscribe-btn:hover {
+        background-color: #218838;
     }
     
-    .feature-list li:last-child {
-        border-bottom: none;
-    }
-    
-    .btn {
-        margin-top: 1rem;
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem !important;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+        }
+        
+        .price {
+            font-size: 2rem;
+        }
     }
 </style>
 {% endblock %} 

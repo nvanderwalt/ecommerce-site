@@ -5,29 +5,25 @@
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="text-center mb-5">Choose Your Fitness Journey</h1>
+    <h1 class="hero-title text-center mb-5">Subscription Plans</h1>
     
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for plan in plans %}
         <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white text-center">
-                    <h3 class="my-0 fw-normal">{{ plan.name }}</h3>
+            <div class="plan-card">
+                <h2>{{ plan.name }}</h2>
+                <div class="plan-badges">
+                    <span class="badge difficulty-badge difficulty-{{ plan.plan_type|lower }}">{{ plan.plan_type }}</span>
                 </div>
-                <div class="card-body d-flex flex-column">
-                    <h1 class="card-title text-center">${{ plan.price }}<small class="text-muted fw-light">/mo</small></h1>
-                    <ul class="list-unstyled mt-3 mb-4">
-                        {% for feature in plan.features %}
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>{{ feature }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    <div class="mt-auto">
-                        <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="btn btn-lg btn-block btn-outline-primary w-100">
-                            Learn More
-                        </a>
-                    </div>
+                <p class="description">{{ plan.description }}</p>
+                <div class="features">
+                    {% for feature in plan.features %}
+                    <p class="feature"><i class="fas fa-check text-success"></i> {{ feature }}</p>
+                    {% endfor %}
+                </div>
+                <p class="price">€{{ plan.price }}/month</p>
+                <div class="plan-buttons">
+                    <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="view-plan-btn">Learn More</a>
                 </div>
             </div>
         </div>
@@ -45,4 +41,118 @@
     </div>
     {% endif %}
 </div>
+
+{% block extra_css %}
+<style>
+    .hero-title {
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 1.5rem !important;
+        color: #28a745 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .plan-card h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 1.5rem;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+    }
+    
+    .plan-badges {
+        margin-bottom: 1rem;
+    }
+    
+    .difficulty-badge {
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+    }
+    
+    .difficulty-basic {
+        background-color: #90EE90;
+        color: #333;
+    }
+    
+    .difficulty-premium {
+        background-color: #FFD700;
+        color: #333;
+    }
+    
+    .difficulty-pro {
+        background-color: #FF6B6B;
+        color: white;
+    }
+    
+    .plan-card p {
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .plan-card .price {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .features {
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+    
+    .plan-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: auto;
+    }
+    
+    .view-plan-btn {
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        padding: 0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease;
+        flex: 1;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        border: none;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1;
+    }
+    
+    .view-plan-btn:hover {
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
 {% endblock %} 
