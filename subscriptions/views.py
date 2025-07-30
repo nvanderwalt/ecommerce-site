@@ -51,6 +51,7 @@ class SubscriptionPlanListView(ListView):
                 status__in=['ACTIVE', 'TRIAL'],
                 end_date__gt=timezone.now()
             ).first()
+        context['stripe_public_key'] = settings.STRIPE_PUBLIC_KEY
         return context
 
 class SubscriptionPlanDetailView(DetailView):

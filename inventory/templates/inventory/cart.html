@@ -5,140 +5,132 @@
 
 {% block content %}
 <div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <h1 class="mb-4">
-                <i class="fas fa-shopping-cart me-2"></i>Your Shopping Cart
-            </h1>
-            
-            {% if cart_items %}
-                <div class="cart-items">
-                    {% for item in cart_items %}
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <div class="d-flex align-items-center">
-                                            <div class="item-icon me-3">
-                                                {% if item.item_type == 'product' %}
-                                                    <i class="fas fa-dumbbell fa-2x text-primary"></i>
-                                                {% else %}
-                                                    <i class="fas fa-running fa-2x text-success"></i>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                <h5 class="card-title mb-1">{{ item.item.name }}</h5>
-                                                <p class="text-muted mb-2">
-                                                    <span class="badge bg-secondary">{{ item.item_type|title }}</span>
-                                                </p>
-                                                <p class="text-primary fw-bold mb-0">€{{ item.item.price }}</p>
-                                            </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="cart-card">
+                <div class="cart-header">
+                    <div class="brand-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h1 class="cart-title">Your Shopping Cart</h1>
+                    <p class="cart-subtitle">Review your fitness journey items</p>
+                </div>
+                
+                {% if cart_items %}
+                    <div class="cart-content">
+                        <div class="cart-items">
+                            {% for item in cart_items %}
+                                <div class="cart-item">
+                                    <div class="item-main">
+                                        <div class="item-icon">
+                                            {% if item.item_type == 'product' %}
+                                                <i class="fas fa-dumbbell"></i>
+                                            {% else %}
+                                                <i class="fas fa-running"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="item-details">
+                                            <h5 class="item-name">{{ item.item.name }}</h5>
+                                            <p class="item-type">
+                                                <span class="type-badge">{{ item.item_type|title }}</span>
+                                            </p>
+                                            <p class="item-price">€{{ item.item.price }}</p>
                                         </div>
                                     </div>
                                     
-                                    <div class="col-md-4">
-                                        <div class="d-flex flex-column align-items-end">
-                                            <div class="quantity-controls mb-2">
-                                                <form method="POST" action="{% url 'inventory:update_cart' item.item_type item.item.id %}" class="d-flex align-items-center">
-                                                    {% csrf_token %}
-                                                    <button type="submit" name="action" value="decrease" class="btn btn-outline-secondary btn-sm"
-                                                        {% if item.quantity == 1 %}disabled{% endif %}>
-                                                        <i class="fas fa-minus"></i>
-                                                    </button>
-                                                    <span class="mx-3 fw-bold">{{ item.quantity }}</span>
-                                                    <button type="submit" name="action" value="increase" class="btn btn-outline-secondary btn-sm">
-                                                        <i class="fas fa-plus"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                            
-                                            <p class="fw-bold text-success mb-2">Subtotal: €{{ item.item_total }}</p>
-                                            
-                                            <form method="POST" action="{% url 'inventory:remove_from_cart' item.item_type item.item.id %}" class="d-inline">
+                                    <div class="item-controls">
+                                        <div class="quantity-controls">
+                                            <form method="POST" action="{% url 'inventory:update_cart' item.item_type item.item.id %}" class="quantity-form">
                                                 {% csrf_token %}
-                                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                    <i class="fas fa-trash me-1"></i>Remove
+                                                <button type="submit" name="action" value="decrease" class="quantity-btn"
+                                                    {% if item.quantity == 1 %}disabled{% endif %}>
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <span class="quantity-display">{{ item.quantity }}</span>
+                                                <button type="submit" name="action" value="increase" class="quantity-btn">
+                                                    <i class="fas fa-plus"></i>
                                                 </button>
                                             </form>
                                         </div>
+                                        
+                                        <p class="item-subtotal">€{{ item.item_total }}</p>
+                                        
+                                        <form method="POST" action="{% url 'inventory:remove_from_cart' item.item_type item.item.id %}" class="remove-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="remove-btn">
+                                                <i class="fas fa-trash"></i>
+                                                <span>Remove</span>
+                                            </button>
+                                        </form>
                                     </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="order-summary">
+                            <div class="summary-header">
+                                <i class="fas fa-receipt"></i>
+                                <h5>Order Summary</h5>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-row">
+                                    <span>Items ({{ cart_items|length }}):</span>
+                                    <span class="summary-value">€{{ total }}</span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-row total">
+                                    <span>Total:</span>
+                                    <span class="summary-total">€{{ total }}</span>
+                                </div>
+                                
+                                <form id="payment-form" class="checkout-form">
+                                    {% csrf_token %}
+                                    <button type="button" id="checkout-button" class="checkout-btn">
+                                        <i class="fas fa-credit-card"></i>
+                                        <span>Proceed to Checkout</span>
+                                    </button>
+                                </form>
+                                
+                                <div class="security-note">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Secure payment powered by Stripe</span>
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
-                    <h3 class="text-muted">Your cart is empty</h3>
-                    <p class="text-muted mb-4">Start your fitness journey by adding some products or exercise plans to your cart!</p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="{% url 'product_list' %}" class="btn btn-primary">
-                            <i class="fas fa-shopping-bag me-2"></i>Browse Products
-                        </a>
-                        <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-running me-2"></i>View Exercise Plans
-                        </a>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-        
-        {% if cart_items %}
-            <div class="col-lg-4">
-                <div class="card shadow-sm sticky-top" style="top: 2rem;">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-receipt me-2"></i>Order Summary
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span>Items ({{ cart_items|length }}):</span>
-                            <span class="fw-bold">€{{ total }}</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="fs-5 fw-bold">Total:</span>
-                            <span class="fs-5 fw-bold text-primary">€{{ total }}</span>
-                        </div>
                         
-                        <form id="payment-form" class="d-grid">
-                            {% csrf_token %}
-                            <button type="button" id="checkout-button" class="btn btn-success btn-lg">
-                                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
-                            </button>
-                        </form>
-                        
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                <i class="fas fa-lock me-1"></i>Secure payment powered by Stripe
-                            </small>
+                        <div class="cart-actions">
+                            <a href="{% url 'product_list' %}" class="action-btn secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Continue Shopping</span>
+                            </a>
+                            <a href="{% url 'exercise_plan_list' %}" class="action-btn secondary">
+                                <i class="fas fa-running"></i>
+                                <span>Browse Exercise Plans</span>
+                            </a>
                         </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="empty-cart">
+                        <div class="empty-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="empty-title">Your cart is empty</h3>
+                        <p class="empty-subtitle">Start your fitness journey by adding some products or exercise plans to your cart!</p>
+                        <div class="empty-actions">
+                            <a href="{% url 'product_list' %}" class="action-btn primary">
+                                <i class="fas fa-shopping-bag"></i>
+                                <span>Browse Products</span>
+                            </a>
+                            <a href="{% url 'exercise_plan_list' %}" class="action-btn secondary">
+                                <i class="fas fa-running"></i>
+                                <span>View Exercise Plans</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
     </div>
-    
-    {% if cart_items %}
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                        </a>
-                    </div>
-                    <div>
-                        <a href="{% url 'exercise_plan_list' %}" class="btn btn-outline-success">
-                            <i class="fas fa-running me-2"></i>Browse Exercise Plans
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 </div>
 
 {% if cart_items %}
@@ -149,7 +141,7 @@
     document.getElementById("checkout-button").addEventListener("click", function () {
         const button = this;
         button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processing...</span>';
         
         fetch("{% url 'create_checkout_session' %}", {
             method: "POST",
@@ -167,10 +159,451 @@
         .catch(error => {
             console.error('Error:', error);
             button.disabled = false;
-            button.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proceed to Checkout';
+            button.innerHTML = '<i class="fas fa-credit-card"></i><span>Proceed to Checkout</span>';
             alert('An error occurred during checkout. Please try again.');
         });
     });
 </script>
 {% endif %}
+
+<style>
+.cart-card {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: none;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.cart-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.brand-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.brand-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.cart-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.cart-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.cart-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.cart-item {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-item:hover {
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.1);
+    transform: translateY(-2px);
+}
+
+.item-main {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.item-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.item-type {
+    margin: 0 0 0.5rem 0;
+}
+
+.type-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.item-price {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.item-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantity-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #28a745;
+    background: white;
+    color: #28a745;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    background: #28a745;
+    color: white;
+    transform: scale(1.1);
+}
+
+.quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quantity-display {
+    font-weight: 600;
+    color: #333;
+    min-width: 30px;
+    text-align: center;
+}
+
+.item-subtotal {
+    font-weight: 600;
+    color: #28a745;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.remove-form {
+    margin: 0;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.remove-btn:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.order-summary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    position: sticky;
+    top: 2rem;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.summary-header i {
+    color: #28a745;
+    font-size: 1.2rem;
+}
+
+.summary-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.summary-row.total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.summary-value {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.summary-total {
+    font-weight: 700;
+    color: #28a745;
+    font-size: 1.3rem;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #dee2e6;
+    margin: 0.5rem 0;
+}
+
+.checkout-form {
+    margin-top: 1rem;
+}
+
+.checkout-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.checkout-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.checkout-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.security-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+}
+
+.security-note i {
+    color: #28a745;
+}
+
+.cart-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-color: #28a745;
+}
+
+.action-btn.primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.action-btn.secondary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-color: #28a745;
+}
+
+.action-btn.secondary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.empty-icon {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+}
+
+.empty-icon i {
+    font-size: 3rem;
+    color: #6c757d;
+}
+
+.empty-title {
+    color: #333;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .cart-card {
+        padding: 2rem;
+        margin: 1rem;
+    }
+    
+    .cart-title {
+        font-size: 2rem;
+    }
+    
+    .cart-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .item-controls {
+        align-items: stretch;
+    }
+    
+    .cart-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .empty-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
 {% endblock %}

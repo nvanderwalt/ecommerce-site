@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, UserProfile, ExercisePlan, NutritionPlan, NutritionPlanProgress, NutritionMeal, Category
+from subscriptions.models import SubscriptionPlan
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -67,8 +68,12 @@ def add_to_cart(request, item_type, item_id):
     
     if item_type == 'product':
         return redirect('product_list')
-    else:
+    elif item_type == 'exercise_plan':
         return redirect('exercise_plan_list')
+    elif item_type == 'subscription_plan':
+        return redirect('subscriptions:plan_list')
+    else:
+        return redirect('product_list')
 
 def cart_view(request):
     cart = request.session.get('cart', {})
@@ -84,8 +89,13 @@ def cart_view(request):
             item_type, item_id = item_key.split('-', 1)
             if item_type == 'product':
                 item = Product.objects.get(id=item_id)
-            else:  # exercise plan
+            elif item_type == 'exercise_plan':
                 item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'subscription_plan':
+                item = SubscriptionPlan.objects.get(id=item_id)
+            else:
+                invalid_keys.append(item_key)
+                continue
             item_total = item.price * quantity
             total += item_total
             cart_items.append({
@@ -94,7 +104,7 @@ def cart_view(request):
                 'quantity': quantity,
                 'item_total': item_total,
             })
-        except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             invalid_keys.append(item_key)
             continue
 
@@ -219,8 +229,13 @@ def update_cart(request, item_type, item_id):
         try:
             if item_type == 'product':
                 item = Product.objects.get(id=item_id)
-            else:  # exercise plan
+            elif item_type == 'exercise_plan':
                 item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'subscription_plan':
+                item = SubscriptionPlan.objects.get(id=item_id)
+            else:
+                messages.error(request, 'Invalid item type.')
+                return redirect('cart_view')
                 
             if action == 'increase':
                 cart[item_key] = cart.get(item_key, 0) + 1
@@ -232,7 +247,7 @@ def update_cart(request, item_type, item_id):
                 else:
                     messages.warning(request, f'Quantity cannot be less than 1.')
             request.session['cart'] = cart
-        except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             messages.error(request, 'Item not found.')
             
     return redirect('cart_view')
@@ -247,12 +262,17 @@ def remove_from_cart(request, item_type, item_id):
             try:
                 if item_type == 'product':
                     item = Product.objects.get(id=item_id)
-                else:  # exercise plan
+                elif item_type == 'exercise_plan':
                     item = ExercisePlan.objects.get(id=item_id)
+                elif item_type == 'subscription_plan':
+                    item = SubscriptionPlan.objects.get(id=item_id)
+                else:
+                    messages.error(request, 'Invalid item type.')
+                    return redirect('cart_view')
                 del cart[item_key]
                 request.session['cart'] = cart
                 messages.success(request, f'{item.name} removed from cart.')
-            except (Product.DoesNotExist, ExercisePlan.DoesNotExist):
+            except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
                 messages.error(request, 'Item not found.')
                 
     return redirect('cart_view')

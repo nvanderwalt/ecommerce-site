@@ -25,6 +25,9 @@
                 <p class="price">€{{ plan.price }}/month</p>
                 <div class="plan-buttons">
                     <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="view-plan-btn">Learn More</a>
+                    <button class="subscribe-btn" data-plan-id="{{ plan.id }}">
+                        Subscribe Now
+                    </button>
                 </div>
             </div>
         </div>
@@ -42,6 +45,64 @@
     </div>
     {% endif %}
 </div>
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ stripe_public_key }}');
+    
+    // Subscribe functionality
+    document.querySelectorAll('.subscribe-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const planId = e.target.dataset.planId;
+            
+            try {
+                const response = await fetch(`/subscriptions/create/${planId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                const result = await stripe.redirectToCheckout({
+                    sessionId: data.id
+                });
+                
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -124,9 +185,11 @@
     
     .plan-buttons {
         display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
+        gap: 0.5rem;
         margin-top: auto;
+        flex-direction: row;
+        align-items: stretch;
+        width: 100%;
     }
     
     .view-plan-btn {
@@ -147,10 +210,42 @@
         font-weight: 500;
         box-sizing: border-box;
         line-height: 1;
+        min-width: 0;
+        margin: 0;
     }
     
     .view-plan-btn:hover {
         background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .subscribe-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        font-weight: 500;
+        box-sizing: border-box;
+        line-height: 1;
+        margin: 0;
+        text-decoration: none;
+        min-width: 0;
+    }
+    
+    .subscribe-btn:hover {
+        background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         color: white;
         text-decoration: none;
     }

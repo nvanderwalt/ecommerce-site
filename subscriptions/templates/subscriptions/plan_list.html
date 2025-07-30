@@ -32,11 +32,9 @@
                 </div>
                 <p class="price">€{{ plan.price }}/month</p>
                 <div class="plan-buttons">
-                    {% if not current_subscription %}
                     <button class="subscribe-btn" data-plan-id="{{ plan.id }}">
                         Subscribe Now
                     </button>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -55,6 +53,7 @@
 <script>
     const stripe = Stripe('{{ stripe_public_key }}');
     
+    // Subscribe functionality
     document.querySelectorAll('.subscribe-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();

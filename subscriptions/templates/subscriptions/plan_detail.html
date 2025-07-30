@@ -203,13 +203,10 @@
                 {% else %}
                 <div class="subscription-controls">
                     <div id="error-message" class="alert alert-danger" style="display: none;"></div>
-                    <button class="btn btn-primary"
-                            id="subscribe-button"
+                    <button class="add-to-cart-btn"
                             data-plan-id="{{ plan.id }}">
-                        <span class="button-text">Subscribe Now</span>
-                        <span class="button-loader" style="display: none;">
-                            Processing...
-                        </span>
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Add to Cart</span>
                     </button>
                 </div>
                 {% endif %}
@@ -299,6 +296,30 @@
 
     .btn:disabled .button-loader {
         animation: pulse 1.5s infinite;
+    }
+    
+    .add-to-cart-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    
+    .add-to-cart-btn:hover {
+        background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
     }
 
     .benefits-section, .comparison-section, .testimonials-section {
@@ -402,6 +423,40 @@
     const buttonText = subscribeButton.querySelector('.button-text');
     const buttonLoader = subscribeButton.querySelector('.button-loader');
 
+    // Add to Cart functionality
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const planId = button.dataset.planId;
+            
+            try {
+                const response = await fetch(`/inventory/add-to-cart/subscription_plan/${planId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Added!</span>';
+                    button.style.background = 'linear-gradient(135deg, #218838 0%, #1ea085 100%)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    }, 2000);
+                } else {
+                    alert('Failed to add to cart. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+
     function showError(message) {
         errorDisplay.textContent = message;
         errorDisplay.style.display = 'block';
@@ -410,62 +465,6 @@
         }, 5000);
     }
 
-    function setLoading(isLoading) {
-        subscribeButton.disabled = isLoading;
-        buttonText.style.display = isLoading ? 'none' : 'inline';
-        buttonLoader.style.display = isLoading ? 'inline' : 'none';
-    }
 
-    if (subscribeButton) {
-        subscribeButton.addEventListener('click', async function() {
-            try {
-                setLoading(true);
-                errorDisplay.style.display = 'none';
-
-                const response = await fetch(
-                    "{% url 'subscriptions:create_checkout_session' plan.id %}",
-                    {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    }
-                );
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'An error occurred while creating the checkout session.');
-                }
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                const result = await stripe.redirectToCheckout({
-                    sessionId: data.id
-                });
-                
-                if (result.error) {
-                    throw new Error(result.error.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                let errorMessage = 'An unexpected error occurred. Please try again.';
-                
-                if (error.message.includes('Authentication')) {
-                    errorMessage = 'Payment authentication failed. Please check your Stripe keys.';
-                } else if (error.message.includes('rate limit')) {
-                    errorMessage = 'Too many requests. Please wait a moment and try again.';
-                } else if (error.message.includes('Invalid payment method')) {
-                    errorMessage = 'The payment method is invalid. Please try a different card.';
-                }
-                
-                showError(errorMessage);
-            } finally {
-                setLoading(false);
-            }
-        });
-    }
 </script>
 {% endblock %} 
