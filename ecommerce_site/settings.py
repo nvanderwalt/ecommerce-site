@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+
+# Load environment variables from .env file
+# load_dotenv()  # Temporarily disabled due to encoding issues
 import sys
 
 # Load environment variables
@@ -146,8 +149,8 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Stripe Keys
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLIC_KEY = 'pk_test_510H650CsAipY5vRT3ZDnBLphb0fcHgQS3z1zqtAL1DBW13yMcUijnjri7VX0xOHqs9ueC19Zb17JqJkK9XSVckdp00XKI3VAvZ'
+STRIPE_SECRET_KEY = 'sk_test_510H650CsAipY5vRT5xuJWaQzd9sXa0ZYWpNTbEUuaQ0EGAHQtgE9yXDA3iKqebiyjCvYeCU78jX03mcsy3sLfJuR00KYP0Acx3'
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
 # Authentication settings

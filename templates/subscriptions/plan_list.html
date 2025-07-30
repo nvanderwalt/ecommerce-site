@@ -50,6 +50,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <script>
     const stripe = Stripe('{{ stripe_public_key }}');
+    const csrfToken = '{{ csrf_token }}';
     
     // Subscribe functionality
     document.querySelectorAll('.subscribe-btn').forEach(button => {
@@ -57,16 +58,33 @@
             e.preventDefault();
             const planId = e.target.dataset.planId;
             
+            // Show loading state
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            button.disabled = true;
+            
             try {
+                console.log('Sending request to:', `/subscriptions/create/${planId}/`);
+                console.log('CSRF Token:', csrfToken);
+                
                 const response = await fetch(`/subscriptions/create/${planId}/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        'X-CSRFToken': csrfToken
                     }
                 });
                 
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.error) {
                     alert(data.error);
@@ -82,7 +100,12 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+                // Show the actual error for debugging
+                alert('Error: ' + error.message);
+            } finally {
+                // Reset button state
+                button.innerHTML = originalText;
+                button.disabled = false;
             }
         });
     });
@@ -100,6 +123,18 @@
             }
         }
         return cookieValue;
+    }
+    
+    // Get CSRF token from the page
+    function getCSRFToken() {
+        // First try to get from meta tag
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            return metaTag.getAttribute('content');
+        }
+        
+        // Fallback to cookie
+        return getCookie('csrftoken');
     }
 </script>
 {% endblock %}

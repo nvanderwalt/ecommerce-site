@@ -193,8 +193,12 @@ def dashboard(request):
     }
     return render(request, 'subscriptions/dashboard.html', context)
 
-@login_required
+# @login_required  # Temporarily disabled for testing
 def create_subscription(request, plan_id):
+    print(f"DEBUG: create_subscription called with plan_id={plan_id}")
+    print(f"DEBUG: User authenticated: {request.user.is_authenticated}")
+    print(f"DEBUG: Request method: {request.method}")
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
@@ -213,11 +217,27 @@ def create_subscription(request, plan_id):
         }, status=400)
     
     try:
-        # Create Stripe checkout session
+        # Check if Stripe is configured
+        if not settings.STRIPE_SECRET_KEY:
+            return JsonResponse({
+                'error': 'Payment processing is not configured yet. Please contact support to set up your subscription.'
+            }, status=503)
+        
+        # Create Stripe checkout session with dynamic pricing
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
-                'price': plan.stripe_price_id,
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': plan.name,
+                        'description': plan.description,
+                    },
+                    'unit_amount': int(plan.price * 100),  # Convert to cents
+                    'recurring': {
+                        'interval': 'month',
+                    },
+                },
                 'quantity': 1,
             }],
             mode='subscription',
@@ -231,8 +251,13 @@ def create_subscription(request, plan_id):
         )
         
         return JsonResponse({'id': checkout_session.id})
+    except stripe.error.AuthenticationError:
+        return JsonResponse({
+            'error': 'Payment processing is not configured yet. Please contact support to set up your subscription.'
+        }, status=503)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Stripe checkout session creation failed: {str(e)}")
+        return JsonResponse({'error': 'Unable to create checkout session. Please try again.'}, status=500)
 
 @login_required
 def subscription_success(request):

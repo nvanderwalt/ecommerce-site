@@ -5,117 +5,545 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/subscription.css' %}">
+<style>
+    /* Hero Section */
+    .plan-hero {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+    
+    .price-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        display: inline-block;
+        backdrop-filter: blur(10px);
+    }
+    
+    .price-amount {
+        font-size: 2.5rem;
+        font-weight: 900;
+        display: block;
+    }
+    
+    .price-period {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    
+    /* Plan Overview */
+    .plan-overview-card {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        color: #333;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .features-grid {
+        display: grid;
+        gap: 2rem;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .feature-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .feature-content h4 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .feature-content p {
+        color: #666;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    /* Plan Highlights */
+    .plan-highlights {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        height: fit-content;
+    }
+    
+    .highlights-title {
+        color: #333;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .highlight-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .highlight-item i {
+        color: #28a745;
+        font-size: 1.2rem;
+        width: 20px;
+    }
+    
+    .highlight-item span {
+        color: #333;
+        font-weight: 500;
+    }
+    
+    /* Benefits Grid */
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .benefit-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .benefit-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .benefit-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .benefit-card h4 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .benefit-card p {
+        color: #666;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    /* Testimonials */
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .testimonial-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border-left: 5px solid #28a745;
+    }
+    
+    .testimonial-content p {
+        color: #333;
+        font-style: italic;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .testimonial-author strong {
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .testimonial-author span {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    /* Call to Action */
+    .cta-section {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+    
+    .cta-button {
+        background: white;
+        color: #28a745;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        color: #28a745;
+        text-decoration: none;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+        
+        .plan-overview-card {
+            padding: 2rem;
+        }
+        
+        .benefits-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row">
-        <div class="col-md-8">
-            <h1 class="mb-4">{{ plan.name }}</h1>
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h2 class="card-title">${{ plan.price }}<small class="text-muted fw-light">/mo</small></h2>
-                    <p class="card-text">{{ plan.description }}</p>
-                    <h4 class="mt-4">Features:</h4>
-                    <ul class="list-unstyled">
-                        {% for feature in plan.features %}
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>{{ feature }}
-                        </li>
-                        {% endfor %}
-                    </ul>
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="plan-hero text-center">
+                <h1 class="hero-title mb-3">{{ plan.name }} Plan</h1>
+                <p class="hero-subtitle mb-4">{{ plan.description }}</p>
+                <div class="price-badge">
+                    <span class="price-amount">€{{ plan.price }}</span>
+                    <span class="price-period">/month</span>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">Subscribe Now</h3>
-                    {% if current_subscription %}
-                        {% if current_subscription.plan == plan %}
-                            <div class="alert alert-info">
-                                You are currently subscribed to this plan.
+    </div>
+
+    <!-- Plan Overview -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="plan-overview-card">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h2 class="section-title">What's Included</h2>
+                        <div class="features-grid">
+                            {% for feature in plan.features %}
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h4>{{ feature }}</h4>
+                                    <p>{% if plan.plan_type == 'BASIC' %}
+                                        {% if forloop.counter == 1 %}Access to fundamental workout routines designed for beginners with step-by-step instructions.{% endif %}
+                                        {% if forloop.counter == 2 %}Get help when you need it with our responsive email support team.{% endif %}
+                                        {% if forloop.counter == 3 %}Track your fitness journey with basic progress monitoring and insights.{% endif %}
+                                    {% elif plan.plan_type == 'PREMIUM' %}
+                                        {% if forloop.counter == 1 %}Advanced workout routines with detailed instructions, variations, and progression tracking.{% endif %}
+                                        {% if forloop.counter == 2 %}Monthly 30-minute consultation with certified fitness trainers to optimize your routine.{% endif %}
+                                        {% if forloop.counter == 3 %}Detailed performance metrics, personalized insights, and advanced analytics dashboard.{% endif %}
+                                        {% if forloop.counter == 4 %}Faster response times and dedicated support channel for premium members.{% endif %}
+                                    {% elif plan.plan_type == 'PRO' %}
+                                        {% if forloop.counter == 1 %}All premium features plus exclusive content and advanced training methodologies.{% endif %}
+                                        {% if forloop.counter == 2 %}Weekly 1-on-1 coaching sessions with certified personal trainers.{% endif %}
+                                        {% if forloop.counter == 3 %}Personalized meal plans tailored to your goals and dietary preferences.{% endif %}
+                                        {% if forloop.counter == 4 %}Access to exclusive content, advanced techniques, and premium resources.{% endif %}
+                                    {% endif %}</p>
+                                </div>
                             </div>
-                        {% else %}
-                            <div class="alert alert-warning">
-                                You are currently subscribed to {{ current_subscription.plan.name }}.
-                                <a href="{% url 'user_subscription' %}" class="btn btn-outline-primary mt-2">Manage Subscription</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="plan-highlights">
+                            <h3 class="highlights-title">Plan Highlights</h3>
+                            <div class="highlight-item">
+                                <i class="fas fa-star"></i>
+                                <span>Perfect for {% if plan.plan_type == 'BASIC' %}beginners{% elif plan.plan_type == 'PREMIUM' %}serious fitness enthusiasts{% else %}elite athletes{% endif %}</span>
                             </div>
-                        {% endif %}
-                    {% else %}
-                        <form id="subscription-form" class="mt-3">
-                            {% csrf_token %}
-                            <div id="card-element" class="mb-3">
-                                <!-- Stripe Card Element will be inserted here -->
+                            <div class="highlight-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{% if plan.plan_type == 'BASIC' %}30-45 min{% elif plan.plan_type == 'PREMIUM' %}45-60 min{% else %}60-90 min{% endif %} workouts</span>
                             </div>
-                            <div id="card-errors" class="alert alert-danger d-none" role="alert"></div>
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="submit-button">
-                                Subscribe Now
-                            </button>
-                        </form>
-                    {% endif %}
+                            <div class="highlight-item">
+                                <i class="fas fa-users"></i>
+                                <span>{% if plan.plan_type == 'BASIC' %}Community support{% elif plan.plan_type == 'PREMIUM' %}Priority support{% else %}1-on-1 coaching{% endif %}</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Mobile app access</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Benefits -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title text-center mb-4">Why Choose {{ plan.name }}?</h2>
+            <div class="benefits-grid">
+                {% if plan.plan_type == 'BASIC' %}
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h4>Start Your Journey</h4>
+                    <p>Perfect for beginners who want to build a solid foundation. Our basic plan provides everything you need to start your fitness journey with confidence.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Safe & Effective</h4>
+                    <p>All workouts are designed with safety in mind, ensuring you can exercise confidently without risk of injury.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Track Progress</h4>
+                    <p>Monitor your improvements with our easy-to-use tracking system and celebrate your achievements along the way.</p>
+                </div>
+                {% elif plan.plan_type == 'PREMIUM' %}
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h4>Advanced Workouts</h4>
+                    <p>Take your fitness to the next level with advanced routines, detailed instructions, and progression tracking.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h4>Expert Guidance</h4>
+                    <p>Get personalized advice from certified trainers through monthly consultations to optimize your results.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-analytics"></i>
+                    </div>
+                    <h4>Advanced Analytics</h4>
+                    <p>Dive deep into your performance with detailed metrics, personalized insights, and advanced tracking.</p>
+                </div>
+                {% elif plan.plan_type == 'PRO' %}
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h4>Elite Experience</h4>
+                    <p>Access the most advanced training methodologies and exclusive content designed for serious athletes.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h4>Personal Coaching</h4>
+                    <p>Weekly 1-on-1 sessions with certified personal trainers for personalized guidance and motivation.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h4>Custom Nutrition</h4>
+                    <p>Get personalized meal plans tailored to your specific goals, dietary preferences, and lifestyle.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Stories -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title text-center mb-4">Success Stories</h2>
+            <div class="testimonials-grid">
+                {% if plan.plan_type == 'BASIC' %}
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The Basic plan helped me start my fitness journey. I lost 20 pounds in 6 months!"</p>
+                        <div class="testimonial-author">
+                            <strong>Sarah M.</strong>
+                            <span>Basic Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Perfect for beginners like me. The workouts are easy to follow and very effective."</p>
+                        <div class="testimonial-author">
+                            <strong>Mike R.</strong>
+                            <span>Basic Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                {% elif plan.plan_type == 'PREMIUM' %}
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The Premium plan took my fitness to the next level. The trainer consultations are invaluable!"</p>
+                        <div class="testimonial-author">
+                            <strong>Jennifer L.</strong>
+                            <span>Premium Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Advanced analytics helped me understand my progress better. Highly recommended!"</p>
+                        <div class="testimonial-author">
+                            <strong>David K.</strong>
+                            <span>Premium Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                {% elif plan.plan_type == 'PRO' %}
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The Pro plan is incredible! My personal coach helped me achieve my goals faster than ever."</p>
+                        <div class="testimonial-author">
+                            <strong>Alex T.</strong>
+                            <span>Pro Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Custom meal plans and 1-on-1 coaching made all the difference in my transformation."</p>
+                        <div class="testimonial-author">
+                            <strong>Emma S.</strong>
+                            <span>Pro Plan Member</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="cta-section">
+                <h2 class="cta-title">Ready to Start Your Journey?</h2>
+                <p class="cta-subtitle">Join thousands of members who have transformed their lives with {{ plan.name }}.</p>
+                <a href="{% url 'subscriptions:plan_list' %}" class="cta-button">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Plans
+                </a>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-    const stripe = Stripe('{{ stripe_public_key }}');
-    const elements = stripe.elements();
-    const card = elements.create('card');
-    card.mount('#card-element');
-
-    const form = document.getElementById('subscription-form');
-    const submitButton = document.getElementById('submit-button');
-    const cardErrors = document.getElementById('card-errors');
-
-    card.addEventListener('change', function(event) {
-        if (event.error) {
-            cardErrors.textContent = event.error.message;
-            cardErrors.classList.remove('d-none');
-        } else {
-            cardErrors.classList.add('d-none');
-        }
-    });
-
-    form.addEventListener('submit', async function(event) {
-        event.preventDefault();
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        try {
-            const response = await fetch('{% url "create_subscription_checkout" plan.id %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            const result = await stripe.redirectToCheckout({
-                sessionId: data.id
-            });
-
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-        } catch (error) {
-            cardErrors.textContent = error.message;
-            cardErrors.classList.remove('d-none');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Subscribe Now';
-        }
-    });
-</script>
-{% endblock %} 
+ 
