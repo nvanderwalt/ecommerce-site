@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <div class="row">
         <!-- Exercise Plan Details -->
-        <div class="col-md-8">
+        <div class="col-md-12">
             <h1>{{ plan.name }}</h1>
             <div class="mb-4">
                 <span class="badge bg-primary me-2">{{ plan.get_difficulty_display }}</span>
@@ -20,49 +20,134 @@
             
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Description</h5>
+                    <h5 class="card-title">About This Program</h5>
                     <p class="card-text">{{ plan.description }}</p>
-                </div>
-            </div>
-            
-            <!-- Exercise List -->
-            <h3>Workout Plan</h3>
-            <div class="list-group mb-4">
-                {% for exercise in exercises %}
-                <div class="list-group-item">
-                    <h5 class="mb-1">{{ exercise.name }}</h5>
-                    <p class="mb-1">{{ exercise.description }}</p>
-                    <div class="d-flex gap-3">
-                        <small class="text-muted">Sets: {{ exercise.sets }}</small>
-                        <small class="text-muted">Reps: {{ exercise.reps }}</small>
-                        <small class="text-muted">Rest: {{ exercise.rest_time }}s</small>
+                    
+                    <!-- Enhanced Description Section - Dynamic based on plan type -->
+                    <div class="mt-4">
+                        {% if "Functional Fit" in plan.name %}
+                            <!-- Functional Fitness Description -->
+                            <h6 class="fw-bold">What is Functional Fitness?</h6>
+                            <p>Functional fitness focuses on training movements that mimic real-life activities, rather than isolating individual muscles. This approach helps you build strength, stability, and mobility that directly translates to improved performance in daily activities.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Choose Functional Training?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Real-world application:</strong> Every exercise prepares you for activities you do every day</li>
+                                <li class="mb-2">✅ <strong>Improved balance and coordination:</strong> Multi-planar movements enhance your body awareness</li>
+                                <li class="mb-2">✅ <strong>Injury prevention:</strong> Stronger core and stabilizer muscles protect your joints</li>
+                                <li class="mb-2">✅ <strong>Efficient workouts:</strong> Compound movements work multiple muscle groups simultaneously</li>
+                                <li class="mb-2">✅ <strong>Scalable difficulty:</strong> Exercises can be modified for any fitness level</li>
+                            </ul>
+                            
+                        {% elif "Core & Mobility" in plan.name %}
+                            <!-- Core & Mobility Description -->
+                            <h6 class="fw-bold">What is Core & Mobility Training?</h6>
+                            <p>Core & mobility training focuses on strengthening your center of power while improving your body's range of motion. This combination creates a strong foundation for all movement and helps prevent injuries while enhancing performance.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Focus on Core & Mobility?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Foundation for all movement:</strong> A strong core supports every exercise and daily activity</li>
+                                <li class="mb-2">✅ <strong>Improved posture:</strong> Better alignment reduces back pain and enhances appearance</li>
+                                <li class="mb-2">✅ <strong>Enhanced flexibility:</strong> Greater range of motion improves performance and reduces injury risk</li>
+                                <li class="mb-2">✅ <strong>Better balance:</strong> Strong core and mobile joints create stability</li>
+                                <li class="mb-2">✅ <strong>Recovery and longevity:</strong> Mobility work helps maintain joint health as you age</li>
+                            </ul>
+                            
+                        {% elif "Bodyweight Beast" in plan.name %}
+                            <!-- Bodyweight Training Description -->
+                            <h6 class="fw-bold">What is Bodyweight Training?</h6>
+                            <p>Bodyweight training uses your own body as resistance to build strength, endurance, and muscle. This approach develops functional strength while improving body control and coordination without requiring expensive equipment.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Choose Bodyweight Training?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>No equipment needed:</strong> Train anywhere, anytime with just your body</li>
+                                <li class="mb-2">✅ <strong>Functional strength:</strong> Build real-world strength that transfers to daily activities</li>
+                                <li class="mb-2">✅ <strong>Improved body awareness:</strong> Better control and coordination of your movements</li>
+                                <li class="mb-2">✅ <strong>Scalable progression:</strong> Exercises can be modified from beginner to advanced</li>
+                                <li class="mb-2">✅ <strong>Cost-effective:</strong> No gym membership or equipment required</li>
+                            </ul>
+                            
+                        {% elif "Total Body Burn" in plan.name %}
+                            <!-- Total Body Burn Description -->
+                            <h6 class="fw-bold">What is Total Body Burn Training?</h6>
+                            <p>Total body burn training combines strength and cardio exercises to maximize calorie burn while building lean muscle. This high-intensity approach creates an afterburn effect that continues burning calories long after your workout.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Choose Total Body Burn?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Maximum efficiency:</strong> Work multiple muscle groups in every session</li>
+                                <li class="mb-2">✅ <strong>EPOC effect:</strong> Continue burning calories for hours after your workout</li>
+                                <li class="mb-2">✅ <strong>Time-saving:</strong> Achieve more in less time with compound movements</li>
+                                <li class="mb-2">✅ <strong>Metabolic boost:</strong> Build muscle while burning fat simultaneously</li>
+                                <li class="mb-2">✅ <strong>Endurance building:</strong> Improve both strength and cardiovascular fitness</li>
+                            </ul>
+                            
+                        {% elif "Total Cardio Burn" in plan.name %}
+                            <!-- Total Cardio Burn Description -->
+                            <h6 class="fw-bold">What is Total Cardio Burn Training?</h6>
+                            <p>Total cardio burn training focuses on elevating your heart rate through dynamic, high-energy movements that torch calories and improve cardiovascular fitness. This program combines various cardio modalities for maximum fat-burning potential.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Choose Total Cardio Burn?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Maximum calorie burn:</strong> High-intensity intervals maximize fat loss</li>
+                                <li class="mb-2">✅ <strong>Improved cardiovascular health:</strong> Strengthen your heart and lungs</li>
+                                <li class="mb-2">✅ <strong>Variety of movements:</strong> Keep workouts exciting and prevent plateaus</li>
+                                <li class="mb-2">✅ <strong>Time-efficient:</strong> Achieve results in shorter workout sessions</li>
+                                <li class="mb-2">✅ <strong>Endurance building:</strong> Increase your stamina for daily activities</li>
+                            </ul>
+                            
+                        {% elif "Beginner Strength" in plan.name %}
+                            <!-- Beginner Strength Description -->
+                            <h6 class="fw-bold">What is Beginner Strength Training?</h6>
+                            <p>Beginner strength training introduces you to fundamental movement patterns and builds a solid foundation of strength. This program focuses on proper form and progressive overload to safely build muscle and confidence.</p>
+                            
+                            <h6 class="fw-bold mt-4">Why Start with Beginner Strength?</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Learn proper form:</strong> Master fundamental movement patterns safely</li>
+                                <li class="mb-2">✅ <strong>Build confidence:</strong> Start with manageable exercises and progress gradually</li>
+                                <li class="mb-2">✅ <strong>Establish foundation:</strong> Create a strong base for future fitness goals</li>
+                                <li class="mb-2">✅ <strong>Prevent injury:</strong> Focus on technique before intensity</li>
+                                <li class="mb-2">✅ <strong>Progressive overload:</strong> Systematic approach to building strength</li>
+                            </ul>
+                            
+                        {% else %}
+                            <!-- Default Description for other plans -->
+                            <h6 class="fw-bold">About This Training Program</h6>
+                            <p>This comprehensive training program is designed to help you achieve your fitness goals through structured, progressive workouts that adapt to your current fitness level.</p>
+                            
+                            <h6 class="fw-bold mt-4">Program Benefits</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">✅ <strong>Structured progression:</strong> Systematic approach to fitness improvement</li>
+                                <li class="mb-2">✅ <strong>Adaptable difficulty:</strong> Exercises can be modified for your fitness level</li>
+                                <li class="mb-2">✅ <strong>Comprehensive training:</strong> Balanced approach to fitness development</li>
+                                <li class="mb-2">✅ <strong>Measurable results:</strong> Track your progress and celebrate achievements</li>
+                                <li class="mb-2">✅ <strong>Expert guidance:</strong> Professional-designed workouts for optimal results</li>
+                            </ul>
+                        {% endif %}
+                        
+                        <h6 class="fw-bold mt-4">What You'll Learn</h6>
+                        <p>This {{ plan.duration_weeks }}-week program will teach you:</p>
+                        <ul>
+                            <li>Proper movement patterns and exercise technique</li>
+                            <li>How to progress safely and effectively</li>
+                            <li>Strategies for maintaining consistency</li>
+                            <li>Recovery and injury prevention techniques</li>
+                            <li>How to adapt workouts to your schedule</li>
+                        </ul>
+                        
+                        <h6 class="fw-bold mt-4">Expected Results</h6>
+                        <p>After completing this program, you can expect:</p>
+                        <ul>
+                            <li>Improved strength and endurance</li>
+                            <li>Better body composition and muscle tone</li>
+                            <li>Enhanced confidence in your physical abilities</li>
+                            <li>Established healthy exercise habits</li>
+                            <li>Foundation for continued fitness progress</li>
+                        </ul>
+                        
+                        <div class="alert alert-info mt-4">
+                            <strong>Time Commitment:</strong> {{ plan.daily_exercise_minutes }} minutes per day, {{ plan.duration_weeks }} weeks total
+                        </div>
                     </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Purchase Card -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">€{{ plan.price }}</h3>
-                    <p class="card-text">Get access to this complete workout plan and start your fitness journey today!</p>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <form action="{% url 'inventory:add_to_cart' 'plan' plan.id %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="plan_type" value="exercise">
-                    <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
-                </form>
-            </div>
-            
-            <!-- Category Info -->
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title">Category</h5>
-                    <p class="card-text">{{ plan.category.name }}</p>
                 </div>
             </div>
         </div>
