@@ -193,7 +193,6 @@ def dashboard(request):
     }
     return render(request, 'subscriptions/dashboard.html', context)
 
-# @login_required  # Temporarily disabled for testing
 def create_subscription(request, plan_id):
     print(f"DEBUG: create_subscription called with plan_id={plan_id}")
     print(f"DEBUG: User authenticated: {request.user.is_authenticated}")
@@ -202,9 +201,14 @@ def create_subscription(request, plan_id):
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
+    # Check if user is authenticated first - BEFORE any database queries
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login/')
+    
+    # Only proceed with database queries if user is authenticated
     plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
     
-    # Check if user already has an active subscription
+    # Now we know user is authenticated, so this query is safe
     active_subscription = UserSubscription.objects.filter(
         user=request.user,
         status='active',
@@ -212,16 +216,14 @@ def create_subscription(request, plan_id):
     ).first()
     
     if active_subscription:
-        return JsonResponse({
-            'error': 'You already have an active subscription'
-        }, status=400)
+        messages.error(request, 'You already have an active subscription')
+        return redirect('subscriptions:plan_list')
     
     try:
         # Check if Stripe is configured
         if not settings.STRIPE_SECRET_KEY:
-            return JsonResponse({
-                'error': 'Payment processing is not configured yet. Please contact support to set up your subscription.'
-            }, status=503)
+            messages.error(request, 'Payment processing is not configured yet. Please contact support to set up your subscription.')
+            return redirect('subscriptions:plan_list')
         
         # Create Stripe checkout session with dynamic pricing
         checkout_session = stripe.checkout.Session.create(
@@ -250,14 +252,15 @@ def create_subscription(request, plan_id):
             }
         )
         
-        return JsonResponse({'id': checkout_session.id})
+        # Redirect to Stripe checkout
+        return redirect(checkout_session.url)
     except stripe.error.AuthenticationError:
-        return JsonResponse({
-            'error': 'Payment processing is not configured yet. Please contact support to set up your subscription.'
-        }, status=503)
+        messages.error(request, 'Payment processing is not configured yet. Please contact support to set up your subscription.')
+        return redirect('subscriptions:plan_list')
     except Exception as e:
         logger.error(f"Stripe checkout session creation failed: {str(e)}")
-        return JsonResponse({'error': 'Unable to create checkout session. Please try again.'}, status=500)
+        messages.error(request, 'Unable to create checkout session. Please try again.')
+        return redirect('subscriptions:plan_list')
 
 @login_required
 def subscription_success(request):

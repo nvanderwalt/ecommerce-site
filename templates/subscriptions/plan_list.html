@@ -25,9 +25,12 @@
                 <p class="price">€{{ plan.price }}/month</p>
                 <div class="plan-buttons">
                     <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="view-plan-btn">Learn More</a>
-                    <button class="subscribe-btn" data-plan-id="{{ plan.id }}">
-                        Subscribe Now
-                    </button>
+                    <form method="POST" action="{% url 'subscriptions:create' plan.id %}" style="display: inline; flex: 1;">
+                        {% csrf_token %}
+                        <button type="submit" class="subscribe-btn">
+                            Subscribe Now
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -46,98 +49,7 @@
     {% endif %}
 </div>
 
-{% block extra_js %}
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-    const stripe = Stripe('{{ stripe_public_key }}');
-    const csrfToken = '{{ csrf_token }}';
-    
-    // Subscribe functionality
-    document.querySelectorAll('.subscribe-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const planId = e.target.dataset.planId;
-            
-            // Show loading state
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            button.disabled = true;
-            
-            try {
-                console.log('Sending request to:', `/subscriptions/create/${planId}/`);
-                console.log('CSRF Token:', csrfToken);
-                
-                const response = await fetch(`/subscriptions/create/${planId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    }
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Response error:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-                
-                const data = await response.json();
-                console.log('Response data:', data);
-                
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                
-                const result = await stripe.redirectToCheckout({
-                    sessionId: data.id
-                });
-                
-                if (result.error) {
-                    alert(result.error.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                // Show the actual error for debugging
-                alert('Error: ' + error.message);
-            } finally {
-                // Reset button state
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }
-        });
-    });
-    
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    // Get CSRF token from the page
-    function getCSRFToken() {
-        // First try to get from meta tag
-        const metaTag = document.querySelector('meta[name="csrf-token"]');
-        if (metaTag) {
-            return metaTag.getAttribute('content');
-        }
-        
-        // Fallback to cookie
-        return getCookie('csrftoken');
-    }
-</script>
-{% endblock %}
+
 
 {% block extra_css %}
 <style>
@@ -275,6 +187,7 @@
         margin: 0;
         text-decoration: none;
         min-width: 0;
+        width: 100%;
     }
     
     .subscribe-btn:hover {
@@ -283,6 +196,11 @@
         box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         color: white;
         text-decoration: none;
+    }
+    
+    .plan-buttons form {
+        flex: 1;
+        display: flex;
     }
 </style>
 {% endblock %}

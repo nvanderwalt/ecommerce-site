@@ -32,9 +32,12 @@
                 </div>
                 <p class="price">€{{ plan.price }}/month</p>
                 <div class="plan-buttons">
-                    <button class="subscribe-btn" data-plan-id="{{ plan.id }}">
-                        Subscribe Now
-                    </button>
+                    <form method="POST" action="{% url 'subscriptions:create' plan.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            Subscribe Now
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -48,63 +51,7 @@
     </div>
 </div>
 
-{% block extra_js %}
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-    const stripe = Stripe('{{ stripe_public_key }}');
-    
-    // Subscribe functionality
-    document.querySelectorAll('.subscribe-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const planId = e.target.dataset.planId;
-            
-            try {
-                const response = await fetch(`/subscriptions/create/${planId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                
-                const result = await stripe.redirectToCheckout({
-                    sessionId: data.id
-                });
-                
-                if (result.error) {
-                    alert(result.error.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            }
-        });
-    });
-    
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-</script>
-{% endblock %}
+
 {% endblock %}
 
 {% block extra_css %}
@@ -208,6 +155,11 @@
     
     .subscribe-btn:hover {
         background-color: #218838;
+    }
+    
+    .plan-buttons form {
+        flex: 1;
+        display: flex;
     }
     
     @media (max-width: 768px) {
