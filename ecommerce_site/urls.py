@@ -57,6 +57,7 @@ urlpatterns = [
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
     path('subscriptions/', include('subscriptions.urls')),  # Add subscription URLs
     path('inventory/', include('inventory.urls')),
+    path('newsletter/', include('newsletter.urls')),  # Add newsletter URLs
     path('accounts/', include('accounts.urls')),
     path('accounts/logout/', include('django.contrib.auth.urls')),
     

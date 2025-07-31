@@ -71,7 +71,7 @@ def add_to_cart(request, item_type, item_id):
         try:
             if item_type == 'product':
                 item = Product.objects.get(id=item_id)
-            elif item_type == 'exercise_plan':
+            elif item_type in ['exercise_plan', 'plan']:
                 item = ExercisePlan.objects.get(id=item_id)
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
@@ -81,7 +81,7 @@ def add_to_cart(request, item_type, item_id):
             return JsonResponse({
                 'success': True,
                 'message': f'{item.name} added to cart',
-                'cart_count': len(cart)
+                'cart_count': sum(cart.values())
             })
         except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             return JsonResponse({'error': 'Item not found'}, status=404)
@@ -89,7 +89,7 @@ def add_to_cart(request, item_type, item_id):
     # For non-AJAX requests, redirect as before
     if item_type == 'product':
         return redirect('product_list')
-    elif item_type == 'exercise_plan':
+    elif item_type in ['exercise_plan', 'plan']:
         return redirect('exercise_plan_list')
     elif item_type == 'subscription_plan':
         return redirect('subscriptions:plan_list')
@@ -110,7 +110,7 @@ def cart_view(request):
             item_type, item_id = item_key.split('-', 1)
             if item_type == 'product':
                 item = Product.objects.get(id=item_id)
-            elif item_type == 'exercise_plan':
+            elif item_type in ['exercise_plan', 'plan']:
                 item = ExercisePlan.objects.get(id=item_id)
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
@@ -267,10 +267,9 @@ def update_cart(request, item_type, item_id):
                     cart[item_key] = cart[item_key] - 1
                     success_message = f'Reduced quantity of {item.name} in your cart.'
                 else:
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                        return JsonResponse({'error': 'Quantity cannot be less than 1'}, status=400)
-                    messages.warning(request, f'Quantity cannot be less than 1.')
-                    return redirect('cart')
+                    # Remove the item completely when quantity would become 0
+                    del cart[item_key]
+                    success_message = f'Removed {item.name} from your cart.'
             else:
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'error': 'Invalid action'}, status=400)
@@ -281,13 +280,24 @@ def update_cart(request, item_type, item_id):
             
             # Check if this is an AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': success_message,
-                    'action': action,
-                    'quantity': cart[item_key],
-                    'cart_count': len(cart)
-                })
+                # Check if item was removed (quantity would be 0)
+                if item_key in cart:
+                    return JsonResponse({
+                        'success': True,
+                        'message': success_message,
+                        'action': action,
+                        'quantity': cart[item_key],
+                        'cart_count': sum(cart.values())
+                    })
+                else:
+                    # Item was removed
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'{item.name} removed from cart',
+                        'action': 'decrease',
+                        'quantity': 0,
+                        'cart_count': sum(cart.values())
+                    })
             else:
                 messages.success(request, success_message)
         except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
@@ -308,7 +318,7 @@ def remove_from_cart(request, item_type, item_id):
             try:
                 if item_type == 'product':
                     item = Product.objects.get(id=item_id)
-                elif item_type == 'exercise_plan':
+                elif item_type in ['exercise_plan', 'plan']:
                     item = ExercisePlan.objects.get(id=item_id)
                 elif item_type == 'subscription_plan':
                     item = SubscriptionPlan.objects.get(id=item_id)
@@ -326,7 +336,7 @@ def remove_from_cart(request, item_type, item_id):
                     return JsonResponse({
                         'success': True,
                         'message': f'{item.name} removed from cart',
-                        'cart_count': len(cart)
+                        'cart_count': sum(cart.values())
                     })
                 else:
                     messages.success(request, f'{item.name} removed from cart.')

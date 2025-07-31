@@ -76,4 +76,80 @@
         <p class="back-link"><a href="{% url 'exercise_plan_list' %}">← Back to Exercise Plans</a></p>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle add-to-cart forms
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            // Disable button immediately
+            button.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Submit form asynchronously
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn', 'btn-success');
+                    
+                    // Update cart count in navbar
+                    const cartBadge = document.querySelector('.navbar .badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn', 'btn-success');
+                        button.classList.add('btn-primary');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Failed to add to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn', 'btn-danger');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn', 'btn-danger');
+                    button.classList.add('btn-primary');
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %} 

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'accounts',
     'analytics',
+    'newsletter',
     'cloudinary_storage',
     'cloudinary',
 ]
@@ -72,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
+                'inventory.context_processors.cart_count',
             ],
         },
     },

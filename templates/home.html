@@ -157,18 +157,20 @@
                 <div class="newsletter-card">
                     <h3>Stay Motivated</h3>
                     <p>Get weekly inspiration, fitness tips, and success stories delivered to your inbox.</p>
-                    <form action="#" method="post" class="newsletter-form">
+                    <form method="POST" action="{% url 'newsletter:subscribe' %}" class="newsletter-form">
                         {% csrf_token %}
                         <div class="input-group">
                             <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
                             <button class="btn btn-outline-success" type="submit">Subscribe</button>
                         </div>
+                        <div class="form-feedback mt-2" style="display: none;"></div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -401,5 +403,79 @@ h1.hero-title {
         margin-bottom: 10px !important;
     }
 }
+
+.form-feedback {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+}
+
+.form-feedback.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.form-feedback.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const newsletterForm = document.querySelector('.newsletter-form');
+    const feedback = document.querySelector('.form-feedback');
+    
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subscribing...';
+            submitBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.textContent = data.message;
+                    feedback.className = 'form-feedback success mt-2';
+                    this.reset();
+                } else {
+                    feedback.textContent = 'Please enter a valid email address.';
+                    feedback.className = 'form-feedback error mt-2';
+                }
+                feedback.style.display = 'block';
+            })
+            .catch(error => {
+                feedback.textContent = 'An error occurred. Please try again.';
+                feedback.className = 'form-feedback error mt-2';
+                feedback.style.display = 'block';
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Hide feedback after 5 seconds
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                }, 5000);
+            });
+        });
+    }
+});
+</script>
+
 {% endblock %} 

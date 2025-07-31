@@ -42,8 +42,7 @@
                                         <div class="quantity-controls">
                                             <form method="POST" action="{% url 'inventory:update_cart' item.item_type item.item.id %}" class="quantity-form">
                                                 {% csrf_token %}
-                                                <button type="submit" name="action" value="decrease" class="quantity-btn"
-                                                    {% if item.quantity == 1 %}disabled{% endif %}>
+                                                <button type="submit" name="action" value="decrease" class="quantity-btn">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
                                                 <span class="quantity-display">{{ item.quantity }}</span>
@@ -636,6 +635,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Update cart count in navbar
+                    const cartBadge = document.querySelector('.navbar .badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
+                    }
+                    
                     // Remove the cart item from the DOM with animation
                     cartItem.style.transition = 'all 0.3s ease';
                     cartItem.style.opacity = '0';
@@ -678,10 +688,13 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault(); // Prevent default form submission
             
-            const button = e.target; // The button that was clicked
+            const button = e.submitter; // The button that was clicked
             const originalText = button.innerHTML;
             const quantityDisplay = this.querySelector('.quantity-display');
             const currentQuantity = parseInt(quantityDisplay.textContent);
+            const action = button.value; // 'increase' or 'decrease'
+            
+
             
             // Show loading state
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -690,26 +703,66 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get form data
             const formData = new FormData(this);
             
+            // Ensure the action parameter is included
+            formData.set('action', action);
+            
+            // Get the correct action URL
+            const actionUrl = this.getAttribute('action');
+            
             // Submit form asynchronously
-            fetch(this.action, {
+            fetch(actionUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    // Update quantity display
-                    if (data.action === 'increase') {
-                        quantityDisplay.textContent = currentQuantity + 1;
-                    } else if (data.action === 'decrease') {
-                        quantityDisplay.textContent = Math.max(1, currentQuantity - 1);
+                    // Update cart count in navbar
+                    const cartBadge = document.querySelector('.navbar .badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
                     }
                     
-                    // Update cart summary
-                    updateCartSummary();
+                    if (data.action === 'decrease' && data.quantity === 0) {
+                        // Item was completely removed
+                        const cartItem = this.closest('.cart-item');
+                        cartItem.style.transition = 'all 0.3s ease';
+                        cartItem.style.opacity = '0';
+                        cartItem.style.transform = 'translateX(-100%)';
+                        
+                        setTimeout(() => {
+                            cartItem.remove();
+                            
+                            // Check if cart is empty
+                            const remainingItems = document.querySelectorAll('.cart-item');
+                            if (remainingItems.length === 0) {
+                                location.reload(); // Reload to show empty cart state
+                            } else {
+                                updateCartSummary();
+                            }
+                        }, 300);
+                    } else {
+                        // Update quantity display
+                        if (data.action === 'increase') {
+                            quantityDisplay.textContent = currentQuantity + 1;
+                        } else if (data.action === 'decrease') {
+                            quantityDisplay.textContent = Math.max(1, currentQuantity - 1);
+                        }
+                        
+                        // Update cart summary
+                        updateCartSummary();
+                    }
                     
                     // Show success feedback
                     button.innerHTML = '<i class="fas fa-check"></i>';
@@ -738,12 +791,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function updateCartSummary() {
-        // This function would update the cart summary
-        // For now, we'll reload the page to get accurate totals
-        // In a more sophisticated implementation, you'd calculate totals client-side
-        setTimeout(() => {
-            location.reload();
-        }, 500);
+        // Calculate totals client-side for better UX
+        const cartItems = document.querySelectorAll('.cart-item');
+        let totalItems = 0;
+        let totalPrice = 0;
+        
+        cartItems.forEach(item => {
+            const quantity = parseInt(item.querySelector('.quantity-display').textContent);
+            const price = parseFloat(item.querySelector('.item-price').textContent.replace('€', ''));
+            const itemTotal = quantity * price;
+            totalItems += quantity;
+            totalPrice += itemTotal;
+            
+            // Update individual item subtotal
+            const itemSubtotal = item.querySelector('.item-subtotal');
+            if (itemSubtotal) {
+                itemSubtotal.textContent = `€${itemTotal.toFixed(2)}`;
+            }
+        });
+        
+        // Update summary display
+        const summaryValue = document.querySelector('.summary-value');
+        const summaryTotal = document.querySelector('.summary-total');
+        if (summaryValue) summaryValue.textContent = `€${totalPrice.toFixed(2)}`;
+        if (summaryTotal) summaryTotal.textContent = `€${totalPrice.toFixed(2)}`;
+        
+        // Update items count
+        const itemsCount = document.querySelector('.summary-row span:first-child');
+        if (itemsCount) itemsCount.textContent = `Items (${cartItems.length}):`;
     }
 });
 </script>
