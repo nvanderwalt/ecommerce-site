@@ -3,6 +3,71 @@
 
 {% block title %}FitFusion - Premium Fitness Equipment{% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle all add-to-cart forms
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            button.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Submit form asynchronously
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-success');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-primary');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to add to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-danger');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-primary');
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4 py-5">
     <!-- Hero Section -->
@@ -52,7 +117,7 @@
                     </div>
                     
                     <div class="mt-auto">
-                        <form method="POST" action="{% url 'inventory:add_to_cart' 'product' product.id %}" class="d-flex justify-content-center">
+                        <form method="POST" action="{% url 'inventory:add_to_cart' 'product' product.id %}" class="add-to-cart-form d-flex justify-content-center">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary" style="width: 50%;">
                                 <i class="fas fa-cart-plus me-2"></i>Add to Cart

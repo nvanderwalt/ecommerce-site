@@ -606,4 +606,145 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove from cart forms
+    document.querySelectorAll('.remove-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            const cartItem = this.closest('.cart-item');
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Removing...</span>';
+            button.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Submit form asynchronously
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the cart item from the DOM with animation
+                    cartItem.style.transition = 'all 0.3s ease';
+                    cartItem.style.opacity = '0';
+                    cartItem.style.transform = 'translateX(-100%)';
+                    
+                    setTimeout(() => {
+                        cartItem.remove();
+                        
+                        // Update cart count and total
+                        updateCartSummary();
+                        
+                        // Check if cart is empty
+                        const remainingItems = document.querySelectorAll('.cart-item');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // Reload to show empty cart state
+                        }
+                    }, 300);
+                } else {
+                    throw new Error(data.error || 'Failed to remove item');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Error</span>';
+                button.classList.add('btn-danger');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-danger');
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+    
+    // Handle quantity update forms
+    document.querySelectorAll('.quantity-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const button = e.target; // The button that was clicked
+            const originalText = button.innerHTML;
+            const quantityDisplay = this.querySelector('.quantity-display');
+            const currentQuantity = parseInt(quantityDisplay.textContent);
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Submit form asynchronously
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update quantity display
+                    if (data.action === 'increase') {
+                        quantityDisplay.textContent = currentQuantity + 1;
+                    } else if (data.action === 'decrease') {
+                        quantityDisplay.textContent = Math.max(1, currentQuantity - 1);
+                    }
+                    
+                    // Update cart summary
+                    updateCartSummary();
+                    
+                    // Show success feedback
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Failed to update quantity');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                button.classList.add('btn-danger');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-danger');
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+    
+    function updateCartSummary() {
+        // This function would update the cart summary
+        // For now, we'll reload the page to get accurate totals
+        // In a more sophisticated implementation, you'd calculate totals client-side
+        setTimeout(() => {
+            location.reload();
+        }, 500);
+    }
+});
+</script>
 {% endblock %}

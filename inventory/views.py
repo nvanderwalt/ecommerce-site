@@ -66,6 +66,27 @@ def add_to_cart(request, item_type, item_id):
     cart[item_key] = cart.get(item_key, 0) + 1
     request.session['cart'] = cart
     
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            if item_type == 'product':
+                item = Product.objects.get(id=item_id)
+            elif item_type == 'exercise_plan':
+                item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'subscription_plan':
+                item = SubscriptionPlan.objects.get(id=item_id)
+            else:
+                return JsonResponse({'error': 'Invalid item type'}, status=400)
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{item.name} added to cart',
+                'cart_count': len(cart)
+            })
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+            return JsonResponse({'error': 'Item not found'}, status=404)
+    
+    # For non-AJAX requests, redirect as before
     if item_type == 'product':
         return redirect('product_list')
     elif item_type == 'exercise_plan':
@@ -219,7 +240,6 @@ def profile_view(request):
 def error_view(request):
     return render(request, 'error.html')
 
-@login_required
 def update_cart(request, item_type, item_id):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -234,25 +254,51 @@ def update_cart(request, item_type, item_id):
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
             else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Invalid item type'}, status=400)
                 messages.error(request, 'Invalid item type.')
-                return redirect('cart_view')
+                return redirect('cart')
                 
             if action == 'increase':
                 cart[item_key] = cart.get(item_key, 0) + 1
-                messages.success(request, f'Added another {item.name} to your cart.')
+                success_message = f'Added another {item.name} to your cart.'
             elif action == 'decrease':
                 if cart.get(item_key, 0) > 1:
                     cart[item_key] = cart[item_key] - 1
-                    messages.success(request, f'Reduced quantity of {item.name} in your cart.')
+                    success_message = f'Reduced quantity of {item.name} in your cart.'
                 else:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'error': 'Quantity cannot be less than 1'}, status=400)
                     messages.warning(request, f'Quantity cannot be less than 1.')
+                    return redirect('cart')
+            else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Invalid action'}, status=400)
+                messages.error(request, 'Invalid action.')
+                return redirect('cart')
+                
             request.session['cart'] = cart
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': success_message,
+                    'action': action,
+                    'quantity': cart[item_key],
+                    'cart_count': len(cart)
+                })
+            else:
+                messages.success(request, success_message)
         except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Item not found'}, status=404)
             messages.error(request, 'Item not found.')
             
-    return redirect('cart_view')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    return redirect('cart')
 
-@login_required
 def remove_from_cart(request, item_type, item_id):
     if request.method == 'POST':
         cart = request.session.get('cart', {})
@@ -267,15 +313,31 @@ def remove_from_cart(request, item_type, item_id):
                 elif item_type == 'subscription_plan':
                     item = SubscriptionPlan.objects.get(id=item_id)
                 else:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'error': 'Invalid item type'}, status=400)
                     messages.error(request, 'Invalid item type.')
-                    return redirect('cart_view')
+                    return redirect('cart')
+                
                 del cart[item_key]
                 request.session['cart'] = cart
-                messages.success(request, f'{item.name} removed from cart.')
+                
+                # Check if this is an AJAX request
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'{item.name} removed from cart',
+                        'cart_count': len(cart)
+                    })
+                else:
+                    messages.success(request, f'{item.name} removed from cart.')
             except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Item not found'}, status=404)
                 messages.error(request, 'Item not found.')
                 
-    return redirect('cart_view')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    return redirect('cart')
 
 def exercise_plan_list(request):
     plans = ExercisePlan.objects.all()
