@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, UserProfile, ExercisePlan, NutritionPlan, NutritionPlanProgress, NutritionMeal, Category
+from .models import Product, UserProfile, ExercisePlan, ExercisePlanProgress, NutritionPlan, NutritionPlanProgress, NutritionMeal, Category
 from subscriptions.models import SubscriptionPlan
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
