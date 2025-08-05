@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏋️‍♂️</text></svg>">
   {% block extra_css %}{% endblock %}
+
 </head>
 <body>
   <!-- Navigation -->
@@ -30,6 +31,13 @@
       
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'profile' %}">
+                <i class="fas fa-user me-1"></i>My Profile
+              </a>
+            </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'product_list' %}">
               <i class="fas fa-shopping-bag me-1"></i>Products
@@ -63,30 +71,13 @@
           </li>
           
           {% if user.is_authenticated %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-user me-1"></i>{{ user.username }}
-              </a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'profile' %}">
-                  <i class="fas fa-user-circle me-2"></i>Profile
-                </a></li>
-                <li><a class="dropdown-item" href="{% url 'subscriptions:user_subscription' %}">
-                  <i class="fas fa-crown me-2"></i>My Subscriptions
-                </a></li>
-                <li><a class="dropdown-item" href="{% url 'inventory:progress_dashboard' %}">
-                  <i class="fas fa-chart-line me-2"></i>My Progress
-                </a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <form method="post" action="{% url 'account_logout' %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item">
-                      <i class="fas fa-sign-out-alt me-2"></i>Log out
-                    </button>
-                  </form>
-                </li>
-              </ul>
+            <li class="nav-item">
+              <form method="post" action="{% url 'account_logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="nav-link btn btn-link">
+                  <i class="fas fa-sign-out-alt me-1"></i>Log out
+                </button>
+              </form>
             </li>
           {% else %}
             <li class="nav-item">

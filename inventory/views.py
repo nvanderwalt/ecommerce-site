@@ -223,6 +223,22 @@ def payment_cancel(request):
 def profile_view(request):
     profile = request.user.userprofile
     posts = request.user.post_set.order_by('-created_at')  # fetch user's posts
+    
+    # Get user's active subscription
+    try:
+        active_subscription = request.user.usersubscription_set.filter(status='ACTIVE').first()
+    except:
+        active_subscription = None
+    
+    # Get user's progress data
+    exercise_progress = ExercisePlanProgress.objects.filter(user=request.user)
+    nutrition_progress = NutritionPlanProgress.objects.filter(user=request.user)
+    
+    # Calculate overall progress
+    total_exercise_plans = exercise_progress.count()
+    completed_exercise_plans = exercise_progress.filter(is_completed=True).count()
+    total_nutrition_plans = nutrition_progress.count()
+    completed_nutrition_plans = nutrition_progress.filter(is_completed=True).count()
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=profile)
@@ -235,6 +251,13 @@ def profile_view(request):
     return render(request, 'inventory/profile.html', {
         'form': form,
         'posts': posts,
+        'active_subscription': active_subscription,
+        'exercise_progress': exercise_progress,
+        'nutrition_progress': nutrition_progress,
+        'total_exercise_plans': total_exercise_plans,
+        'completed_exercise_plans': completed_exercise_plans,
+        'total_nutrition_plans': total_nutrition_plans,
+        'completed_nutrition_plans': completed_nutrition_plans,
     })
 
 def error_view(request):

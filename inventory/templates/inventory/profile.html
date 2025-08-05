@@ -4,33 +4,1110 @@
 {% block title %}My Profile - FitFusion{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <h1>Edit Your Profile</h1>
-
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Save Profile</button>
-    </form>
-
-    <h2>Your Posts</h2>
-    {% if posts %}
-        <ul>
-            {% for post in posts %}
-                <li>
-                    <strong>{{ post.created_at|date:"M d, Y H:i" }}</strong><br>
-                    {{ post.content }}
-                    <br>
-                    <a href="{% url 'post_edit' post.id %}">Edit</a>
-                    <form method="post" action="{% url 'post_delete' post.id %}" class="inline-form">
-                        {% csrf_token %}
-                        <button type="submit" onclick="return confirm('Delete this post?');">Delete</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>You haven't shared anything yet.</p>
-    {% endif %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="brand-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h1 class="profile-title">My Profile</h1>
+                    <p class="profile-subtitle">Manage your account and view your activity</p>
+                </div>
+                
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <i class="fas fa-edit"></i>
+                            <h3>Edit Profile</h3>
+                        </div>
+                        <div class="profile-form-container">
+                            <form method="post" class="profile-form">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.email.id_for_label }}">Email</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.bio.id_for_label }}">Bio</label>
+                                    {{ form.bio }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.fitness_goals.id_for_label }}">Fitness Goals</label>
+                                    {{ form.fitness_goals }}
+                                </div>
+                                <button type="submit" class="save-btn">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Profile</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <i class="fas fa-crown"></i>
+                            <h3>Your Subscription</h3>
+                        </div>
+                        <div class="subscription-container">
+                            {% if active_subscription %}
+                                <div class="subscription-card active">
+                                    <div class="subscription-header">
+                                        <div class="subscription-icon">
+                                            <i class="fas fa-crown"></i>
+                                        </div>
+                                        <div class="subscription-info">
+                                            <h4 class="subscription-name">{{ active_subscription.plan.name }}</h4>
+                                            <p class="subscription-type">{{ active_subscription.plan.plan_type }}</p>
+                                            <p class="subscription-price">€{{ active_subscription.plan.price }}/month</p>
+                                        </div>
+                                        <div class="subscription-status">
+                                            <span class="status-badge active">
+                                                <i class="fas fa-check-circle"></i>
+                                                Active
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="subscription-details">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Start Date:</span>
+                                            <span class="detail-value">{{ active_subscription.start_date|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">End Date:</span>
+                                            <span class="detail-value">{{ active_subscription.end_date|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Remaining Days:</span>
+                                            <span class="detail-value">{{ active_subscription.get_remaining_days }} days</span>
+                                        </div>
+                                        <div class="subscription-progress">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" style="width: {{ active_subscription.get_progress_percentage }}%"></div>
+                                            </div>
+                                            <span class="progress-text">{{ active_subscription.get_progress_percentage }}% completed</span>
+                                        </div>
+                                    </div>
+                                    <div class="subscription-actions">
+                                        <a href="{% url 'subscriptions:user_subscription' %}" class="action-btn primary">
+                                            <i class="fas fa-cog"></i>
+                                            <span>Manage Subscription</span>
+                                        </a>
+                                        <a href="{% url 'subscriptions:plan_list' %}" class="action-btn secondary">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <span>Upgrade Plan</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="subscription-card inactive">
+                                    <div class="subscription-header">
+                                        <div class="subscription-icon">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="subscription-info">
+                                            <h4 class="subscription-name">No Active Subscription</h4>
+                                            <p class="subscription-type">Free Plan</p>
+                                            <p class="subscription-price">€0/month</p>
+                                        </div>
+                                        <div class="subscription-status">
+                                            <span class="status-badge inactive">
+                                                <i class="fas fa-times-circle"></i>
+                                                Inactive
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="subscription-details">
+                                        <p class="no-subscription-text">
+                                            You're currently on the free plan. Upgrade to unlock premium features and access to exclusive content!
+                                        </p>
+                                    </div>
+                                    <div class="subscription-actions">
+                                        <a href="{% url 'subscriptions:plan_list' %}" class="action-btn primary">
+                                            <i class="fas fa-crown"></i>
+                                            <span>View Plans</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <i class="fas fa-chart-line"></i>
+                            <h3>Your Progress</h3>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-overview">
+                                <div class="progress-card">
+                                    <div class="progress-icon">
+                                        <i class="fas fa-running"></i>
+                                    </div>
+                                    <div class="progress-info">
+                                        <h4 class="progress-title">Exercise Plans</h4>
+                                        <div class="progress-stats">
+                                            <span class="progress-number">{{ completed_exercise_plans }}</span>
+                                            <span class="progress-separator">/</span>
+                                            <span class="progress-total">{{ total_exercise_plans }}</span>
+                                        </div>
+                                        <p class="progress-label">Completed</p>
+                                    </div>
+                                    <div class="progress-percentage">
+                                        {% if total_exercise_plans > 0 %}
+                                            <span class="percentage">{{ completed_exercise_plans|floatformat:0 }}%</span>
+                                        {% else %}
+                                            <span class="percentage">0%</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="progress-card">
+                                    <div class="progress-icon">
+                                        <i class="fas fa-apple-alt"></i>
+                                    </div>
+                                    <div class="progress-info">
+                                        <h4 class="progress-title">Nutrition Plans</h4>
+                                        <div class="progress-stats">
+                                            <span class="progress-number">{{ completed_nutrition_plans }}</span>
+                                            <span class="progress-separator">/</span>
+                                            <span class="progress-total">{{ total_nutrition_plans }}</span>
+                                        </div>
+                                        <p class="progress-label">Completed</p>
+                                    </div>
+                                    <div class="progress-percentage">
+                                        {% if total_nutrition_plans > 0 %}
+                                            <span class="percentage">{{ completed_nutrition_plans|floatformat:0 }}%</span>
+                                        {% else %}
+                                            <span class="percentage">0%</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if exercise_progress or nutrition_progress %}
+                                <div class="progress-details">
+                                    <h5 class="details-title">Recent Activity</h5>
+                                    <div class="activity-list">
+                                        {% for progress in exercise_progress|slice:":3" %}
+                                            <div class="activity-item">
+                                                <div class="activity-icon">
+                                                    <i class="fas fa-running"></i>
+                                                </div>
+                                                <div class="activity-info">
+                                                    <h6 class="activity-name">{{ progress.exercise_plan.name }}</h6>
+                                                    <p class="activity-status">
+                                                        {% if progress.is_completed %}
+                                                            <span class="status-completed">Completed</span>
+                                                        {% else %}
+                                                            <span class="status-in-progress">In Progress</span>
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="activity-date">
+                                                    {{ progress.updated_at|date:"M d" }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                        
+                                        {% for progress in nutrition_progress|slice:":3" %}
+                                            <div class="activity-item">
+                                                <div class="activity-icon">
+                                                    <i class="fas fa-apple-alt"></i>
+                                                </div>
+                                                <div class="activity-info">
+                                                    <h6 class="activity-name">{{ progress.nutrition_plan.name }}</h6>
+                                                    <p class="activity-status">
+                                                        {% if progress.is_completed %}
+                                                            <span class="status-completed">Completed</span>
+                                                        {% else %}
+                                                            <span class="status-in-progress">In Progress</span>
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="activity-date">
+                                                    {{ progress.updated_at|date:"M d" }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="no-progress">
+                                    <div class="no-progress-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h5 class="no-progress-title">No Progress Yet</h5>
+                                    <p class="no-progress-text">Start your fitness journey by completing exercise and nutrition plans!</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="progress-actions">
+                                <a href="{% url 'exercise_plan_list' %}" class="action-btn primary">
+                                    <i class="fas fa-running"></i>
+                                    <span>Browse Exercise Plans</span>
+                                </a>
+                                <a href="{% url 'inventory:nutrition_plan_list' %}" class="action-btn secondary">
+                                    <i class="fas fa-apple-alt"></i>
+                                    <span>View Nutrition Plans</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <i class="fas fa-comments"></i>
+                            <h3>Your Community Posts</h3>
+                        </div>
+                        <div class="posts-container">
+                            {% if posts %}
+                                {% for post in posts %}
+                                    <div class="post-item">
+                                        <div class="post-header">
+                                            <div class="post-meta">
+                                                <span class="post-date">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    {{ post.created_at|date:"M d, Y H:i" }}
+                                                </span>
+                                                <span class="post-status">
+                                                    <i class="fas fa-eye"></i>
+                                                    Community Post
+                                                </span>
+                                            </div>
+                                            <div class="post-actions">
+                                                <a href="{% url 'post_edit' post.id %}" class="action-btn edit">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span>Edit</span>
+                                                </a>
+                                                <form method="post" action="{% url 'post_delete' post.id %}" class="delete-form">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="action-btn delete" onclick="return confirm('Delete this post?');">
+                                                        <i class="fas fa-trash"></i>
+                                                        <span>Delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="post-content">
+                                            {{ post.content }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-posts">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-comments"></i>
+                                    </div>
+                                    <h4 class="empty-title">No posts yet</h4>
+                                    <p class="empty-subtitle">Share your fitness journey with the community!</p>
+                                    <a href="{% url 'post_create' %}" class="action-btn primary">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Create Your First Post</span>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="{% url 'post_create' %}" class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Share New Post</span>
+                    </a>
+                    <a href="{% url 'post_list' %}" class="action-btn secondary">
+                        <i class="fas fa-users"></i>
+                        <span>View Community</span>
+                    </a>
+                    <a href="{% url 'inventory:progress_dashboard' %}" class="action-btn secondary">
+                        <i class="fas fa-chart-line"></i>
+                        <span>My Progress</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: none;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.brand-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.brand-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.profile-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.profile-section {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid #e9ecef;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.section-header i {
+    color: #28a745;
+    font-size: 1.2rem;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.profile-form-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.posts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.post-item {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.post-item:hover {
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.1);
+    transform: translateY(-2px);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.post-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.post-date,
+.post-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.post-date i,
+.post-status i {
+    color: #28a745;
+}
+
+.post-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.action-btn.edit {
+    background: #28a745;
+    color: white;
+}
+
+.action-btn.edit:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.action-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.action-btn.delete:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.action-btn.secondary {
+    background: white;
+    color: #28a745;
+    border: 2px solid #28a745;
+}
+
+.action-btn.secondary:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.post-content {
+    color: #333;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.empty-posts {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.empty-icon i {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+.empty-title {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+    flex-wrap: wrap;
+}
+
+.delete-form {
+    margin: 0;
+}
+
+.subscription-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.subscription-card {
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.subscription-card.active {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+}
+
+.subscription-card.inactive {
+    border-color: #6c757d;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.subscription-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.subscription-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.subscription-card.inactive .subscription-icon {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.subscription-info {
+    flex: 1;
+}
+
+.subscription-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 0.25rem 0;
+}
+
+.subscription-type {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0 0 0.25rem 0;
+}
+
+.subscription-price {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.subscription-card.inactive .subscription-price {
+    color: #6c757d;
+}
+
+.subscription-status {
+    display: flex;
+    align-items: center;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #28a745;
+    color: white;
+}
+
+.status-badge.inactive {
+    background: #6c757d;
+    color: white;
+}
+
+.subscription-details {
+    margin-bottom: 1.5rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.detail-value {
+    color: #666;
+}
+
+.subscription-progress {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    display: block;
+}
+
+.no-subscription-text {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+    padding: 1rem;
+}
+
+.subscription-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.progress-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.progress-overview {
+    display: flex;
+    justify-content: space-around;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.progress-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    flex: 1;
+}
+
+.progress-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.progress-info {
+    flex: 1;
+}
+
+.progress-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.progress-stats {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.progress-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.progress-separator {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.progress-total {
+    font-size: 1rem;
+    color: #666;
+}
+
+.progress-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.progress-percentage {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #28a745;
+    text-align: right;
+}
+
+.progress-details {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.details-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: #e9ecef;
+    border-color: #28a745;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.activity-info {
+    flex: 1;
+}
+
+.activity-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.activity-status {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.status-completed {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.status-in-progress {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.activity-date {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: right;
+}
+
+.no-progress {
+    text-align: center;
+    padding: 2rem;
+}
+
+.no-progress-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.no-progress-icon i {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+.no-progress-title {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.no-progress-text {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.progress-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .profile-card {
+        padding: 2rem;
+        margin: 1rem;
+    }
+    
+    .profile-title {
+        font-size: 2rem;
+    }
+    
+    .post-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .post-actions {
+        justify-content: center;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .progress-overview {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .progress-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .progress-icon {
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-info {
+        text-align: center;
+    }
+
+    .progress-percentage {
+        text-align: center;
+    }
+
+    .activity-list {
+        flex-direction: column;
+    }
+
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .activity-icon {
+        margin-bottom: 0.5rem;
+    }
+
+    .activity-info {
+        text-align: left;
+    }
+
+    .activity-date {
+        text-align: left;
+    }
+
+    .progress-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
 {% endblock %}
