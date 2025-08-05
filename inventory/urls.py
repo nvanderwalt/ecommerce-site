@@ -28,4 +28,5 @@ urlpatterns = [
     path('newsletter/signup/', views.newsletter_signup, name='newsletter_signup'),
     path('facebook-mockup/', views.facebook_mockup, name='facebook_mockup'),
     path('progress/', views.progress_dashboard, name='progress_dashboard'),
+    path('set-timezone/', views.set_timezone, name='set_timezone'),
 ] 

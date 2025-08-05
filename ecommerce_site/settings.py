@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'inventory.middleware.TimezoneMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce_site.urls'

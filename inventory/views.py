@@ -582,3 +582,12 @@ def progress_dashboard(request):
     }
     
     return render(request, 'inventory/progress_dashboard.html', context)
+
+def set_timezone(request):
+    """Set user's timezone from JavaScript."""
+    if request.method == 'POST':
+        tzname = request.POST.get('timezone')
+        if tzname:
+            request.session['django_timezone'] = tzname
+            return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'})
