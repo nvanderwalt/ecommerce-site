@@ -155,7 +155,7 @@
         <div class="row justify-content-center">
             <div class="col-md-8 text-center">
                 <div class="newsletter-card">
-                    <h3>Stay Motivated</h3>
+                    <h3>Stay Motivated With Our Newspaper</h3>
                     <p>Get weekly inspiration, fitness tips, and success stories delivered to your inbox.</p>
                     <form method="POST" action="{% url 'newsletter:subscribe' %}" class="newsletter-form">
                         {% csrf_token %}
@@ -167,6 +167,19 @@
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Social Media Section -->
+<div class="section bg-light">
+    <div class="container text-center">
+        <h3>Follow Us on Social Media</h3>
+        <p class="lead mb-4">Stay connected and get the latest updates from FitFusion</p>
+        <div class="social-links">
+            <a href="https://www.facebook.com/fitfusion" target="_blank" class="btn btn-primary btn-lg me-3">
+                <i class="fab fa-facebook-f me-2"></i>Follow us on Facebook
+            </a>
         </div>
     </div>
 </div>

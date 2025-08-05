@@ -45,6 +45,11 @@
               <i class="fas fa-crown me-1"></i>Subscriptions
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'post_list' %}">
+              <i class="fas fa-users me-1"></i>Community
+            </a>
+          </li>
         </ul>
         
         <ul class="navbar-nav">
@@ -68,6 +73,9 @@
                 </a></li>
                 <li><a class="dropdown-item" href="{% url 'subscriptions:user_subscription' %}">
                   <i class="fas fa-crown me-2"></i>My Subscriptions
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'inventory:progress_dashboard' %}">
+                  <i class="fas fa-chart-line me-2"></i>My Progress
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>

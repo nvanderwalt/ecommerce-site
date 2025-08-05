@@ -550,3 +550,35 @@ def newsletter_signup(request):
 def facebook_mockup(request):
     """View to display the Facebook business page mockup."""
     return render(request, 'facebook_mockup.html')
+
+@login_required
+def progress_dashboard(request):
+    """View for user's progress dashboard."""
+    # Get user's exercise plan progress
+    exercise_progress = ExercisePlanProgress.objects.filter(user=request.user)
+    
+    # Get user's nutrition plan progress
+    nutrition_progress = NutritionPlanProgress.objects.filter(user=request.user)
+    
+    # Calculate overall progress
+    total_exercise_plans = exercise_progress.count()
+    completed_exercise_plans = exercise_progress.filter(is_completed=True).count()
+    total_nutrition_plans = nutrition_progress.count()
+    completed_nutrition_plans = nutrition_progress.filter(is_completed=True).count()
+    
+    overall_progress = 0
+    if total_exercise_plans + total_nutrition_plans > 0:
+        overall_progress = ((completed_exercise_plans + completed_nutrition_plans) / 
+                          (total_exercise_plans + total_nutrition_plans)) * 100
+    
+    context = {
+        'exercise_progress': exercise_progress,
+        'nutrition_progress': nutrition_progress,
+        'total_exercise_plans': total_exercise_plans,
+        'completed_exercise_plans': completed_exercise_plans,
+        'total_nutrition_plans': total_nutrition_plans,
+        'completed_nutrition_plans': completed_nutrition_plans,
+        'overall_progress': overall_progress,
+    }
+    
+    return render(request, 'inventory/progress_dashboard.html', context)
