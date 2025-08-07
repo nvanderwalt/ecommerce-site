@@ -46,9 +46,15 @@
                                                     <i class="fas fa-minus"></i>
                                                 </button>
                                                 <span class="quantity-display">{{ item.quantity }}</span>
-                                                <button type="submit" name="action" value="increase" class="quantity-btn">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
+                                                {% if item.item_type in 'exercise_plan,plan,nutrition_plan,subscription_plan' %}
+                                                    <button type="submit" name="action" value="increase" class="quantity-btn" disabled title="You can only order one of each plan">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <button type="submit" name="action" value="increase" class="quantity-btn">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                {% endif %}
                                             </form>
                                         </div>
                                         
@@ -719,6 +725,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Failed to update quantity');
+                    });
+                }
                 return response.json();
             })
             .then(data => {
@@ -779,6 +790,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show error state
                 button.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
                 button.classList.add('btn-danger');
+                
+                // Show error message to user
+                alert(error.message || 'An error occurred while updating quantity.');
                 
                 // Reset button after 2 seconds
                 setTimeout(() => {

@@ -19,38 +19,129 @@
                 <div class="profile-content">
                     <div class="profile-section">
                         <div class="section-header">
-                            <i class="fas fa-edit"></i>
-                            <h3>Edit Profile</h3>
-                        </div>
-                        <div class="profile-form-container">
-                            <form method="post" class="profile-form">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="{{ form.first_name.id_for_label }}">First Name</label>
-                                    {{ form.first_name }}
-                                </div>
-                                <div class="form-group">
-                                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
-                                    {{ form.last_name }}
-                                </div>
-                                <div class="form-group">
-                                    <label for="{{ form.email.id_for_label }}">Email</label>
-                                    {{ form.email }}
-                                </div>
-                                <div class="form-group">
-                                    <label for="{{ form.bio.id_for_label }}">Bio</label>
-                                    {{ form.bio }}
-                                </div>
-                                <div class="form-group">
-                                    <label for="{{ form.fitness_goals.id_for_label }}">Fitness Goals</label>
-                                    {{ form.fitness_goals }}
-                                </div>
-                                <button type="submit" class="save-btn">
-                                    <i class="fas fa-save"></i>
-                                    <span>Save Profile</span>
+                            <h3>Profile Information</h3>
+                            {% if not editing %}
+                                <button type="button" class="edit-btn" onclick="toggleEdit()">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Edit Profile</span>
                                 </button>
-                            </form>
+                            {% endif %}
                         </div>
+                        
+                        {% if editing %}
+                            <div class="profile-form-container">
+                                <form method="post" class="profile-form">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="{{ form.goal.id_for_label }}">Fitness Goal</label>
+                                        {{ form.goal }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.fitness_level.id_for_label }}">Fitness Level</label>
+                                        {{ form.fitness_level }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.dietary_preference.id_for_label }}">Dietary Preference</label>
+                                        {{ form.dietary_preference }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                                        {{ form.phone_number }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.address_line1.id_for_label }}">Address Line 1</label>
+                                        {{ form.address_line1 }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.address_line2.id_for_label }}">Address Line 2</label>
+                                        {{ form.address_line2 }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.city.id_for_label }}">City</label>
+                                        {{ form.city }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.state.id_for_label }}">State/Province</label>
+                                        {{ form.state }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.postal_code.id_for_label }}">Postal Code</label>
+                                        {{ form.postal_code }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.country.id_for_label }}">Country</label>
+                                        {{ form.country }}
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="save-btn">
+                                            <i class="fas fa-save"></i>
+                                            <span>Save Profile</span>
+                                        </button>
+                                        <button type="button" class="cancel-btn" onclick="toggleEdit()">
+                                            <i class="fas fa-times"></i>
+                                            <span>Cancel</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="profile-info-container">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="fas fa-bullseye"></i>
+                                            <span>Fitness Goal</span>
+                                        </div>
+                                        <div class="info-value">
+                                            {{ user.userprofile.goal|default:"Not set" }}
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="fas fa-chart-line"></i>
+                                            <span>Fitness Level</span>
+                                        </div>
+                                        <div class="info-value">
+                                            {{ user.userprofile.fitness_level|default:"Not set" }}
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="fas fa-apple-alt"></i>
+                                            <span>Dietary Preference</span>
+                                        </div>
+                                        <div class="info-value">
+                                            {{ user.userprofile.dietary_preference|default:"Not set" }}
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="fas fa-phone"></i>
+                                            <span>Phone Number</span>
+                                        </div>
+                                        <div class="info-value">
+                                            {{ user.userprofile.phone_number|default:"Not set" }}
+                                        </div>
+                                    </div>
+                                    <div class="info-item full-width">
+                                        <div class="info-label">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Address</span>
+                                        </div>
+                                        <div class="info-value">
+                                            {% if user.userprofile.address_line1 %}
+                                                {{ user.userprofile.address_line1 }}<br>
+                                                {% if user.userprofile.address_line2 %}{{ user.userprofile.address_line2 }}<br>{% endif %}
+                                                {{ user.userprofile.city|default:"" }}{% if user.userprofile.state %}, {{ user.userprofile.state }}{% endif %}{% if user.userprofile.postal_code %} {{ user.userprofile.postal_code }}{% endif %}<br>
+                                                {{ user.userprofile.country|default:"" }}
+                                            {% else %}
+                                                Not set
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                     
                     <div class="profile-section">
@@ -401,6 +492,7 @@
 .section-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
     color: #333;
@@ -415,6 +507,14 @@
     margin: 0;
     font-weight: 600;
     font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header h3 i {
+    color: #28a745;
+    font-size: 1.2rem;
 }
 
 .profile-form-container {
@@ -1030,6 +1130,96 @@
     border-top: 1px solid #e9ecef;
 }
 
+.edit-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.cancel-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.profile-info-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.info-label i {
+    color: #28a745;
+    font-size: 1rem;
+}
+
+.info-value {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.full-width {
+    grid-column: 1 / -1; /* Span across all columns */
+}
+
 @media (max-width: 768px) {
     .profile-card {
         padding: 2rem;
@@ -1108,6 +1298,36 @@
         flex-direction: column;
         align-items: center;
     }
+
+    .edit-btn, .cancel-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr; /* Single column on small screens */
+    }
+
+    .full-width {
+        grid-column: 1; /* Reset to default */
+    }
 }
 </style>
+
+<script>
+function toggleEdit() {
+    const currentUrl = new URL(window.location);
+    const isEditing = currentUrl.searchParams.get('edit') === 'true';
+    
+    if (isEditing) {
+        // Cancel editing - go back to view mode
+        currentUrl.searchParams.delete('edit');
+    } else {
+        // Start editing
+        currentUrl.searchParams.set('edit', 'true');
+    }
+    
+    window.location.href = currentUrl.toString();
+}
+</script>
 {% endblock %}

@@ -63,8 +63,6 @@ def product_detail(request, slug):
 def add_to_cart(request, item_type, item_id):
     cart = request.session.get('cart', {})
     item_key = f"{item_type}-{item_id}"
-    cart[item_key] = cart.get(item_key, 0) + 1
-    request.session['cart'] = cart
     
     # Check if this is an AJAX request
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -73,24 +71,76 @@ def add_to_cart(request, item_type, item_id):
                 item = Product.objects.get(id=item_id)
             elif item_type in ['exercise_plan', 'plan']:
                 item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'nutrition_plan':
+                item = NutritionPlan.objects.get(id=item_id)
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
             else:
                 return JsonResponse({'error': 'Invalid item type'}, status=400)
+            
+            # Check if item is already in cart (for plans and subscriptions)
+            if item_type in ['exercise_plan', 'plan', 'nutrition_plan', 'subscription_plan']:
+                if item_key in cart:
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'{item.name} is already in your cart. You can only order one of each plan.',
+                        'cart_count': sum(cart.values())
+                    }, status=400)
+            
+            # Add item to cart
+            cart[item_key] = cart.get(item_key, 0) + 1
+            request.session['cart'] = cart
             
             return JsonResponse({
                 'success': True,
                 'message': f'{item.name} added to cart',
                 'cart_count': sum(cart.values())
             })
-        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             return JsonResponse({'error': 'Item not found'}, status=404)
     
-    # For non-AJAX requests, redirect as before
+    # For non-AJAX requests
+    try:
+        if item_type == 'product':
+            item = Product.objects.get(id=item_id)
+        elif item_type in ['exercise_plan', 'plan']:
+            item = ExercisePlan.objects.get(id=item_id)
+        elif item_type == 'nutrition_plan':
+            item = NutritionPlan.objects.get(id=item_id)
+        elif item_type == 'subscription_plan':
+            item = SubscriptionPlan.objects.get(id=item_id)
+        else:
+            messages.error(request, 'Invalid item type.')
+            return redirect('product_list')
+        
+        # Check if item is already in cart (for plans and subscriptions)
+        if item_type in ['exercise_plan', 'plan', 'nutrition_plan', 'subscription_plan']:
+            if item_key in cart:
+                messages.warning(request, f'{item.name} is already in your cart. You can only order one of each plan.')
+                if item_type == 'product':
+                    return redirect('product_list')
+                elif item_type in ['exercise_plan', 'plan']:
+                    return redirect('exercise_plan_list')
+                elif item_type == 'nutrition_plan':
+                    return redirect('inventory:nutrition_plan_list')
+                elif item_type == 'subscription_plan':
+                    return redirect('subscriptions:plan_list')
+        
+        # Add item to cart
+        cart[item_key] = cart.get(item_key, 0) + 1
+        request.session['cart'] = cart
+        messages.success(request, f'{item.name} added to cart')
+        
+    except (Product.DoesNotExist, ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+        messages.error(request, 'Item not found.')
+    
+    # Redirect based on item type
     if item_type == 'product':
         return redirect('product_list')
     elif item_type in ['exercise_plan', 'plan']:
         return redirect('exercise_plan_list')
+    elif item_type == 'nutrition_plan':
+        return redirect('inventory:nutrition_plan_list')
     elif item_type == 'subscription_plan':
         return redirect('subscriptions:plan_list')
     else:
@@ -112,6 +162,8 @@ def cart_view(request):
                 item = Product.objects.get(id=item_id)
             elif item_type in ['exercise_plan', 'plan']:
                 item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'nutrition_plan':
+                item = NutritionPlan.objects.get(id=item_id)
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
             else:
@@ -125,7 +177,7 @@ def cart_view(request):
                 'quantity': quantity,
                 'item_total': item_total,
             })
-        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             invalid_keys.append(item_key)
             continue
 
@@ -240,16 +292,22 @@ def profile_view(request):
     total_nutrition_plans = nutrition_progress.count()
     completed_nutrition_plans = nutrition_progress.filter(is_completed=True).count()
 
+    editing = request.GET.get('edit') == 'true'
+    
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Profile updated successfully!')
             return redirect('profile')
+        else:
+            editing = True  # Stay in edit mode if form has errors
     else:
         form = UserProfileForm(instance=profile)
 
     return render(request, 'inventory/profile.html', {
         'form': form,
+        'editing': editing,
         'posts': posts,
         'active_subscription': active_subscription,
         'exercise_progress': exercise_progress,
@@ -274,6 +332,8 @@ def update_cart(request, item_type, item_id):
                 item = Product.objects.get(id=item_id)
             elif item_type == 'exercise_plan':
                 item = ExercisePlan.objects.get(id=item_id)
+            elif item_type == 'nutrition_plan':
+                item = NutritionPlan.objects.get(id=item_id)
             elif item_type == 'subscription_plan':
                 item = SubscriptionPlan.objects.get(id=item_id)
             else:
@@ -283,6 +343,18 @@ def update_cart(request, item_type, item_id):
                 return redirect('cart')
                 
             if action == 'increase':
+                # Prevent increasing quantity for plans and subscriptions
+                if item_type in ['exercise_plan', 'plan', 'nutrition_plan', 'subscription_plan']:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'You can only order one of each {item.name}.',
+                            'cart_count': sum(cart.values())
+                        }, status=400)
+                    else:
+                        messages.warning(request, f'You can only order one of each {item.name}.')
+                        return redirect('cart')
+                
                 cart[item_key] = cart.get(item_key, 0) + 1
                 success_message = f'Added another {item.name} to your cart.'
             elif action == 'decrease':
@@ -323,7 +395,7 @@ def update_cart(request, item_type, item_id):
                     })
             else:
                 messages.success(request, success_message)
-        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+        except (Product.DoesNotExist, ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'error': 'Item not found'}, status=404)
             messages.error(request, 'Item not found.')
@@ -343,6 +415,8 @@ def remove_from_cart(request, item_type, item_id):
                     item = Product.objects.get(id=item_id)
                 elif item_type in ['exercise_plan', 'plan']:
                     item = ExercisePlan.objects.get(id=item_id)
+                elif item_type == 'nutrition_plan':
+                    item = NutritionPlan.objects.get(id=item_id)
                 elif item_type == 'subscription_plan':
                     item = SubscriptionPlan.objects.get(id=item_id)
                 else:
@@ -363,7 +437,7 @@ def remove_from_cart(request, item_type, item_id):
                     })
                 else:
                     messages.success(request, f'{item.name} removed from cart.')
-            except (Product.DoesNotExist, ExercisePlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
+            except (Product.DoesNotExist, ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist, SubscriptionPlan.DoesNotExist):
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({'error': 'Item not found'}, status=404)
                 messages.error(request, 'Item not found.')
@@ -437,7 +511,6 @@ def create_plan_checkout_session(request, plan_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
 def nutrition_plan_list(request):
     """View for listing nutrition plans with filtering."""
     plans = NutritionPlan.objects.filter(is_active=True)
@@ -456,7 +529,6 @@ def nutrition_plan_list(request):
         'plans': plans
     })
 
-@login_required
 def nutrition_plan_detail(request, plan_id):
     """View for displaying nutrition plan details."""
     plan = get_object_or_404(NutritionPlan, id=plan_id, is_active=True)
