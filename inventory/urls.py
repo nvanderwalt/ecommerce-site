@@ -12,13 +12,15 @@ urlpatterns = [
     path('cart/remove/<str:item_type>/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
     path('success/', views.payment_success, name='payment_success'),
+    path('nutrition-plan/<int:plan_id>/payment-success/', views.nutrition_plan_payment_success, name='nutrition_plan_payment_success'),
+    path('exercise-plan/<int:plan_id>/payment-success/', views.exercise_plan_payment_success, name='exercise_plan_payment_success'),
     path('cancel/', views.payment_cancel, name='payment_cancel'),
     path('profile/', views.profile_view, name='profile'),
     path('error/', views.error_view, name='error'),
     path('accounts/', include('allauth.urls')),
     
     # Exercise plan URLs
-    path('exercise-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
+    path('exercise-plan/<int:plan_id>/checkout/', views.create_exercise_plan_checkout_session, name='create_exercise_plan_checkout_session'),
     
     # Nutrition Plan URLs
     path('nutrition-plans/', views.nutrition_plan_list, name='nutrition_plan_list'),

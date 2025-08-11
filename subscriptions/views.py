@@ -417,11 +417,11 @@ def subscription_success(request):
                     # Don't show duplicate message if we already have one
                     if not messages.get_messages(request):
                         messages.success(request, 'Your subscription has been activated successfully!')
-             except Exception as inner_e:
-                 print(f"DEBUG: Error checking recent subscription: {str(inner_e)}")
-                 # Don't show duplicate message if we already have one
-                 if not messages.get_messages(request):
-                     messages.success(request, 'Your subscription has been activated successfully!')
+            except Exception as inner_e:
+                print(f"DEBUG: Error checking recent subscription: {str(inner_e)}")
+                # Don't show duplicate message if we already have one
+                if not messages.get_messages(request):
+                    messages.success(request, 'Your subscription has been activated successfully!')
             
     except Exception as e:
         print(f"DEBUG: Error in subscription_success: {str(e)}")
@@ -508,65 +508,105 @@ def stripe_webhook(request):
 def handle_checkout_session_completed(session):
     """Handle successful checkout session completion."""
     try:
-        # Get the subscription details from the session
-        subscription_id = session.subscription
-        customer_id = session.customer
-        plan_id = session.metadata.get('plan_id')
-        user_id = session.metadata.get('user_id')
-        
-        # Get the subscription from Stripe
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        subscription = stripe.Subscription.retrieve(subscription_id)
-        
-        # Get the end date from the subscription
-        if hasattr(subscription, 'current_period_end'):
-            end_timestamp = subscription.current_period_end
-        elif hasattr(subscription, 'period_end'):
-            end_timestamp = subscription.period_end
-        else:
-            # Fallback: set end date to 30 days from now
-            end_timestamp = int(timezone.now().timestamp()) + (30 * 24 * 60 * 60)
-        
-        # Get the user and plan
-        user = User.objects.get(id=user_id)
-        plan = SubscriptionPlan.objects.get(id=plan_id)
-        
-        # Check if user already has an active subscription
-        existing_active = UserSubscription.objects.filter(
-            user=user,
-            status='ACTIVE',
-            end_date__gt=timezone.now()
-        ).first()
-
-        if existing_active:
-            # Update the existing active subscription
-            existing_active.plan = plan
-            existing_active.stripe_subscription_id = subscription_id
-            existing_active.end_date = timezone.datetime.fromtimestamp(
-                end_timestamp,
-                tz=pytz.UTC
-            )
-            existing_active.auto_renew = True
-            existing_active.save()
-            user_subscription = existing_active
-            print(f"DEBUG: Webhook - Existing active subscription updated")
-        else:
-            # Create a new subscription
-            user_subscription = UserSubscription.objects.create(
+        # Check if this is a subscription or individual plan purchase
+        if session.mode == 'subscription':
+            # Handle subscription plan purchase
+            subscription_id = session.subscription
+            customer_id = session.customer
+            plan_id = session.metadata.get('plan_id')
+            user_id = session.metadata.get('user_id')
+            
+            # Get the subscription from Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            
+            # Get the end date from the subscription
+            if hasattr(subscription, 'current_period_end'):
+                end_timestamp = subscription.current_period_end
+            elif hasattr(subscription, 'period_end'):
+                end_timestamp = subscription.period_end
+            else:
+                # Fallback: set end date to 30 days from now
+                end_timestamp = int(timezone.now().timestamp()) + (30 * 24 * 60 * 60)
+            
+            # Get the user and plan
+            user = User.objects.get(id=user_id)
+            plan = SubscriptionPlan.objects.get(id=plan_id)
+            
+            # Check if user already has an active subscription
+            existing_active = UserSubscription.objects.filter(
                 user=user,
-                plan=plan,
                 status='ACTIVE',
-                stripe_subscription_id=subscription_id,
-                end_date=timezone.datetime.fromtimestamp(
+                end_date__gt=timezone.now()
+            ).first()
+
+            if existing_active:
+                # Update the existing active subscription
+                existing_active.plan = plan
+                existing_active.stripe_subscription_id = subscription_id
+                existing_active.end_date = timezone.datetime.fromtimestamp(
                     end_timestamp,
                     tz=pytz.UTC
-                ),
-                auto_renew=True
-            )
-            print(f"DEBUG: Webhook - New subscription created")
-        
-        # Send confirmation email
-        send_subscription_confirmation(user, plan)
+                )
+                existing_active.auto_renew = True
+                existing_active.save()
+                user_subscription = existing_active
+                print(f"DEBUG: Webhook - Existing active subscription updated")
+            else:
+                # Create a new subscription
+                user_subscription = UserSubscription.objects.create(
+                    user=user,
+                    plan=plan,
+                    status='ACTIVE',
+                    stripe_subscription_id=subscription_id,
+                    end_date=timezone.datetime.fromtimestamp(
+                        end_timestamp,
+                        tz=pytz.UTC
+                    ),
+                    auto_renew=True
+                )
+                print(f"DEBUG: Webhook - New subscription created")
+            
+            # Send confirmation email
+            send_subscription_confirmation(user, plan)
+            
+        elif session.mode == 'payment':
+            # Handle individual plan purchase (exercise or nutrition plan)
+            plan_type = session.metadata.get('plan_type')
+            plan_id = session.metadata.get('plan_id')
+            user_id = session.metadata.get('user_id')
+            
+            if not all([plan_type, plan_id, user_id]):
+                print(f"DEBUG: Webhook - Missing metadata for individual plan purchase")
+                return
+            
+            user = User.objects.get(id=user_id)
+            
+            if plan_type == 'nutrition_plan':
+                from inventory.models import NutritionPlan, NutritionPlanProgress
+                plan = NutritionPlan.objects.get(id=plan_id)
+                
+                # Create progress record for the user
+                progress, created = NutritionPlanProgress.objects.get_or_create(
+                    user=user,
+                    plan=plan,
+                    defaults={'current_meal': plan.meals.first()}
+                )
+                print(f"DEBUG: Webhook - Created nutrition plan progress: {created}")
+                
+            elif plan_type == 'exercise_plan':
+                from inventory.models import ExercisePlan, ExercisePlanProgress
+                plan = ExercisePlan.objects.get(id=plan_id)
+                
+                # Create progress record for the user
+                progress, created = ExercisePlanProgress.objects.get_or_create(
+                    user=user,
+                    plan=plan,
+                    defaults={'current_step': plan.steps.first()}
+                )
+                print(f"DEBUG: Webhook - Created exercise plan progress: {created}")
+            
+            print(f"DEBUG: Webhook - Individual plan purchase processed: {plan_type} - {plan_id}")
         
     except Exception as e:
         logger.error(f"Error handling checkout session: {str(e)}")

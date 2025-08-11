@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load inventory_tags %}
 
 {% block title %}My Profile - FitFusion{% endblock %}
 
@@ -107,7 +108,7 @@
                                     </div>
                                     <div class="info-item">
                                         <div class="info-label">
-                                            <i class="fas fa-apple-alt"></i>
+                                            <i class="fas fa-utensils"></i>
                                             <span>Dietary Preference</span>
                                         </div>
                                         <div class="info-value">
@@ -235,6 +236,102 @@
                     
                     <div class="profile-section">
                         <div class="section-header">
+                            <i class="fas fa-shopping-bag"></i>
+                            <h3>Your Purchased Plans</h3>
+                        </div>
+                        <div class="purchased-plans-container">
+                            <div class="plans-overview">
+                                <div class="plan-category">
+                                    <div class="category-header">
+                                        <i class="fas fa-running"></i>
+                                        <h4>Exercise Plans</h4>
+                                    </div>
+                                    {% if purchased_exercise_plans %}
+                                        <div class="plan-list">
+                                            {% for plan_id in purchased_exercise_plans %}
+                                                {% with plan=plan_id|get_exercise_plan %}
+                                                    <div class="plan-item">
+                                                        <div class="plan-icon">
+                                                            <i class="fas fa-running"></i>
+                                                        </div>
+                                                        <div class="plan-info">
+                                                            <h5 class="plan-name">{{ plan.name }}</h5>
+                                                            <p class="plan-details">{{ plan.get_difficulty_display }} • {{ plan.duration_weeks }} weeks</p>
+                                                        </div>
+                                                        <div class="plan-status">
+                                                            {% with progress=plan|get_exercise_progress:user %}
+                                                                {% if progress.is_completed %}
+                                                                    <span class="status-badge completed">
+                                                                        <i class="fas fa-check-circle"></i>
+                                                                        Completed
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span class="status-badge in-progress">
+                                                                        <i class="fas fa-play-circle"></i>
+                                                                        In Progress
+                                                                    </span>
+                                                                {% endif %}
+                                                            {% endwith %}
+                                                        </div>
+                                                    </div>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="no-plans">
+                                            <p>No exercise plans purchased yet.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="plan-category">
+                                    <div class="category-header">
+                                        <i class="fas fa-utensils"></i>
+                                        <h4>Nutrition Plans</h4>
+                                    </div>
+                                    {% if purchased_nutrition_plans %}
+                                        <div class="plan-list">
+                                            {% for plan_id in purchased_nutrition_plans %}
+                                                {% with plan=plan_id|get_nutrition_plan %}
+                                                    <div class="plan-item">
+                                                        <div class="plan-icon">
+                                                            <i class="fas fa-apple-alt"></i>
+                                                        </div>
+                                                        <div class="plan-info">
+                                                            <h5 class="plan-name">{{ plan.name }}</h5>
+                                                            <p class="plan-details">{{ plan.get_diet_type_display }} • {{ plan.calories_per_day }} calories</p>
+                                                        </div>
+                                                        <div class="plan-status">
+                                                            {% with progress=plan|get_nutrition_progress:user %}
+                                                                {% if progress.is_completed %}
+                                                                    <span class="status-badge completed">
+                                                                        <i class="fas fa-check-circle"></i>
+                                                                        Completed
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span class="status-badge in-progress">
+                                                                        <i class="fas fa-play-circle"></i>
+                                                                        In Progress
+                                                                    </span>
+                                                                {% endif %}
+                                                            {% endwith %}
+                                                        </div>
+                                                    </div>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="no-plans">
+                                            <p>No nutrition plans purchased yet.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-header">
                             <i class="fas fa-chart-line"></i>
                             <h3>Your Progress</h3>
                         </div>
@@ -264,7 +361,7 @@
                                 
                                 <div class="progress-card">
                                     <div class="progress-icon">
-                                        <i class="fas fa-apple-alt"></i>
+                                        <i class="fas fa-utensils"></i>
                                     </div>
                                     <div class="progress-info">
                                         <h4 class="progress-title">Nutrition Plans</h4>
@@ -348,7 +445,7 @@
                                     <span>Browse Exercise Plans</span>
                                 </a>
                                 <a href="{% url 'inventory:nutrition_plan_list' %}" class="action-btn secondary">
-                                    <i class="fas fa-apple-alt"></i>
+                                    <i class="fas fa-utensils"></i>
                                     <span>View Nutrition Plans</span>
                                 </a>
                             </div>
@@ -1128,6 +1225,129 @@
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid #e9ecef;
+}
+
+.purchased-plans-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.plans-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.plan-category {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: #f8f9fa;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.category-header i {
+    color: #28a745;
+    font-size: 1.2rem;
+}
+
+.category-header h4 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.plan-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.plan-item:hover {
+    border-color: #28a745;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+    transform: translateY(-1px);
+}
+
+.plan-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.plan-info {
+    flex: 1;
+}
+
+.plan-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.plan-details {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.plan-status {
+    display: flex;
+    align-items: center;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.completed {
+    background: #28a745;
+    color: white;
+}
+
+.status-badge.in-progress {
+    background: #007bff;
+    color: white;
+}
+
+.no-plans {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
 }
 
 .edit-btn {

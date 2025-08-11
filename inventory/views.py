@@ -242,15 +242,25 @@ def create_checkout_session(request):
         return JsonResponse({'error': 'Cart is empty'}, status=400)
 
     try:
+        # Build metadata for plans in cart
+        cart_metadata = {
+            'type': 'cart_checkout',
+            'user_id': str(request.user.id) if request.user.is_authenticated else '',
+        }
+        
+        # Add plan information to metadata
+        for item_key, quantity in cart.items():
+            item_type, item_id = item_key.split('-')
+            if item_type in ['exercise_plan', 'plan', 'nutrition_plan']:
+                cart_metadata[f'{item_type}_{item_id}'] = str(quantity)
+        
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
             success_url=request.build_absolute_uri('/success/'),
             cancel_url=request.build_absolute_uri('/cart/'),
-            metadata={
-                'type': 'cart_checkout'
-            }
+            metadata=cart_metadata
         )
         return JsonResponse({'id': session.id})
     except stripe.error.AuthenticationError as e:
@@ -260,12 +270,110 @@ def create_checkout_session(request):
     except Exception as e:
         return JsonResponse({'error': 'Server error'}, status=500)
 
+@login_required
 def payment_success(request):
-    # Clear the cart if it was a cart checkout
-    if request.session.get('cart'):
-        request.session['cart'] = {}
-    messages.success(request, "Payment successful! Thank you for your purchase.")
-    return redirect('product_list')
+    """Handle successful payment from cart checkout and create progress records for plans."""
+    cart = request.session.get('cart', {})
+    plans_purchased = []
+    
+    # Process each item in the cart
+    for item_key, quantity in cart.items():
+        item_type, item_id = item_key.split('-')
+        
+        try:
+            if item_type == 'product':
+                # Handle product purchase (no progress needed)
+                pass
+            elif item_type in ['exercise_plan', 'plan']:
+                # Handle exercise plan purchase
+                plan = ExercisePlan.objects.get(id=item_id)
+                progress, created = ExercisePlanProgress.objects.get_or_create(
+                    user=request.user,
+                    plan=plan,
+                    defaults={'current_step': plan.steps.first()}
+                )
+                if created:
+                    plans_purchased.append(f"Exercise Plan: {plan.name}")
+                    
+            elif item_type == 'nutrition_plan':
+                # Handle nutrition plan purchase
+                plan = NutritionPlan.objects.get(id=item_id)
+                progress, created = NutritionPlanProgress.objects.get_or_create(
+                    user=request.user,
+                    plan=plan,
+                    defaults={'current_meal': plan.meals.first()}
+                )
+                if created:
+                    plans_purchased.append(f"Nutrition Plan: {plan.name}")
+                    
+        except (ExercisePlan.DoesNotExist, NutritionPlan.DoesNotExist):
+            pass
+    
+    # Clear the cart
+    request.session['cart'] = {}
+    
+    # Show success message
+    if plans_purchased:
+        plans_text = ", ".join(plans_purchased)
+        messages.success(request, f"Payment successful! You can now start: {plans_text}")
+    else:
+        messages.success(request, "Payment successful! Thank you for your purchase.")
+    
+    return redirect('profile')
+
+@login_required
+def nutrition_plan_payment_success(request, plan_id):
+    """Handle successful nutrition plan payment and create progress record."""
+    try:
+        plan = NutritionPlan.objects.get(id=plan_id, is_active=True)
+        
+        # Create progress record for the user
+        progress, created = NutritionPlanProgress.objects.get_or_create(
+            user=request.user,
+            plan=plan,
+            defaults={'current_meal': plan.meals.first()}
+        )
+        
+        if created:
+            messages.success(request, f"Payment successful! You can now start your {plan.name} nutrition plan.")
+        else:
+            messages.info(request, f"You already have access to {plan.name}. Continue where you left off!")
+        
+        return redirect('inventory:nutrition_plan_detail', plan_id=plan.id)
+        
+    except NutritionPlan.DoesNotExist:
+        messages.error(request, "Nutrition plan not found.")
+        return redirect('inventory:nutrition_plan_list')
+    except Exception as e:
+        messages.error(request, f"Error processing payment: {str(e)}")
+        return redirect('inventory:nutrition_plan_list')
+
+@login_required
+def exercise_plan_payment_success(request, plan_id):
+    """Handle successful exercise plan payment and create progress record."""
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        
+        # Create progress record for the user
+        progress, created = ExercisePlanProgress.objects.get_or_create(
+            user=request.user,
+            plan=plan,
+            defaults={'current_step': plan.steps.first()}
+        )
+        
+        if created:
+            messages.success(request, f"Payment successful! You can now start your {plan.name} exercise plan.")
+        else:
+            messages.info(request, f"You already have access to {plan.name}. Continue where you left off!")
+        
+        return redirect('exercise_plan_detail', plan_id=plan.id)
+        
+    except ExercisePlan.DoesNotExist:
+        messages.error(request, "Exercise plan not found.")
+        return redirect('exercise_plan_list')
+    except Exception as e:
+        messages.error(request, f"Error processing payment: {str(e)}")
+        return redirect('exercise_plan_list')
 
 def payment_cancel(request):
     messages.info(request, "Your payment was cancelled. Please try again when you're ready.")
@@ -306,6 +414,10 @@ def profile_view(request):
     exercise_progress = ExercisePlanProgress.objects.filter(user=request.user)
     nutrition_progress = NutritionPlanProgress.objects.filter(user=request.user)
     
+    # Get all purchased plans (plans with progress records)
+    purchased_exercise_plans = exercise_progress.values_list('plan', flat=True)
+    purchased_nutrition_plans = nutrition_progress.values_list('plan', flat=True)
+    
     # Calculate overall progress
     total_exercise_plans = exercise_progress.count()
     completed_exercise_plans = exercise_progress.filter(is_completed=True).count()
@@ -336,6 +448,8 @@ def profile_view(request):
         'completed_exercise_plans': completed_exercise_plans,
         'total_nutrition_plans': total_nutrition_plans,
         'completed_nutrition_plans': completed_nutrition_plans,
+        'purchased_exercise_plans': purchased_exercise_plans,
+        'purchased_nutrition_plans': purchased_nutrition_plans,
     })
 
 def error_view(request):
@@ -496,6 +610,48 @@ def exercise_plan_detail(request, plan_id):
 
 @csrf_exempt
 @login_required
+def create_exercise_plan_checkout_session(request, plan_id):
+    """Create a Stripe checkout session for an exercise plan."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        
+        # Create Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': plan.name,
+                        'description': f"{plan.get_difficulty_display()} - {plan.duration_weeks} weeks",
+                    },
+                    'unit_amount': int(plan.price * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('inventory:exercise_plan_payment_success', args=[plan.id])),
+            cancel_url=request.build_absolute_uri(reverse('exercise_plan_list')),
+            client_reference_id=str(plan.id),
+            customer_email=request.user.email,
+            metadata={
+                'plan_type': 'exercise_plan',
+                'plan_id': str(plan.id),
+                'user_id': str(request.user.id),
+            }
+        )
+        
+        return JsonResponse({'id': session.id})
+    except ExercisePlan.DoesNotExist:
+        return JsonResponse({'error': 'Plan not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@login_required
 def create_plan_checkout_session(request, plan_id):
     """Create a Stripe checkout session for a nutrition plan."""
     if request.method != 'POST':
@@ -519,10 +675,15 @@ def create_plan_checkout_session(request, plan_id):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=request.build_absolute_uri(reverse('inventory:nutrition_plan_detail', args=[plan.id])),
+            success_url=request.build_absolute_uri(reverse('inventory:nutrition_plan_payment_success', args=[plan.id])),
             cancel_url=request.build_absolute_uri(reverse('inventory:nutrition_plan_list')),
             client_reference_id=str(plan.id),
             customer_email=request.user.email,
+            metadata={
+                'plan_type': 'nutrition_plan',
+                'plan_id': str(plan.id),
+                'user_id': str(request.user.id),
+            }
         )
         
         return JsonResponse({'id': session.id})
