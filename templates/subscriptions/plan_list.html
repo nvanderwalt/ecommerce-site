@@ -41,10 +41,6 @@
     <div class="alert alert-info mt-4">
         <h4 class="alert-heading">Current Subscription</h4>
         <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
-        <hr>
-        <p class="mb-0">
-            <a href="{% url 'subscriptions:user_subscription' %}" class="btn btn-outline-primary">Manage Subscription</a>
-        </p>
     </div>
     {% endif %}
 </div>

@@ -18,4 +18,5 @@ urlpatterns = [
     path('start-trial/<int:plan_id>/', views.start_trial, name='start_trial'),
     path('convert-trial/<int:subscription_id>/', views.convert_trial, name='convert_trial'),
     path('switch-plan/<int:plan_id>/', views.switch_subscription_plan, name='switch_plan'),
+    path('toggle-auto-renew/<int:subscription_id>/', views.toggle_auto_renew, name='toggle_auto_renew'),
 ] 

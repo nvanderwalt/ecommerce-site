@@ -4,3 +4,8 @@ ERROR 2025-08-11 13:14:11,768 views 10848 2300 Error in subscription_success: cu
 ERROR 2025-08-11 14:25:48,846 views 21108 11844 Error in subscription_success: You cannot add messages without installing django.contrib.messages.middleware.MessageMiddleware
 ERROR 2025-08-11 14:40:17,307 views 17024 9768 Error in subscription_success: current_period_end
 ERROR 2025-08-11 14:56:04,064 views 17024 31340 Error in subscription_success: current_period_end
+ERROR 2025-08-11 16:02:40,191 views 14380 11720 Error in subscription_success: current_period_end
+ERROR 2025-08-11 16:13:58,416 views 4536 23108 Error in subscription_success: module 'django.utils.timezone' has no attribute 'utc'
+ERROR 2025-08-11 16:17:55,930 views 15348 3680 Error in subscription_success: module 'django.utils.timezone' has no attribute 'utc'
+ERROR 2025-08-11 16:18:31,480 views 15348 3680 Error in subscription_success: module 'django.utils.timezone' has no attribute 'utc'
+ERROR 2025-08-11 16:19:05,932 views 15348 3680 Error in subscription_success: module 'django.utils.timezone' has no attribute 'utc'

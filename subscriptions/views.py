@@ -13,6 +13,7 @@ from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
+import pytz
 import logging
 from django.contrib.auth import get_user_model
 from .utils import (
@@ -229,8 +230,18 @@ def create_subscription(request, plan_id):
     ).first()
     
     if active_subscription:
-        messages.error(request, 'You already have an active subscription')
-        return redirect('subscriptions:plan_list')
+        # Check if user is trying to subscribe to the same plan
+        if active_subscription.plan == plan:
+            messages.error(request, 'You are already subscribed to this plan')
+            return redirect('subscriptions:plan_list')
+        
+        # Check if user is trying to downgrade (new plan is cheaper)
+        if plan.price <= active_subscription.plan.price:
+            messages.error(request, f'You cannot downgrade from {active_subscription.plan.name} to {plan.name}. Please cancel your current subscription first.')
+            return redirect('subscriptions:plan_list')
+        
+        # If we get here, it's an upgrade - allow it
+        print(f"DEBUG: User upgrading from {active_subscription.plan.name} to {plan.name}")
     
     try:
         # Check if Stripe is configured
@@ -317,7 +328,20 @@ def subscription_success(request):
                     
                     # Get the Stripe subscription to get the end date
                     stripe_subscription = stripe.Subscription.retrieve(subscription_id)
-                    print(f"DEBUG: Stripe subscription end = {stripe_subscription.current_period_end}")
+                    print(f"DEBUG: Stripe subscription object = {stripe_subscription}")
+                    print(f"DEBUG: Stripe subscription attributes = {dir(stripe_subscription)}")
+                    
+                    # Get the end date from the subscription
+                    if hasattr(stripe_subscription, 'current_period_end'):
+                        end_timestamp = stripe_subscription.current_period_end
+                    elif hasattr(stripe_subscription, 'period_end'):
+                        end_timestamp = stripe_subscription.period_end
+                    else:
+                        # Fallback: set end date to 30 days from now
+                        end_timestamp = int(timezone.now().timestamp()) + (30 * 24 * 60 * 60)
+                        print(f"DEBUG: Using fallback end date")
+                    
+                    print(f"DEBUG: End timestamp = {end_timestamp}")
                     
                     # Check if user already has an active subscription
                     existing_active = UserSubscription.objects.filter(
@@ -331,8 +355,8 @@ def subscription_success(request):
                         existing_active.plan = plan
                         existing_active.stripe_subscription_id = subscription_id
                         existing_active.end_date = timezone.datetime.fromtimestamp(
-                            stripe_subscription.current_period_end,
-                            tz=timezone.utc
+                            end_timestamp,
+                            tz=pytz.UTC
                         )
                         existing_active.auto_renew = True
                         existing_active.save()
@@ -346,8 +370,8 @@ def subscription_success(request):
                             status='ACTIVE',
                             stripe_subscription_id=subscription_id,
                             end_date=timezone.datetime.fromtimestamp(
-                                stripe_subscription.current_period_end,
-                                tz=timezone.utc
+                                end_timestamp,
+                                tz=pytz.UTC
                             ),
                             auto_renew=True
                         )
@@ -359,6 +383,11 @@ def subscription_success(request):
                     print(f"DEBUG: Current time = {timezone.now()}")
                     print(f"DEBUG: Is active = {user_subscription.is_active}")
                     
+                    # Force refresh the subscription data
+                    user_subscription.refresh_from_db()
+                    print(f"DEBUG: Final subscription check - ID: {user_subscription.id}, Plan: {user_subscription.plan.name}, Active: {user_subscription.is_active}")
+                    
+                    # Show success message with plan name
                     messages.success(request, f'Your {plan.name} subscription has been activated successfully!')
                 else:
                     print(f"DEBUG: User verification failed")
@@ -368,14 +397,42 @@ def subscription_success(request):
                 messages.error(request, 'Payment was not completed successfully.')
         else:
             print(f"DEBUG: No session_id provided")
-            messages.success(request, 'Your subscription has been activated successfully!')
+            # Even without session_id, try to update the user's subscription
+            # This handles cases where the webhook might have already processed it
+            try:
+                # Check if user has any recent subscriptions that might have been created by webhook
+                recent_subscription = UserSubscription.objects.filter(
+                    user=request.user,
+                    status='ACTIVE',
+                    end_date__gt=timezone.now()
+                ).first()
+                
+                if recent_subscription:
+                    print(f"DEBUG: Found recent active subscription: {recent_subscription.plan.name}")
+                    # Don't show duplicate message if we already have one
+                    if not messages.get_messages(request):
+                        messages.success(request, f'Your {recent_subscription.plan.name} subscription has been activated successfully!')
+                else:
+                    print(f"DEBUG: No recent subscription found")
+                    # Don't show duplicate message if we already have one
+                    if not messages.get_messages(request):
+                        messages.success(request, 'Your subscription has been activated successfully!')
+             except Exception as inner_e:
+                 print(f"DEBUG: Error checking recent subscription: {str(inner_e)}")
+                 # Don't show duplicate message if we already have one
+                 if not messages.get_messages(request):
+                     messages.success(request, 'Your subscription has been activated successfully!')
             
     except Exception as e:
         print(f"DEBUG: Error in subscription_success: {str(e)}")
         logger.error(f"Error in subscription_success: {str(e)}")
-        messages.success(request, 'Your subscription has been activated successfully!')
+        # Don't show duplicate message if we already have one
+        if not messages.get_messages(request):
+            messages.success(request, 'Your subscription has been activated successfully!')
     
-    return redirect('subscriptions:dashboard')
+    # Add a timestamp parameter to force cache refresh
+    from django.urls import reverse
+    return redirect(reverse('subscriptions:dashboard') + f'?t={int(timezone.now().timestamp())}')
 
 @login_required
 def subscription_cancel(request):
@@ -461,6 +518,15 @@ def handle_checkout_session_completed(session):
         stripe.api_key = settings.STRIPE_SECRET_KEY
         subscription = stripe.Subscription.retrieve(subscription_id)
         
+        # Get the end date from the subscription
+        if hasattr(subscription, 'current_period_end'):
+            end_timestamp = subscription.current_period_end
+        elif hasattr(subscription, 'period_end'):
+            end_timestamp = subscription.period_end
+        else:
+            # Fallback: set end date to 30 days from now
+            end_timestamp = int(timezone.now().timestamp()) + (30 * 24 * 60 * 60)
+        
         # Get the user and plan
         user = User.objects.get(id=user_id)
         plan = SubscriptionPlan.objects.get(id=plan_id)
@@ -477,8 +543,8 @@ def handle_checkout_session_completed(session):
             existing_active.plan = plan
             existing_active.stripe_subscription_id = subscription_id
             existing_active.end_date = timezone.datetime.fromtimestamp(
-                subscription.current_period_end,
-                tz=timezone.utc
+                end_timestamp,
+                tz=pytz.UTC
             )
             existing_active.auto_renew = True
             existing_active.save()
@@ -492,8 +558,8 @@ def handle_checkout_session_completed(session):
                 status='ACTIVE',
                 stripe_subscription_id=subscription_id,
                 end_date=timezone.datetime.fromtimestamp(
-                    subscription.current_period_end,
-                    tz=timezone.utc
+                    end_timestamp,
+                    tz=pytz.UTC
                 ),
                 auto_renew=True
             )
@@ -517,7 +583,7 @@ def handle_subscription_updated(subscription):
             user_subscription.status = 'ACTIVE'
             user_subscription.end_date = timezone.datetime.fromtimestamp(
                 subscription.current_period_end,
-                tz=timezone.utc
+                tz=pytz.UTC
             )
             user_subscription.save()
             send_subscription_renewed(user_subscription.user, user_subscription.plan)
@@ -871,6 +937,40 @@ def start_trial(request, plan_id):
             'There was an error starting your trial. Please try again or contact support.'
         )
         return redirect('subscriptions:plan_list')
+
+@login_required
+def toggle_auto_renew(request, subscription_id):
+    """Toggle auto-renewal for a subscription."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+    try:
+        subscription = get_object_or_404(
+            UserSubscription,
+            id=subscription_id,
+            user=request.user
+        )
+        
+        # Toggle auto-renewal
+        subscription.auto_renew = not subscription.auto_renew
+        subscription.save()
+        
+        if subscription.auto_renew:
+            messages.success(request, 'Auto-renewal has been enabled for your subscription.')
+        else:
+            messages.success(request, 'Auto-renewal has been disabled for your subscription.')
+            
+        return JsonResponse({
+            'success': True,
+            'auto_renew': subscription.auto_renew,
+            'message': 'Auto-renewal updated successfully'
+        })
+        
+    except UserSubscription.DoesNotExist:
+        return JsonResponse({'error': 'Subscription not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error toggling auto-renewal: {str(e)}")
+        return JsonResponse({'error': 'An error occurred while updating auto-renewal'}, status=500)
 
 @login_required
 def convert_trial(request, subscription_id):
