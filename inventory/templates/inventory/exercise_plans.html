@@ -364,7 +364,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        // Check if it's the "already in cart" case
+                        if (response.status === 400 && data.message && data.message.includes('already in your cart')) {
+                            return { success: false, alreadyInCart: true, message: data.message };
+                        }
+                        throw new Error(data.error || 'Failed to add to cart');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Show success message
@@ -390,6 +401,32 @@ document.addEventListener('DOMContentLoaded', function() {
                         button.classList.add('add-to-cart-btn');
                         button.disabled = false;
                     }, 2000);
+                } else if (data.alreadyInCart) {
+                    // Show "already in cart" message
+                    button.innerHTML = '<i class="fas fa-info-circle me-2"></i>Already In Cart';
+                    button.classList.remove('add-to-cart-btn');
+                    button.classList.add('btn', 'btn-warning');
+                    
+                    // Update cart count if provided
+                    if (data.cart_count !== undefined) {
+                        const cartBadge = document.querySelector('.navbar .badge');
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cart_count;
+                            if (data.cart_count > 0) {
+                                cartBadge.style.display = 'inline';
+                            } else {
+                                cartBadge.style.display = 'none';
+                            }
+                        }
+                    }
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn', 'btn-warning');
+                        button.classList.add('add-to-cart-btn');
+                        button.disabled = false;
+                    }, 3000);
                 } else {
                     throw new Error(data.error || 'Failed to add to cart');
                 }

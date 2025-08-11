@@ -278,8 +278,28 @@ def profile_view(request):
     
     # Get user's active subscription
     try:
-        active_subscription = request.user.usersubscription_set.filter(status='ACTIVE').first()
-    except:
+        active_subscription = request.user.usersubscription_set.filter(
+            status='ACTIVE',
+            end_date__gt=timezone.now()
+        ).first()
+        
+        # Debug logging
+        print(f"DEBUG: Profile view - User ID: {request.user.id}")
+        print(f"DEBUG: Profile view - Active subscription found: {active_subscription is not None}")
+        if active_subscription:
+            print(f"DEBUG: Profile view - Subscription ID: {active_subscription.id}")
+            print(f"DEBUG: Profile view - Subscription status: {active_subscription.status}")
+            print(f"DEBUG: Profile view - Subscription end_date: {active_subscription.end_date}")
+            print(f"DEBUG: Profile view - Current time: {timezone.now()}")
+            print(f"DEBUG: Profile view - Is active: {active_subscription.is_active}")
+        else:
+            # Check if there are any subscriptions at all
+            all_subscriptions = request.user.usersubscription_set.all()
+            print(f"DEBUG: Profile view - Total subscriptions: {all_subscriptions.count()}")
+            for sub in all_subscriptions:
+                print(f"DEBUG: Profile view - Subscription {sub.id}: status={sub.status}, end_date={sub.end_date}, is_active={sub.is_active}")
+    except Exception as e:
+        print(f"DEBUG: Profile view - Error getting subscription: {str(e)}")
         active_subscription = None
     
     # Get user's progress data
@@ -330,7 +350,7 @@ def update_cart(request, item_type, item_id):
         try:
             if item_type == 'product':
                 item = Product.objects.get(id=item_id)
-            elif item_type == 'exercise_plan':
+            elif item_type in ['exercise_plan', 'plan']:
                 item = ExercisePlan.objects.get(id=item_id)
             elif item_type == 'nutrition_plan':
                 item = NutritionPlan.objects.get(id=item_id)

@@ -179,6 +179,12 @@
         form.addEventListener('submit', function(e) {
           e.preventDefault();
           
+          const button = this.querySelector('button[type="submit"]');
+          const originalText = button.innerHTML;
+          
+          // Disable button to prevent multiple clicks
+          button.disabled = true;
+          
           const formData = new FormData(form);
           const url = form.action;
           
@@ -190,17 +196,63 @@
               'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
           })
-          .then(response => response.json())
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(data => {
+                // Check if it's the "already in cart" case
+                if (response.status === 400 && data.message && data.message.includes('already in your cart')) {
+                  return { success: false, alreadyInCart: true, message: data.message, cart_count: data.cart_count };
+                }
+                throw new Error(data.error || 'Failed to add to cart');
+              });
+            }
+            return response.json();
+          })
           .then(data => {
             if (data.success) {
               // Update cart count
               updateCartCount(data.cart_count);
+              
+              // Show success feedback
+              button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+              button.classList.add('btn-success');
+              
+              // Reset button after 2 seconds
+              setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.disabled = false;
+              }, 2000);
+            } else if (data.alreadyInCart) {
+                // Show "already in cart" feedback
+                updateCartCount(data.cart_count);
+                
+                button.innerHTML = '<i class="fas fa-info-circle me-2"></i>Already In Cart';
+                button.classList.add('btn-warning');
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-warning');
+                    button.disabled = false;
+                }, 3000);
             } else {
-              console.error('Error:', data.error);
+              throw new Error(data.error || 'Failed to add to cart');
             }
           })
           .catch(error => {
             console.error('Error:', error);
+            
+            // Show error feedback
+            button.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+            button.classList.add('btn-danger');
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+              button.innerHTML = originalText;
+              button.classList.remove('btn-danger');
+              button.disabled = false;
+            }, 2000);
           });
         });
       });

@@ -32,7 +32,17 @@
                                         <div class="item-details">
                                             <h5 class="item-name">{{ item.item.name }}</h5>
                                             <p class="item-type">
-                                                <span class="type-badge">{{ item.item_type|title }}</span>
+                                                <span class="type-badge">
+                                                    {% if item.item_type == 'plan' %}
+                                                        Exercise Plan
+                                                    {% elif item.item_type == 'nutrition_plan' %}
+                                                        Nutrition Plan
+                                                    {% elif item.item_type == 'subscription_plan' %}
+                                                        Subscription Plan
+                                                    {% else %}
+                                                        {{ item.item_type|title }}
+                                                    {% endif %}
+                                                </span>
                                             </p>
                                             <p class="item-price">€{{ item.item.price }}</p>
                                         </div>

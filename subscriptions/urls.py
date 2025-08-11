@@ -12,4 +12,10 @@ urlpatterns = [
     path('success/', views.subscription_success, name='success'),
     path('cancel/', views.subscription_cancel, name='cancel'),
     path('renew/', views.subscription_renew, name='renew'),
+    path('webhook/', views.stripe_webhook, name='webhook'),
+    path('payment-history/', views.payment_history, name='payment_history'),
+    path('download-invoice/<int:payment_id>/', views.download_invoice, name='download_invoice'),
+    path('start-trial/<int:plan_id>/', views.start_trial, name='start_trial'),
+    path('convert-trial/<int:subscription_id>/', views.convert_trial, name='convert_trial'),
+    path('switch-plan/<int:plan_id>/', views.switch_subscription_plan, name='switch_plan'),
 ] 

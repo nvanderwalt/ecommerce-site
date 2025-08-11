@@ -43,7 +43,7 @@
         <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
         <hr>
         <p class="mb-0">
-            <a href="{% url 'user_subscription' %}" class="btn btn-outline-primary">Manage Subscription</a>
+            <a href="{% url 'subscriptions:user_subscription' %}" class="btn btn-outline-primary">Manage Subscription</a>
         </p>
     </div>
     {% endif %}

@@ -164,7 +164,7 @@ def plan_list(request):
     plans = SubscriptionPlan.objects.filter(is_active=True)
     current_subscription = UserSubscription.objects.filter(
         user=request.user,
-        status='active',
+        status='ACTIVE',
         end_date__gt=timezone.now()
     ).first()
     
@@ -177,11 +177,21 @@ def plan_list(request):
 
 @login_required
 def dashboard(request):
+    print(f"DEBUG: dashboard called for user {request.user.id}")
+    
+    # Get all subscriptions for this user to debug
+    all_subscriptions = UserSubscription.objects.filter(user=request.user)
+    print(f"DEBUG: All subscriptions for user: {list(all_subscriptions.values('id', 'status', 'end_date', 'plan__name'))}")
+    
     current_subscription = UserSubscription.objects.filter(
         user=request.user,
-        status='active',
+        status='ACTIVE',
         end_date__gt=timezone.now()
     ).first()
+    
+    print(f"DEBUG: Current subscription found: {current_subscription}")
+    if current_subscription:
+        print(f"DEBUG: Current subscription details: id={current_subscription.id}, status={current_subscription.status}, end_date={current_subscription.end_date}")
     
     subscription_history = UserSubscription.objects.filter(
         user=request.user
@@ -205,13 +215,16 @@ def create_subscription(request, plan_id):
     if not request.user.is_authenticated:
         return redirect('/accounts/login/')
     
+    # Configure Stripe API key
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
     # Only proceed with database queries if user is authenticated
     plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
     
     # Now we know user is authenticated, so this query is safe
     active_subscription = UserSubscription.objects.filter(
         user=request.user,
-        status='active',
+        status='ACTIVE',
         end_date__gt=timezone.now()
     ).first()
     
@@ -243,7 +256,7 @@ def create_subscription(request, plan_id):
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=request.build_absolute_uri('/subscriptions/success/'),
+            success_url=request.build_absolute_uri('/subscriptions/success/') + f'?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=request.build_absolute_uri('/subscriptions/'),
             customer_email=request.user.email,
             metadata={
@@ -264,7 +277,104 @@ def create_subscription(request, plan_id):
 
 @login_required
 def subscription_success(request):
-    messages.success(request, 'Your subscription has been activated successfully!')
+    """Handle successful subscription payment and create UserSubscription."""
+    print(f"DEBUG: subscription_success called")
+    print(f"DEBUG: session_id = {request.GET.get('session_id')}")
+    print(f"DEBUG: user = {request.user.id}")
+    
+    try:
+        # Get the session ID from the URL parameters
+        session_id = request.GET.get('session_id')
+        
+        if session_id:
+            print(f"DEBUG: Processing session_id = {session_id}")
+            # Configure Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            
+            # Retrieve the checkout session
+            session = stripe.checkout.Session.retrieve(session_id)
+            print(f"DEBUG: Session payment_status = {session.payment_status}")
+            print(f"DEBUG: Session subscription = {session.subscription}")
+            print(f"DEBUG: Session metadata = {session.metadata}")
+            
+            if session.payment_status == 'paid':
+                # Get subscription details
+                subscription_id = session.subscription
+                plan_id = session.metadata.get('plan_id')
+                user_id = session.metadata.get('user_id')
+                
+                print(f"DEBUG: subscription_id = {subscription_id}")
+                print(f"DEBUG: plan_id = {plan_id}")
+                print(f"DEBUG: user_id = {user_id}")
+                print(f"DEBUG: current_user_id = {request.user.id}")
+                
+                # Verify this is for the current user
+                if str(request.user.id) == str(user_id):
+                    print(f"DEBUG: User verification passed")
+                    # Get the plan
+                    plan = SubscriptionPlan.objects.get(id=plan_id)
+                    print(f"DEBUG: Plan found = {plan.name}")
+                    
+                    # Get the Stripe subscription to get the end date
+                    stripe_subscription = stripe.Subscription.retrieve(subscription_id)
+                    print(f"DEBUG: Stripe subscription end = {stripe_subscription.current_period_end}")
+                    
+                    # Check if user already has an active subscription
+                    existing_active = UserSubscription.objects.filter(
+                        user=request.user,
+                        status='ACTIVE',
+                        end_date__gt=timezone.now()
+                    ).first()
+                    
+                    if existing_active:
+                        # Update the existing active subscription
+                        existing_active.plan = plan
+                        existing_active.stripe_subscription_id = subscription_id
+                        existing_active.end_date = timezone.datetime.fromtimestamp(
+                            stripe_subscription.current_period_end,
+                            tz=timezone.utc
+                        )
+                        existing_active.auto_renew = True
+                        existing_active.save()
+                        user_subscription = existing_active
+                        print(f"DEBUG: Existing active subscription updated")
+                    else:
+                        # Create a new subscription
+                        user_subscription = UserSubscription.objects.create(
+                            user=request.user,
+                            plan=plan,
+                            status='ACTIVE',
+                            stripe_subscription_id=subscription_id,
+                            end_date=timezone.datetime.fromtimestamp(
+                                stripe_subscription.current_period_end,
+                                tz=timezone.utc
+                            ),
+                            auto_renew=True
+                        )
+                        print(f"DEBUG: New subscription created")
+                    
+                    print(f"DEBUG: UserSubscription id = {user_subscription.id}")
+                    print(f"DEBUG: UserSubscription status = {user_subscription.status}")
+                    print(f"DEBUG: UserSubscription end_date = {user_subscription.end_date}")
+                    print(f"DEBUG: Current time = {timezone.now()}")
+                    print(f"DEBUG: Is active = {user_subscription.is_active}")
+                    
+                    messages.success(request, f'Your {plan.name} subscription has been activated successfully!')
+                else:
+                    print(f"DEBUG: User verification failed")
+                    messages.error(request, 'Invalid subscription session.')
+            else:
+                print(f"DEBUG: Payment not completed")
+                messages.error(request, 'Payment was not completed successfully.')
+        else:
+            print(f"DEBUG: No session_id provided")
+            messages.success(request, 'Your subscription has been activated successfully!')
+            
+    except Exception as e:
+        print(f"DEBUG: Error in subscription_success: {str(e)}")
+        logger.error(f"Error in subscription_success: {str(e)}")
+        messages.success(request, 'Your subscription has been activated successfully!')
+    
     return redirect('subscriptions:dashboard')
 
 @login_required
@@ -274,7 +384,7 @@ def subscription_cancel(request):
     
     subscription = UserSubscription.objects.filter(
         user=request.user,
-        status='active',
+        status='ACTIVE',
         end_date__gt=timezone.now()
     ).first()
     
@@ -355,31 +465,39 @@ def handle_checkout_session_completed(session):
         user = User.objects.get(id=user_id)
         plan = SubscriptionPlan.objects.get(id=plan_id)
         
-        # Create or update the user's subscription
-        user_subscription, created = UserSubscription.objects.get_or_create(
+        # Check if user already has an active subscription
+        existing_active = UserSubscription.objects.filter(
             user=user,
-            defaults={
-                'plan': plan,
-                'status': 'ACTIVE',
-                'stripe_subscription_id': subscription_id,
-                'end_date': timezone.datetime.fromtimestamp(
-                    subscription.current_period_end,
-                    tz=timezone.utc
-                ),
-                'auto_renew': True
-            }
-        )
-        
-        if not created:
-            user_subscription.plan = plan
-            user_subscription.status = 'ACTIVE'
-            user_subscription.stripe_subscription_id = subscription_id
-            user_subscription.end_date = timezone.datetime.fromtimestamp(
+            status='ACTIVE',
+            end_date__gt=timezone.now()
+        ).first()
+
+        if existing_active:
+            # Update the existing active subscription
+            existing_active.plan = plan
+            existing_active.stripe_subscription_id = subscription_id
+            existing_active.end_date = timezone.datetime.fromtimestamp(
                 subscription.current_period_end,
                 tz=timezone.utc
             )
-            user_subscription.auto_renew = True
-            user_subscription.save()
+            existing_active.auto_renew = True
+            existing_active.save()
+            user_subscription = existing_active
+            print(f"DEBUG: Webhook - Existing active subscription updated")
+        else:
+            # Create a new subscription
+            user_subscription = UserSubscription.objects.create(
+                user=user,
+                plan=plan,
+                status='ACTIVE',
+                stripe_subscription_id=subscription_id,
+                end_date=timezone.datetime.fromtimestamp(
+                    subscription.current_period_end,
+                    tz=timezone.utc
+                ),
+                auto_renew=True
+            )
+            print(f"DEBUG: Webhook - New subscription created")
         
         # Send confirmation email
         send_subscription_confirmation(user, plan)

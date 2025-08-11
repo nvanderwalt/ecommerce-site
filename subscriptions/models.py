@@ -77,7 +77,14 @@ class UserSubscription(models.Model):
 
     @property
     def is_active(self):
-        return self.status == 'ACTIVE' and self.end_date > timezone.now()
+        is_active = self.status == 'ACTIVE' and self.end_date > timezone.now()
+        print(f"DEBUG: UserSubscription {self.id} is_active check:")
+        print(f"  - status: {self.status}")
+        print(f"  - end_date: {self.end_date}")
+        print(f"  - current_time: {timezone.now()}")
+        print(f"  - end_date > current_time: {self.end_date > timezone.now()}")
+        print(f"  - is_active result: {is_active}")
+        return is_active
 
     @property
     def can_renew(self):

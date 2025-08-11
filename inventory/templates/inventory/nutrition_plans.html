@@ -53,9 +53,9 @@
                             <a href="{% url 'inventory:nutrition_plan_detail' plan.id %}" class="btn btn-outline-success">
                                 <i class="fas fa-eye me-2"></i>View Details
                             </a>
-                            <form method="post" action="{% url 'inventory:add_to_cart' 'nutrition_plan' plan.id %}" class="d-inline">
+                            <form method="post" action="{% url 'inventory:add_to_cart' 'nutrition_plan' plan.id %}" class="d-inline nutrition-cart-form">
                                 {% csrf_token %}
-                                <button type="submit" class="btn w-100" style="background-color: #28a745; border-color: #28a745; color: white;">
+                                <button type="submit" class="btn w-100 nutrition-add-to-cart-btn" style="background-color: #28a745; border-color: #28a745; color: white;">
                                     <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                                 </button>
                             </form>
@@ -86,4 +86,118 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle nutrition add-to-cart forms
+    document.querySelectorAll('.nutrition-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('.nutrition-add-to-cart-btn');
+            const originalText = button.innerHTML;
+            
+            // Disable button immediately
+            button.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Submit form asynchronously
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        // Check if it's the "already in cart" case
+                        if (response.status === 400 && data.message && data.message.includes('already in your cart')) {
+                            return { success: false, alreadyInCart: true, message: data.message };
+                        }
+                        throw new Error(data.error || 'Failed to add to cart');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+                    button.style.backgroundColor = '#28a745';
+                    button.style.borderColor = '#28a745';
+                    
+                    // Update cart count in navbar
+                    const cartBadge = document.querySelector('.navbar .badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        if (data.cart_count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
+                    }
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '#28a745';
+                        button.style.borderColor = '#28a745';
+                        button.disabled = false;
+                    }, 2000);
+                } else if (data.alreadyInCart) {
+                    // Show "already in cart" message
+                    button.innerHTML = '<i class="fas fa-info-circle me-2"></i>Already In Cart';
+                    button.style.backgroundColor = '#ffc107';
+                    button.style.borderColor = '#ffc107';
+                    button.style.color = '#000';
+                    
+                    // Update cart count if provided
+                    if (data.cart_count !== undefined) {
+                        const cartBadge = document.querySelector('.navbar .badge');
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cart_count;
+                            if (data.cart_count > 0) {
+                                cartBadge.style.display = 'inline';
+                            } else {
+                                cartBadge.style.display = 'none';
+                            }
+                        }
+                    }
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '#28a745';
+                        button.style.borderColor = '#28a745';
+                        button.style.color = '#fff';
+                        button.disabled = false;
+                    }, 3000);
+                } else {
+                    throw new Error(data.error || 'Failed to add to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+                button.style.backgroundColor = '#dc3545';
+                button.style.borderColor = '#dc3545';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = '#28a745';
+                    button.style.borderColor = '#28a745';
+                    button.style.color = '#fff';
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+});
+</script>
 {% endblock %} 

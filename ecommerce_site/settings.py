@@ -152,8 +152,8 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Stripe Keys
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLIC_KEY = 'pk_test_51OH650CsAipY5vRT3ZDnBLphbOfcHgQS3z1zqtALlDBW13yMcUijnjri7VX0xOHqs9ueCl9Zbl7JqjKk9XSVckdp00XKI3VAvZ'
+STRIPE_SECRET_KEY = 'sk_test_51OH650CsAipY5vRT5xuJWaQzd9sXa0ZYWpNTbEUuaQOEGAHQtgE9yXDA3iKqebiyjCvYeCU78jXO3mcsy3sLfJuR00kYP0Acx3'
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
 # Authentication settings

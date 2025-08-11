@@ -1,0 +1,6 @@
+ERROR 2025-08-11 13:05:07,833 views 15952 30960 Error in subscription_success: current_period_end
+ERROR 2025-08-11 13:07:02,996 views 24408 22520 Error in subscription_success: current_period_end
+ERROR 2025-08-11 13:14:11,768 views 10848 2300 Error in subscription_success: current_period_end
+ERROR 2025-08-11 14:25:48,846 views 21108 11844 Error in subscription_success: You cannot add messages without installing django.contrib.messages.middleware.MessageMiddleware
+ERROR 2025-08-11 14:40:17,307 views 17024 9768 Error in subscription_success: current_period_end
+ERROR 2025-08-11 14:56:04,064 views 17024 31340 Error in subscription_success: current_period_end
