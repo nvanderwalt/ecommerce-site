@@ -194,8 +194,33 @@ main, .main-content, .content-area {
     background-color: white !important;
 }
 
+/* Specific override for sections with bg-light class */
+.section.bg-light {
+    background-color: white !important;
+}
+
+/* Override any Bootstrap background utilities */
+.bg-light, .bg-secondary, .bg-muted, .bg-gray, .bg-grey {
+    background-color: white !important;
+}
+
 /* Force white background on all possible grey elements */
 html, body, .container-fluid, .row, .col, [class*="col-"] {
+    background-color: white !important;
+}
+
+/* Comprehensive Bootstrap background overrides */
+[class*="bg-"] {
+    background-color: white !important;
+}
+
+/* Specific overrides for common Bootstrap background classes */
+.bg-light, .bg-secondary, .bg-muted, .bg-gray, .bg-grey, .bg-light-gray, .bg-light-grey {
+    background-color: white !important;
+}
+
+/* Override any section backgrounds */
+.section, .section.bg-light, .section.bg-secondary, .section.bg-muted {
     background-color: white !important;
 }
 
