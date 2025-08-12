@@ -619,11 +619,84 @@
         flex-direction: column;
         align-items: center;
     }
+    
+    .cart-header {
+        padding: 30px 20px;
+    }
+    
+    .brand-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+    
+    .cart-subtitle {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .cart-card {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+    
+    .cart-header {
+        padding: 25px 15px;
+    }
+    
+    .brand-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .cart-title {
+        font-size: 1.8rem;
+    }
+    
+    .cart-subtitle {
+        font-size: 1rem;
+    }
+    
+    .cart-item {
+        padding: 12px;
+    }
+    
+    .item-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .quantity-controls {
+        justify-content: center;
+    }
+    
+    .remove-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .item-subtotal {
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .summary-header {
+        padding: 15px;
+    }
+    
+    .summary-content {
+        padding: 15px;
+    }
 }
 </style>
 
+{% if cart_items %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
     // Handle remove from cart forms
     document.querySelectorAll('.remove-form').forEach(form => {
         form.addEventListener('submit', function(e) {
@@ -731,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
                 }
             })
             .then(response => {
@@ -846,4 +919,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endif %}
 {% endblock %}

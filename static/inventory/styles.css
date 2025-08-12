@@ -10,6 +10,13 @@
     --transition: all 0.3s ease;
 }
 
+/* Responsive Breakpoints */
+/* Extra small devices (phones, 576px and down) */
+/* Small devices (landscape phones, 576px and up) */
+/* Medium devices (tablets, 768px and up) */
+/* Large devices (desktops, 992px and up) */
+/* Extra large devices (large desktops, 1200px and up) */
+
 /* Modern Navigation Bar - Ensure consistency across all pages */
 body .navbar, html .navbar {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
@@ -39,6 +46,21 @@ body .navbar-brand, html .navbar-brand {
     transition: none !important;
 }
 
+/* Responsive navbar brand */
+@media (max-width: 768px) {
+    body .navbar-brand, html .navbar-brand {
+        font-size: 1.8rem !important;
+        margin-right: 20px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    body .navbar-brand, html .navbar-brand {
+        font-size: 1.5rem !important;
+        margin-right: 15px !important;
+    }
+}
+
 body .navbar-brand:hover, html .navbar-brand:hover {
     color: #e8f5e8 !important;
     text-decoration: none;
@@ -52,10 +74,52 @@ body .navbar-brand:hover, html .navbar-brand:hover {
     font-size: 2rem !important;
 }
 
+/* Responsive navbar brand icon */
+@media (max-width: 768px) {
+    .navbar-brand i {
+        font-size: 1.6rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand i {
+        font-size: 1.3rem !important;
+    }
+}
+
 body .navbar-nav, html .navbar-nav {
     align-items: center !important;
     display: flex !important;
     flex-shrink: 0 !important;
+}
+
+/* Mobile navbar improvements */
+@media (max-width: 991px) {
+    body .navbar-nav, html .navbar-nav {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        margin-top: 15px !important;
+    }
+    
+    body .nav-item, html .nav-item {
+        margin: 5px 0 !important;
+        width: 100% !important;
+    }
+    
+    body .nav-link, html .nav-link {
+        padding: 12px 16px !important;
+        border-radius: 8px !important;
+        margin: 2px 0 !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    
+    .navbar-nav .btn-outline-light {
+        margin: 10px 0 !important;
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }
 
 body .nav-item, html .nav-item {
@@ -75,6 +139,14 @@ body .nav-link, html .nav-link {
     align-items: center !important;
 }
 
+/* Responsive nav links */
+@media (max-width: 768px) {
+    body .nav-link, html .nav-link {
+        font-size: 1rem !important;
+        padding: 10px 12px !important;
+    }
+}
+
 .nav-link:hover {
     color: #e8f5e8 !important;
     transform: translateY(-2px) !important;
@@ -89,11 +161,18 @@ body .nav-link, html .nav-link {
     align-items: center !important;
 }
 
+/* Responsive buttons */
+@media (max-width: 576px) {
+    .btn-outline-light {
+        padding: 8px 16px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
 .btn-outline-light:hover {
     background-color: #4CAF50 !important;
     border-color: #4CAF50 !important;
     transform: translateY(-2px) !important;
-}
 }
 
 body {
@@ -111,13 +190,37 @@ body {
     padding: 20px;
 }
 
+/* Responsive container padding */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+}
 
+@media (max-width: 576px) {
+    .container {
+        padding: 10px;
+    }
+}
 
 /* Cart Styles */
 .cart-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* Responsive cart container */
+@media (max-width: 768px) {
+    .cart-container {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .cart-container {
+        padding: 10px;
+    }
 }
 
 .cart-items {
@@ -135,6 +238,32 @@ body {
     border-radius: 8px;
     box-shadow: var(--shadow);
     transition: var(--transition);
+}
+
+/* Responsive cart items */
+@media (max-width: 768px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+    
+    .item-controls {
+        margin-top: 15px;
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 576px) {
+    .cart-item {
+        padding: 12px;
+    }
+    
+    .item-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 .cart-item:hover {
@@ -173,6 +302,14 @@ body {
     transition: var(--transition);
 }
 
+/* Responsive quantity buttons */
+@media (max-width: 576px) {
+    .qty-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+}
+
 .qty-btn:hover:not(:disabled) {
     background: var(--light-gray);
 }
@@ -199,6 +336,14 @@ body {
     transition: var(--transition);
 }
 
+/* Responsive remove button */
+@media (max-width: 576px) {
+    .remove-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
 .remove-btn:hover {
     background: #cc0000;
 }
@@ -211,6 +356,23 @@ body {
     padding: 20px 0;
 }
 
+/* Responsive exercise plans grid */
+@media (max-width: 768px) {
+    .exercise-plans {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 15px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .exercise-plans {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 10px 0;
+    }
+}
+
 .plan-card {
     background: white;
     border-radius: 10px;
@@ -219,6 +381,19 @@ body {
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+}
+
+/* Responsive plan cards */
+@media (max-width: 768px) {
+    .plan-card {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .plan-card {
+        padding: 15px;
+    }
 }
 
 .plan-card::before {
@@ -246,6 +421,13 @@ body {
     margin: 0 0 15px 0;
     color: var(--text-color);
     font-size: 1.5em;
+}
+
+/* Responsive plan card headings */
+@media (max-width: 576px) {
+    .plan-card h2 {
+        font-size: 1.3em;
+    }
 }
 
 .difficulty {
@@ -277,6 +459,14 @@ body {
     transition: var(--transition);
 }
 
+/* Responsive view plan button */
+@media (max-width: 576px) {
+    .view-plan-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
 .view-plan-btn:hover {
     background: #1976D2;
     transform: translateX(5px);
@@ -292,6 +482,14 @@ body {
     margin-bottom: 10px;
     border-radius: 4px;
     animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive alerts */
+@media (max-width: 576px) {
+    .alert {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
 }
 
 @keyframes slideIn {
@@ -330,12 +528,33 @@ body {
     padding: 20px;
 }
 
+/* Responsive plan detail */
+@media (max-width: 768px) {
+    .plan-detail {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .plan-detail {
+        padding: 10px;
+    }
+}
+
 .plan-info {
     background: #fff;
     border-radius: 8px;
     padding: 20px;
     margin-top: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Responsive plan info */
+@media (max-width: 576px) {
+    .plan-info {
+        padding: 15px;
+        margin-top: 15px;
+    }
 }
 
 .plan-info p {
@@ -367,6 +586,14 @@ body {
     border-radius: 5px;
 }
 
+/* Responsive cart summary */
+@media (max-width: 576px) {
+    .cart-summary {
+        padding: 15px;
+        margin-top: 15px;
+    }
+}
+
 .checkout-btn {
     padding: 10px 20px;
     background: #4CAF50;
@@ -375,6 +602,15 @@ body {
     border-radius: 3px;
     cursor: pointer;
     font-size: 1.1em;
+}
+
+/* Responsive checkout button */
+@media (max-width: 576px) {
+    .checkout-btn {
+        padding: 8px 16px;
+        font-size: 1rem;
+        width: 100%;
+    }
 }
 
 .checkout-btn:hover {
@@ -388,6 +624,13 @@ body {
     border-radius: 5px;
 }
 
+/* Responsive empty cart */
+@media (max-width: 576px) {
+    .empty-cart {
+        padding: 30px 20px;
+    }
+}
+
 .back-link {
     margin-top: 20px;
 }
@@ -399,6 +642,450 @@ body {
 
 .back-link a:hover {
     text-decoration: underline;
+}
+
+/* Product Cards Responsive Design */
+.product-card {
+    transition: var(--transition);
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.product-image-container {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: var(--transition);
+    border-radius: 8px;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.product-image-placeholder {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #6c757d;
+    padding: 20px;
+}
+
+/* Responsive product cards */
+@media (max-width: 768px) {
+    .product-image-container,
+    .product-image-placeholder {
+        height: 220px;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-image-container,
+    .product-image-placeholder {
+        height: 200px;
+        padding: 5px;
+    }
+    
+    .product-card .card-body {
+        padding: 15px;
+    }
+    
+    .product-card .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .product-card .card-text {
+        font-size: 0.9rem;
+    }
+}
+
+/* Hero Section Responsive Design */
+.hero-section {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive hero section */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        padding: 40px 0;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* Health Cards Responsive Design */
+.health-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.health-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.health-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: white;
+    font-size: 2rem;
+}
+
+.health-card h3 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.health-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Responsive health cards */
+@media (max-width: 768px) {
+    .health-card {
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .health-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+    
+    .health-card h3 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .health-card {
+        padding: 20px;
+    }
+    
+    .health-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .health-card h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Feature Items Responsive Design */
+.feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.feature-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.feature-item i {
+    font-size: 2.5rem;
+    margin-right: 20px;
+    min-width: 60px;
+}
+
+.feature-item h4 {
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-size: 1.3rem;
+}
+
+.feature-item p {
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive feature items */
+@media (max-width: 768px) {
+    .feature-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px;
+    }
+    
+    .feature-item i {
+        margin-right: 0;
+        margin-bottom: 15px;
+        font-size: 2.2rem;
+    }
+    
+    .feature-item h4 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .feature-item {
+        padding: 20px;
+    }
+    
+    .feature-item i {
+        font-size: 2rem;
+    }
+    
+    .feature-item h4 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Newsletter Section Responsive Design */
+.newsletter-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 60px 0;
+    text-align: center;
+}
+
+.newsletter-form {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+}
+
+.newsletter-form input[type="email"] {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.newsletter-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.newsletter-form button {
+    padding: 12px 24px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.newsletter-form button:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+/* Responsive newsletter section */
+@media (max-width: 768px) {
+    .newsletter-section {
+        padding: 40px 0;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .newsletter-form button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .newsletter-section {
+        padding: 30px 0;
+    }
+    
+    .newsletter-form input[type="email"] {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
+    .newsletter-form button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Footer Responsive Design */
+footer {
+    background: #343a40;
+    color: white;
+    padding: 40px 0 20px;
+}
+
+footer h3 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+footer p {
+    color: #adb5bd;
+    line-height: 1.6;
+}
+
+/* Responsive footer */
+@media (max-width: 768px) {
+    footer {
+        padding: 30px 0 15px;
+        text-align: center;
+    }
+    
+    footer h3 {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+    }
+    
+    footer .row {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    footer {
+        padding: 25px 0 10px;
+    }
+    
+    footer h3 {
+        font-size: 1.2rem;
+    }
+    
+    footer .fab.fa-facebook {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* General Responsive Utilities */
+@media (max-width: 768px) {
+    .d-md-none {
+        display: none !important;
+    }
+    
+    .text-md-center {
+        text-align: center !important;
+    }
+    
+    .mb-md-4 {
+        margin-bottom: 1.5rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .d-sm-none {
+        display: none !important;
+    }
+    
+    .text-sm-center {
+        text-align: center !important;
+    }
+    
+    .mb-sm-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .px-sm-2 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
 }
 
 /* Remove purple gradients from main content (but not navbar) */
@@ -432,6 +1119,62 @@ body:has(.exercise-plan-card) nav.navbar {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Additional Mobile Optimizations */
+@media (max-width: 576px) {
+    /* Improve touch targets */
+    .btn, button, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Better spacing for mobile */
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    /* Improve readability */
+    body {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Better form inputs */
+    input, select, textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+}
+
+/* Tablet Optimizations */
+@media (min-width: 577px) and (max-width: 991px) {
+    .container {
+        max-width: 100%;
+        padding: 0 20px;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .product-card .card-body {
+        padding: 20px;
+    }
+}
+
+/* Large Screen Optimizations */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1400px;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+    }
+    
+    .exercise-plans {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
 }
 
  

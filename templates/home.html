@@ -404,6 +404,56 @@ h1.hero-title {
     .cta-buttons .btn {
         margin-bottom: 10px !important;
     }
+    
+    .health-card {
+        margin-bottom: 20px;
+    }
+    
+    .feature-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .feature-item i {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .section {
+        padding: 40px 0;
+    }
+    
+    .health-card {
+        padding: 20px;
+    }
+    
+    .feature-item {
+        padding: 20px;
+    }
+    
+    .cta-buttons .btn {
+        width: 100%;
+        margin-bottom: 10px !important;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .newsletter-form button {
+        width: 100%;
+    }
 }
 
 .form-feedback {
@@ -451,12 +501,22 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Server response:', data); // Debug log
                 if (data.success) {
                     feedback.textContent = data.message;
                     feedback.className = 'form-feedback success mt-2';
                     this.reset();
                 } else {
-                    feedback.textContent = 'Please enter a valid email address.';
+                    // Use the actual error message from the server
+                    let errorMessage = 'Please enter a valid email address.';
+                    if (data.errors && data.errors.email) {
+                        errorMessage = data.errors.email[0];
+                    } else if (data.errors && Object.keys(data.errors).length > 0) {
+                        // Get the first error message from any field
+                        const firstErrorKey = Object.keys(data.errors)[0];
+                        errorMessage = data.errors[firstErrorKey][0];
+                    }
+                    feedback.textContent = errorMessage;
                     feedback.className = 'form-feedback error mt-2';
                 }
                 feedback.style.display = 'block';
