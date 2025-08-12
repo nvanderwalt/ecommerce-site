@@ -190,10 +190,6 @@
                                         </div>
                                     </div>
                                     <div class="subscription-actions">
-                                        <a href="{% url 'subscriptions:user_subscription' %}" class="action-btn primary">
-                                            <i class="fas fa-cog"></i>
-                                            <span>Manage Subscription</span>
-                                        </a>
                                         <a href="{% url 'subscriptions:plan_list' %}" class="action-btn secondary">
                                             <i class="fas fa-arrow-up"></i>
                                             <span>Upgrade Plan</span>
@@ -480,10 +476,6 @@
                         <i class="fas fa-users"></i>
                         <span>View Community</span>
                     </a>
-                    <a href="{% url 'inventory:progress_dashboard' %}" class="action-btn secondary">
-                        <i class="fas fa-chart-line"></i>
-                        <span>My Progress</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -626,9 +618,9 @@
 }
 
 .save-btn {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    border: none;
+    background: white;
+    color: #28a745;
+    border: 2px solid #28a745;
     border-radius: 10px;
     padding: 1rem 2rem;
     font-size: 1.1rem;
@@ -643,9 +635,9 @@
 }
 
 .save-btn:hover {
-    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    background: #28a745;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 .posts-container {
@@ -737,14 +729,15 @@
 }
 
 .action-btn.primary {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
+    background: white;
+    color: #28a745;
+    border: 2px solid #28a745;
 }
 
 .action-btn.primary:hover {
-    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    background: #28a745;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 .action-btn.secondary {

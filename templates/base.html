@@ -13,7 +13,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{% static 'inventory/styles.css' %}">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏋️‍♂️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
   {% block extra_css %}{% endblock %}
 
 </head>
@@ -118,22 +118,6 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-dark text-light py-4 mt-5">
-    <div class="container">
-      <div class="row">
-        <div class="col-12 text-center">
-          <h5><i class="fas fa-dumbbell me-2"></i>FitFusion</h5>
-          <p class="text-muted">Your complete fitness platform for workout plans, nutrition guidance, and community support.</p>
-        </div>
-      </div>
-      <hr class="my-3">
-      <div class="text-center text-muted">
-        <small>&copy; 2024 FitFusion. All rights reserved.</small>
-      </div>
-    </div>
-  </footer>
-
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   
@@ -188,58 +172,77 @@
           const formData = new FormData(form);
           const url = form.action;
           
-          fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-          })
-          .then(response => {
-            if (!response.ok) {
-              return response.json().then(data => {
-                // Check if it's the "already in cart" case
-                if (response.status === 400 && data.message && data.message.includes('already in your cart')) {
-                  return { success: false, alreadyInCart: true, message: data.message, cart_count: data.cart_count };
-                }
-                throw new Error(data.error || 'Failed to add to cart');
-              });
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data.success) {
-              // Update cart count
-              updateCartCount(data.cart_count);
-              
-              // Show success feedback
-              button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
-              button.classList.add('btn-success');
-              
-              // Reset button after 2 seconds
-              setTimeout(() => {
-                button.innerHTML = originalText;
-                button.classList.remove('btn-success');
-                button.disabled = false;
-              }, 2000);
-            } else if (data.alreadyInCart) {
-                // Show "already in cart" feedback
-                updateCartCount(data.cart_count);
-                
-                button.innerHTML = '<i class="fas fa-info-circle me-2"></i>Already In Cart';
-                button.classList.add('btn-warning');
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('btn-warning');
-                    button.disabled = false;
-                }, 3000);
-            } else {
-              throw new Error(data.error || 'Failed to add to cart');
-            }
-          })
+                     fetch(url, {
+             method: 'POST',
+             body: formData,
+             headers: {
+               'X-Requested-With': 'XMLHttpRequest',
+               'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+             }
+           })
+           .then(response => {
+             console.log('Raw response status:', response.status);
+             console.log('Response ok:', response.ok);
+             
+             return response.json().then(data => {
+               console.log('Response data:', data);
+               
+               // Explicitly handle the "already in cart" case
+               if (response.status === 400 && data.message && data.message.includes('already in your cart')) {
+                 console.log('EXPLICIT: Detected already in cart');
+                 return { success: false, alreadyInCart: true, message: data.message, cart_count: data.cart_count };
+               }
+               
+               // Handle other error cases
+               if (!response.ok) {
+                 console.log('EXPLICIT: Other error case');
+                 throw new Error(data.error || 'Failed to add to cart');
+               }
+               
+               // Success case
+               console.log('EXPLICIT: Success case');
+               return data;
+             });
+           })
+                     .then(data => {
+             console.log('EXPLICIT: Processing data:', data);
+             console.log('EXPLICIT: data.success =', data.success);
+             console.log('EXPLICIT: data.alreadyInCart =', data.alreadyInCart);
+             
+             if (data.success) {
+               console.log('EXPLICIT: Going to success case');
+               // Update cart count
+               updateCartCount(data.cart_count);
+               
+               // Show success feedback
+               button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+               button.classList.add('btn-success');
+               
+               // Reset button after 2 seconds
+               setTimeout(() => {
+                 button.innerHTML = originalText;
+                 button.classList.remove('btn-success');
+                 button.disabled = false;
+               }, 2000);
+             } else if (data.alreadyInCart) {
+                 console.log('EXPLICIT: Going to already in cart case');
+                 // Show "already in cart" feedback
+                 updateCartCount(data.cart_count);
+                 
+                 button.innerHTML = '<i class="fas fa-info-circle me-2"></i>Already In Cart';
+                 button.classList.add('btn-warning');
+                 
+                 // Reset button after 3 seconds
+                 setTimeout(() => {
+                     button.innerHTML = originalText;
+                     button.classList.remove('btn-warning');
+                     button.disabled = false;
+                 }, 3000);
+             } else {
+               console.log('EXPLICIT: Going to error case');
+               throw new Error(data.error || 'Failed to add to cart');
+             }
+           })
           .catch(error => {
             console.error('Error:', error);
             
@@ -261,11 +264,37 @@
   
   {% block extra_js %}{% endblock %}
   
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5><i class="fas fa-dumbbell me-2"></i>FitFusion</h5>
+          <p class="text-muted">Your complete fitness platform for workout plans, nutrition guidance, and community support.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <h6>Follow Us</h6>
+                     <div class="social-links">
+             <a href="https://www.facebook.com/profile.php?id=61579008766629" target="_blank" rel="noopener" class="text-light me-3" aria-label="Follow us on Facebook">
+               <i class="fab fa-facebook fa-lg"></i>
+             </a>
+           </div>
+          <p class="text-muted mt-2">&copy; 2024 FitFusion. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
   <style>
     .btn-outline-light:hover {
       background-color: transparent !important;
       border-color: #f8f9fa !important;
       color: #f8f9fa !important;
+    }
+    
+    .social-links a:hover {
+      color: #007bff !important;
+      text-decoration: none;
     }
   </style>
 </body>

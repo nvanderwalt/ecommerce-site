@@ -1,10 +1,191 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create a New Post - FitFusion{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-title {
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 1.5rem !important;
+        color: #28a745 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    .post-form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .post-form-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .form-group textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .form-group textarea::placeholder {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .post-btn {
+        background: white;
+        color: #28a745;
+        border: 2px solid #28a745;
+        border-radius: 8px;
+        padding: 0.5rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        width: 90px;
+        height: 40px;
+        box-sizing: border-box;
+    }
+    
+    .post-btn:hover {
+        background: #28a745;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .post-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .cancel-btn {
+        background: white;
+        color: #6c757d;
+        border: 2px solid #6c757d;
+        border-radius: 8px;
+        padding: 0.5rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        width: 90px;
+        height: 40px;
+        box-sizing: border-box;
+    }
+    
+    .cancel-btn:hover {
+        background: #6c757d;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem !important;
+        }
+        
+        .post-form-card {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .post-btn, .cancel-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Create a New Post</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Post</button>
-</form>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-4">
+                <h1 class="hero-title">Create a New Post</h1>
+                <p class="lead text-muted">Share your fitness journey, success story, or motivation with the community!</p>
+            </div>
+            
+            <div class="post-form-card">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ form.content.id_for_label }}">
+                            <i class="fas fa-edit me-2"></i>Content
+                        </label>
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.content.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'post_list' %}" class="cancel-btn">
+                            <i class="fas fa-times"></i>
+                            <span>Cancel</span>
+                        </a>
+                        <button type="submit" class="post-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Post</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

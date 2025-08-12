@@ -94,10 +94,6 @@ body .nav-link, html .nav-link {
     border-color: #4CAF50 !important;
     transform: translateY(-2px) !important;
 }
-
-.btn-outline-light:hover {
-    background-color: #4CAF50 !important;
-    border-color: #4CAF50 !important;
 }
 
 body {
