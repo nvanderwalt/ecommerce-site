@@ -214,6 +214,20 @@ html, body, .container-fluid, .row, .col, [class*="col-"] {
     background-color: white !important;
 }
 
+/* Preserve footer background */
+footer, footer *, footer .container, footer .row, footer .col, footer [class*="col-"] {
+    background-color: #343a40 !important;
+}
+
+/* Ensure footer text colors are preserved */
+footer, footer * {
+    color: white !important;
+}
+
+footer p {
+    color: #adb5bd !important;
+}
+
 /* Specific overrides for common Bootstrap background classes */
 .bg-light, .bg-secondary, .bg-muted, .bg-gray, .bg-grey, .bg-light-gray, .bg-light-grey {
     background-color: white !important;
@@ -1059,7 +1073,7 @@ html, body, .container-fluid, .row, .col, [class*="col-"] {
 
 /* Footer Responsive Design */
 footer {
-    background: #343a40;
+    background: #343a40 !important;
     color: white;
     padding: 40px 0 20px;
 }
