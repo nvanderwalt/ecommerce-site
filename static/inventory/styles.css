@@ -238,6 +238,38 @@ footer p {
     background-color: white !important;
 }
 
+/* Specific override for the grey strap section */
+.section.bg-light {
+    background-color: white !important;
+    background: white !important;
+}
+
+/* Target the specific section causing the grey strap */
+div.section.bg-light {
+    background-color: white !important;
+    background: white !important;
+}
+
+/* Nuclear option - override ALL possible grey backgrounds */
+*[class*="bg-light"], *[class*="bg-secondary"], *[class*="bg-muted"], *[class*="bg-gray"], *[class*="bg-grey"] {
+    background-color: white !important;
+    background: white !important;
+}
+
+/* Home page specific overrides */
+body:has(.hero-section) .section.bg-light,
+body:has(.hero-title) .section.bg-light,
+body:has(.health-card) .section.bg-light {
+    background-color: white !important;
+    background: white !important;
+}
+
+/* Force white background on any element with bg-light class */
+.bg-light, .bg-light *, .bg-light .container, .bg-light .row, .bg-light .col {
+    background-color: white !important;
+    background: white !important;
+}
+
 /* Override any wrapper or main content areas */
 .wrapper, .main-wrapper, .content-wrapper {
     background-color: white !important;
