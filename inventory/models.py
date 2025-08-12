@@ -245,6 +245,7 @@ class NutritionPlan(models.Model):
     protein_grams = models.PositiveIntegerField(help_text="Target protein in grams")
     carbs_grams = models.PositiveIntegerField(help_text="Target carbs in grams")
     fat_grams = models.PositiveIntegerField(help_text="Target fat in grams")
+    duration_days = models.PositiveIntegerField(default=7, help_text="Duration of the plan in days")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     nutritionist = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -266,6 +267,18 @@ class NutritionPlan(models.Model):
     @property
     def current_price(self):
         return self.sale_price if self.sale_price else self.price
+    
+    def get_weekly_meals(self):
+        """Get meals organized by day of the week."""
+        meals = self.meals.all().order_by('day_of_week', 'meal_type')
+        weekly_meals = {}
+        for meal in meals:
+            if meal.day_of_week not in weekly_meals:
+                weekly_meals[meal.day_of_week] = {}
+            if meal.meal_type not in weekly_meals[meal.day_of_week]:
+                weekly_meals[meal.day_of_week][meal.meal_type] = []
+            weekly_meals[meal.day_of_week][meal.meal_type].append(meal)
+        return weekly_meals
 
 class NutritionMeal(models.Model):
     MEAL_TYPE_CHOICES = [
@@ -275,7 +288,18 @@ class NutritionMeal(models.Model):
         ('SNK', 'Snack'),
     ]
     
+    DAY_OF_WEEK_CHOICES = [
+        (1, 'Monday'),
+        (2, 'Tuesday'),
+        (3, 'Wednesday'),
+        (4, 'Thursday'),
+        (5, 'Friday'),
+        (6, 'Saturday'),
+        (7, 'Sunday'),
+    ]
+    
     plan = models.ForeignKey(NutritionPlan, on_delete=models.CASCADE, related_name='meals')
+    day_of_week = models.PositiveIntegerField(choices=DAY_OF_WEEK_CHOICES, default=1)
     order = models.PositiveIntegerField(default=0)
     name = models.CharField(max_length=200)
     description = models.TextField()
@@ -291,11 +315,11 @@ class NutritionMeal(models.Model):
     image = models.ImageField(upload_to='nutrition_meals/', blank=True, null=True)
     
     class Meta:
-        ordering = ['order']
-        unique_together = ['plan', 'order']
+        ordering = ['day_of_week', 'meal_type', 'order']
+        unique_together = ['plan', 'day_of_week', 'meal_type', 'order']
     
     def __str__(self):
-        return f"{self.plan.name} - {self.get_meal_type_display()}: {self.name}"
+        return f"{self.plan.name} - Day {self.day_of_week} {self.get_meal_type_display()}: {self.name}"
 
 class NutritionPlanProgress(models.Model):
     """Tracks user progress through nutrition plans."""

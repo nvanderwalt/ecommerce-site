@@ -266,10 +266,10 @@
                                                                         Completed
                                                                     </span>
                                                                 {% else %}
-                                                                    <span class="status-badge in-progress">
-                                                                        <i class="fas fa-play-circle"></i>
-                                                                        In Progress
-                                                                    </span>
+                                                                    <a href="{% url 'inventory:exercise_plan_view' plan.id %}" class="status-badge view-plan-btn">
+                                                                        <i class="fas fa-eye"></i>
+                                                                        View Plan
+                                                                    </a>
                                                                 {% endif %}
                                                             {% endwith %}
                                                         </div>
@@ -309,10 +309,10 @@
                                                                         Completed
                                                                     </span>
                                                                 {% else %}
-                                                                    <span class="status-badge in-progress">
-                                                                        <i class="fas fa-play-circle"></i>
-                                                                        In Progress
-                                                                    </span>
+                                                                    <a href="{% url 'inventory:nutrition_plan_view' plan.id %}" class="status-badge view-plan-btn">
+                                                                        <i class="fas fa-eye"></i>
+                                                                        View Plan
+                                                                    </a>
                                                                 {% endif %}
                                                             {% endwith %}
                                                         </div>
@@ -1581,6 +1581,30 @@
     .mini-progress-text {
         font-size: 0.8rem;
     }
+}
+
+.view-plan-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.view-plan-btn:hover {
+    background: #0056b3;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
 }
 </style>
 

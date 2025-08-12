@@ -47,22 +47,34 @@
                     <div class="exercise-step border rounded p-4 mb-3">
                         <div class="row">
                             <div class="col-md-8">
-                                <h5 class="mb-2">Step {{ forloop.counter }}: {{ step.name }}</h5>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="mb-0">Step {{ forloop.counter }}: {{ step.name }}</h5>
+                                    <span class="badge bg-primary">{{ step.duration_minutes }} min</span>
+                                </div>
                                 <p class="text-muted mb-3">{{ step.description }}</p>
-                                <div class="d-flex justify-content-between text-muted">
-                                    <small><i class="fas fa-clock me-1"></i>Duration: {{ step.duration_minutes }} minutes</small>
-                                    {% if step.calories_burn %}
-                                    <small><i class="fas fa-fire me-1"></i>Calories: {{ step.calories_burn }}</small>
-                                    {% endif %}
+                                
+                                <!-- Exercise Details -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="exercise-detail">
+                                            <i class="fas fa-dumbbell text-primary me-2"></i>
+                                            <strong>Sets:</strong> {{ step.sets }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="exercise-detail">
+                                            <i class="fas fa-redo text-success me-2"></i>
+                                            <strong>Reps:</strong> {{ step.reps }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="exercise-detail">
+                                            <i class="fas fa-pause text-warning me-2"></i>
+                                            <strong>Rest:</strong> {{ step.rest_minutes }} min
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            {% if step.video_url %}
-                            <div class="col-md-4">
-                                <div class="video-container">
-                                    <iframe src="{{ step.video_url }}" frameborder="0" allowfullscreen class="w-100" style="height: 200px;"></iframe>
-                                </div>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -80,6 +92,7 @@
 .exercise-step {
     background: #f8f9fa;
     transition: all 0.3s ease;
+    border-left: 4px solid #007bff !important;
 }
 
 .exercise-step:hover {
@@ -88,9 +101,23 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.video-container {
-    border-radius: 8px;
-    overflow: hidden;
+.exercise-detail {
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.exercise-detail:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.badge.bg-primary {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
 }
 </style>
 {% endblock %} 

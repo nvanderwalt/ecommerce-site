@@ -275,67 +275,7 @@
             {% endfor %}
         </div>
 
-        <!-- Nutrition Plans Section -->
-        <div class="section mt-5">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12 text-center mb-5">
-                        <h2 class="hero-title">Complete Your Journey with Nutrition</h2>
-                        <p class="lead">Fuel your workouts and achieve your goals with personalized nutrition plans designed by experts.</p>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="nutrition-card">
-                            <div class="nutrition-icon">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <h3>Balanced Nutrition</h3>
-                            <p>Comprehensive meal plans that provide the perfect balance of macronutrients for your fitness goals.</p>
-                            <div class="nutrition-price">€19.99</div>
-                            <form method="POST" action="{% url 'inventory:add_to_cart' 'nutrition' 1 %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="nutrition-add-to-cart-btn">
-                                    <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="nutrition-card">
-                            <div class="nutrition-icon">
-                                <i class="fas fa-leaf"></i>
-                            </div>
-                            <h3>Specialized Diets</h3>
-                            <p>Vegan, keto, paleo, and other specialized nutrition plans tailored to your dietary preferences.</p>
-                            <div class="nutrition-price">€29.99</div>
-                            <form method="POST" action="{% url 'inventory:add_to_cart' 'nutrition' 2 %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="nutrition-add-to-cart-btn">
-                                    <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="nutrition-card">
-                            <div class="nutrition-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h3>Progress Tracking</h3>
-                            <p>Monitor your nutrition progress and see how proper fueling accelerates your fitness results.</p>
-                            <div class="nutrition-price">€39.99</div>
-                            <form method="POST" action="{% url 'inventory:add_to_cart' 'nutrition' 3 %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="nutrition-add-to-cart-btn">
-                                    <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
     </div>
 

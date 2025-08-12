@@ -604,13 +604,96 @@ def exercise_plan_list(request):
 def exercise_plan_detail(request, plan_id):
     try:
         plan = ExercisePlan.objects.get(id=plan_id)
+        
+        # Get user's progress for this plan
+        user_exercise_progress = None
+        if request.user.is_authenticated:
+            user_exercise_progress = ExercisePlanProgress.objects.filter(
+                user=request.user,
+                plan=plan
+            ).first()
+        
         return render(request, 'inventory/exercise_plan_detail.html', {
             'plan': plan,
+            'user_exercise_progress': user_exercise_progress,
             'stripe_public_key': settings.STRIPE_PUBLIC_KEY
         })
     except ExercisePlan.DoesNotExist:
         messages.error(request, "Exercise plan not found.")
         return redirect('exercise_plan_list')
+
+def exercise_plan_view(request, plan_id):
+    """View for displaying purchased exercise plan content."""
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        
+        # Check if user has purchased this plan
+        if not request.user.is_authenticated:
+            return redirect('login')
+        
+        user_exercise_progress = ExercisePlanProgress.objects.filter(
+            user=request.user,
+            plan=plan
+        ).first()
+        
+        if not user_exercise_progress:
+            # User hasn't purchased this plan, redirect to detail page
+            return redirect('exercise_plan_detail', plan_id=plan_id)
+        
+        return render(request, 'inventory/exercise_plan_view.html', {
+            'plan': plan,
+            'user_exercise_progress': user_exercise_progress,
+        })
+    except ExercisePlan.DoesNotExist:
+        messages.error(request, "Exercise plan not found.")
+        return redirect('exercise_plan_list')
+
+@login_required
+def mark_step_completed(request, plan_id, step_id):
+    """Mark an exercise step as completed."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        plan = ExercisePlan.objects.get(id=plan_id)
+        step = ExerciseStep.objects.get(id=step_id, plan=plan)
+        
+        # Get or create user progress
+        user_progress, created = ExercisePlanProgress.objects.get_or_create(
+            user=request.user,
+            plan=plan,
+            defaults={'current_step': step}
+        )
+        
+        # Mark step as completed
+        user_progress.completed_steps.add(step)
+        user_progress.current_step = step
+        user_progress.last_activity = timezone.now()
+        user_progress.save()
+        
+        # Calculate new progress
+        total_steps = plan.steps.count()
+        completed_steps = user_progress.completed_steps.count()
+        progress_percentage = (completed_steps / total_steps * 100) if total_steps > 0 else 0
+        
+        # Check if plan is completed
+        if completed_steps == total_steps and not user_progress.is_completed:
+            user_progress.is_completed = True
+            user_progress.completion_date = timezone.now()
+            user_progress.save()
+        
+        return JsonResponse({
+            'success': True,
+            'progress_percentage': progress_percentage,
+            'completed_steps': completed_steps,
+            'total_steps': total_steps,
+            'is_completed': user_progress.is_completed
+        })
+        
+    except (ExercisePlan.DoesNotExist, ExerciseStep.DoesNotExist):
+        return JsonResponse({'error': 'Plan or step not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 @login_required
@@ -717,7 +800,6 @@ def nutrition_plan_list(request):
 def nutrition_plan_detail(request, plan_id):
     """View for displaying nutrition plan details."""
     plan = get_object_or_404(NutritionPlan, id=plan_id, is_active=True)
-    meals = plan.meals.all().order_by('order')
     
     # Get progress if user has started the plan
     progress = None
@@ -727,21 +809,50 @@ def nutrition_plan_detail(request, plan_id):
             plan=plan
         ).first()
     
+    # Get weekly meals organized by day
+    weekly_meals = plan.get_weekly_meals()
+    
     # Get meal type progress
     meal_types = []
     if progress:
         for meal_type, _ in NutritionMeal.MEAL_TYPE_CHOICES:
-            total_meals = meals.filter(meal_type=meal_type).count()
+            total_meals = plan.meals.filter(meal_type=meal_type).count()
             completed_meals = progress.completed_meals.filter(meal_type=meal_type).count()
             percentage = (completed_meals / total_meals * 100) if total_meals > 0 else 0
             meal_types.append((meal_type, dict(NutritionMeal.MEAL_TYPE_CHOICES)[meal_type], percentage))
     
     return render(request, 'inventory/nutrition_plan_detail.html', {
         'plan': plan,
-        'meals': meals,
+        'weekly_meals': weekly_meals,
         'progress': progress,
         'meal_types': meal_types,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY
+    })
+
+def nutrition_plan_view(request, plan_id):
+    """View for displaying purchased nutrition plan content."""
+    plan = get_object_or_404(NutritionPlan, id=plan_id, is_active=True)
+    
+    # Check if user has purchased this plan
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    progress = NutritionPlanProgress.objects.filter(
+        user=request.user,
+        plan=plan
+    ).first()
+    
+    if not progress:
+        # User hasn't purchased this plan, redirect to detail page
+        return redirect('inventory:nutrition_plan_detail', plan_id=plan_id)
+    
+    # Get weekly meals organized by day
+    weekly_meals = plan.get_weekly_meals()
+    
+    return render(request, 'inventory/nutrition_plan_view.html', {
+        'plan': plan,
+        'weekly_meals': weekly_meals,
+        'progress': progress,
     })
 
 @login_required

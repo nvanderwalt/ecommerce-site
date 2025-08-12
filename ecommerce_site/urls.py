@@ -24,7 +24,9 @@ from inventory.views import (
     remove_from_cart,  # Add these imports
     exercise_plan_list,
     exercise_plan_detail,
+    exercise_plan_view,
     create_plan_checkout_session,
+    mark_step_completed,
 )
 from .views import home_view
 
@@ -53,6 +55,7 @@ urlpatterns = [
     path('error/', error_view, name='error'),  # ✅ Only this one
     path('exercise-plans/', exercise_plan_list, name='exercise_plan_list'),
     path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
+    path('exercise-plan/<int:plan_id>/view/', exercise_plan_view, name='exercise_plan_view'),
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
     path('subscriptions/', include('subscriptions.urls')),  # Add subscription URLs
 

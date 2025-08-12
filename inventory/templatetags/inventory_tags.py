@@ -126,4 +126,27 @@ def ceil(value):
     try:
         return math.ceil(float(value))
     except (ValueError, TypeError):
-        return value 
+        return value
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    Get item from dictionary by key
+    """
+    try:
+        return dictionary.get(key)
+    except (AttributeError, TypeError):
+        return None
+
+@register.filter
+def get_meal_type_display(meal_type):
+    """
+    Get meal type display name
+    """
+    meal_type_choices = {
+        'BRK': 'Breakfast',
+        'LUN': 'Lunch',
+        'DIN': 'Dinner',
+        'SNK': 'Snack',
+    }
+    return meal_type_choices.get(meal_type, meal_type) 

@@ -12,12 +12,13 @@
                     
                     <!-- Header Section -->
                     <div class="row mb-4 justify-content-center">
-                        <div class="col-md-4 text-center">
+                        <div class="col-lg-8 col-xl-7 text-center">
                             {% if plan.image %}
-                            <img src="{{ plan.image.url }}" class="img-fluid rounded" alt="{{ plan.name }}">
+                            <div class="mb-4">
+                                <img src="{{ plan.image.url }}" class="img-fluid rounded" alt="{{ plan.name }}" style="max-width: 200px;">
+                            </div>
                             {% endif %}
-                        </div>
-                        <div class="col-md-8 text-center">
+                            
                             <h1 class="card-title mb-3">{{ plan.name }}</h1>
                             <p class="card-text lead">{{ plan.description }}</p>
                             
@@ -57,11 +58,7 @@
                                 </div>
                             </div>
                             
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-success btn-lg" id="checkout-button">
-                                    <i class="fas fa-shopping-cart me-2"></i>Purchase for ${{ plan.current_price }}
-                                </button>
-                            </div>
+
                         </div>
                     </div>
                     
@@ -91,7 +88,7 @@
                                     <div class="col-md-6">
                                         <h6 class="mt-3">What's Included:</h6>
                                         <ul class="small">
-                                            <li>30-day meal plan with 90+ recipes</li>
+                                            <li>7-day meal plan with 21 recipes</li>
                                             <li>Detailed nutrition breakdown</li>
                                             <li>Shopping lists and prep guides</li>
                                             <li>Progress tracking tools</li>
@@ -100,264 +97,63 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            {% elif plan.diet_type == 'VEG' %}
+                            {% elif plan.diet_type == 'KET' %}
                             <div class="diet-info">
-                                <h6 class="text-success">Vegetarian Diet</h6>
-                                <p class="small">A plant-based nutrition plan that excludes meat while providing all essential nutrients through dairy, eggs, and plant proteins.</p>
+                                <h6 class="text-success">Ketogenic Diet</h6>
+                                <p class="small">A high-fat, low-carbohydrate nutrition plan designed to help your body enter ketosis, burning fat for fuel instead of glucose for optimal fat loss and mental clarity.</p>
                                 
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h6 class="mt-3">Key Benefits:</h6>
                                         <ul class="small">
+                                            <li>Promotes rapid fat burning and weight loss</li>
+                                            <li>Enhances mental focus and clarity</li>
+                                            <li>Stabilizes blood sugar levels</li>
+                                            <li>Reduces inflammation in the body</li>
+                                            <li>Increases energy and reduces cravings</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mt-3">What's Included:</h6>
+                                        <ul class="small">
+                                            <li>7-day keto meal plan with 21 recipes</li>
+                                            <li>Low-carb, high-fat meal options</li>
+                                            <li>Keto-friendly ingredient lists</li>
+                                            <li>Macro tracking guidelines</li>
+                                            <li>Expert keto nutritionist support</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif plan.diet_type == 'VEG' %}
+                            <div class="diet-info">
+                                <h6 class="text-success">Vegetarian Diet</h6>
+                                <p class="small">A plant-based nutrition plan that excludes meat while providing all essential nutrients through diverse vegetarian protein sources and whole foods.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="mt-3">Key Benefits:</h6>
+                                        <ul class="small">
+                                            <li>Supports heart health and cholesterol reduction</li>
                                             <li>High in fiber and antioxidants</li>
-                                            <li>Supports heart health</li>
-                                            <li>Reduces environmental impact</li>
-                                            <li>Rich in vitamins and minerals</li>
+                                            <li>Environmentally sustainable choice</li>
+                                            <li>May reduce risk of chronic diseases</li>
                                             <li>Promotes healthy digestion</li>
                                         </ul>
                                     </div>
                                     <div class="col-md-6">
                                         <h6 class="mt-3">What's Included:</h6>
                                         <ul class="small">
-                                            <li>30-day vegetarian meal plan</li>
-                                            <li>Protein-rich plant recipes</li>
-                                            <li>Nutritional guidance</li>
-                                            <li>Meal prep strategies</li>
-                                            <li>Supplement recommendations</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% elif plan.diet_type == 'VEGAN' %}
-                            <div class="diet-info">
-                                <h6 class="text-success">Vegan Diet</h6>
-                                <p class="small">A complete plant-based nutrition plan that excludes all animal products while ensuring optimal protein intake and essential nutrients.</p>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">Key Benefits:</h6>
-                                        <ul class="small">
-                                            <li>100% plant-based nutrition</li>
-                                            <li>High in fiber and antioxidants</li>
-                                            <li>Supports ethical eating</li>
-                                            <li>Promotes sustainable living</li>
-                                            <li>May reduce inflammation</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">What's Included:</h6>
-                                        <ul class="small">
-                                            <li>Complete vegan meal plan</li>
-                                            <li>Protein-rich plant recipes</li>
-                                            <li>B12 and supplement guidance</li>
-                                            <li>Nutritional education</li>
-                                            <li>Community support access</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% elif plan.diet_type == 'KETO' %}
-                            <div class="diet-info">
-                                <h6 class="text-success">Ketogenic Diet</h6>
-                                <p class="small">A high-fat, low-carbohydrate nutrition plan designed to shift your body into ketosis for efficient fat burning and energy production.</p>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">Key Benefits:</h6>
-                                        <ul class="small">
-                                            <li>Promotes fat burning</li>
-                                            <li>Stabilizes blood sugar</li>
-                                            <li>Increases mental clarity</li>
-                                            <li>Reduces inflammation</li>
-                                            <li>Supports weight loss</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">What's Included:</h6>
-                                        <ul class="small">
-                                            <li>Keto meal plan with macros</li>
-                                            <li>Ketosis tracking tools</li>
-                                            <li>Electrolyte guidance</li>
-                                            <li>Keto-friendly recipes</li>
-                                            <li>Transition support</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% elif plan.diet_type == 'PALEO' %}
-                            <div class="diet-info">
-                                <h6 class="text-success">Paleo Diet</h6>
-                                <p class="small">A nutrition plan based on foods that our ancestors would have eaten, focusing on whole foods and eliminating processed ingredients.</p>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">Key Benefits:</h6>
-                                        <ul class="small">
-                                            <li>Eliminates processed foods</li>
-                                            <li>Supports natural energy</li>
-                                            <li>Reduces inflammation</li>
-                                            <li>Promotes gut health</li>
-                                            <li>Supports natural weight loss</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6 class="mt-3">What's Included:</h6>
-                                        <ul class="small">
-                                            <li>Paleo meal plan</li>
-                                            <li>Whole food recipes</li>
-                                            <li>Grocery shopping guides</li>
-                                            <li>Meal prep strategies</li>
-                                            <li>Lifestyle guidance</li>
+                                            <li>7-day vegetarian meal plan with 21 recipes</li>
+                                            <li>Plant-based protein sources</li>
+                                            <li>Vegetarian shopping guides</li>
+                                            <li>Nutritional balance guidelines</li>
+                                            <li>Expert vegetarian nutritionist support</li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
                             {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Progress Section (if available) -->
-                    {% if progress %}
-                    <div class="row mb-4">
-                        <div class="col-12 text-center">
-                            <h4 class="mb-3">
-                                <i class="fas fa-chart-line me-2"></i>Your Progress
-                            </h4>
-                            
-                            <!-- Overall Progress -->
-                            <div class="progress mb-3">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: {{ progress.get_progress_percentage }}%"
-                                     aria-valuenow="{{ progress.get_progress_percentage }}" 
-                                     aria-valuemin="0" aria-valuemax="100">
-                                    {{ progress.get_progress_percentage }}%
-                                </div>
-                            </div>
-                            
-                            <!-- Progress Stats -->
-                            <div class="row text-center mb-3">
-                                <div class="col-6">
-                                    <h6 class="text-muted">Completed</h6>
-                                    <h4>{{ progress.completed_meals.count }}</h4>
-                                </div>
-                                <div class="col-6">
-                                    <h6 class="text-muted">Remaining</h6>
-                                    <h4>{{ plan.meals.count|sub:progress.completed_meals.count }}</h4>
-                                </div>
-                            </div>
-                            
-                            <!-- Completion Status -->
-                            <div class="mt-3">
-                                {% if progress.is_completed %}
-                                <div class="alert alert-success">
-                                    <i class="fas fa-check-circle"></i> Plan Completed!
-                                    <small class="d-block">Completed on {{ progress.completion_date|date:"M d, Y" }}</small>
-                                </div>
-                                {% else %}
-                                <div class="alert alert-info">
-                                    <i class="fas fa-clock"></i> In Progress
-                                    <small class="d-block">Started {{ progress.start_date|date:"M d, Y" }}</small>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Meal Plan Section -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 class="mb-0">
-                                    <i class="fas fa-utensils me-2"></i>Meal Plan
-                                </h4>
-                                <span class="badge bg-success fs-6">{{ meals.count }} Meals</span>
-                            </div>
-                            
-                            {% for meal in meals %}
-                            <div class="card mb-4 shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h5 class="card-title">{{ meal.name }}</h5>
-                                            <h6 class="card-subtitle mb-2 text-muted">
-                                                <i class="fas fa-clock me-1"></i>{{ meal.get_meal_type_display }}
-                                            </h6>
-                                        </div>
-                                        {% if progress and meal in progress.completed_meals.all %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check me-1"></i>Completed
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    {% if meal.image %}
-                                    <img src="{{ meal.image.url }}" class="img-fluid rounded mb-3" alt="{{ meal.name }}">
-                                    {% endif %}
-                                    
-                                    <p class="card-text">{{ meal.description }}</p>
-                                    
-                                    <!-- Nutrition Facts -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-3">
-                                            <div class="nutrition-item text-center">
-                                                <div class="nutrition-value">{{ meal.calories }}</div>
-                                                <small class="text-muted">Calories</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="nutrition-item text-center">
-                                                <div class="nutrition-value">{{ meal.protein_grams }}g</div>
-                                                <small class="text-muted">Protein</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="nutrition-item text-center">
-                                                <div class="nutrition-value">{{ meal.carbs_grams }}g</div>
-                                                <small class="text-muted">Carbs</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="nutrition-item text-center">
-                                                <div class="nutrition-value">{{ meal.fat_grams }}g</div>
-                                                <small class="text-muted">Fat</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6><i class="fas fa-list me-2"></i>Ingredients</h6>
-                                            <p class="card-text small">{{ meal.ingredients }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6><i class="fas fa-utensils me-2"></i>Instructions</h6>
-                                            <p class="card-text small">{{ meal.instructions }}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between text-muted mt-3">
-                                        <small><i class="fas fa-clock me-1"></i>Prep: {{ meal.prep_time_minutes }} mins</small>
-                                        <small><i class="fas fa-fire me-1"></i>Cook: {{ meal.cooking_time_minutes }} mins</small>
-                                    </div>
-                                    
-                                    {% if progress and not progress.is_completed and meal not in progress.completed_meals.all %}
-                                    <div class="mt-3">
-                                        <form method="post" action="{% url 'inventory:complete_meal' plan.id meal.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-success">
-                                                <i class="fas fa-check me-2"></i>Mark as Completed
-                                            </button>
-                                        </form>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -381,6 +177,13 @@
     font-size: 1.5rem;
     font-weight: bold;
     color: #28a745;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+.nutrition-item small {
+    white-space: nowrap;
+    display: block;
 }
 
 .diet-info h6 {
@@ -394,6 +197,15 @@
 
 .diet-info li {
     margin-bottom: 0.25rem;
+}
+
+.diet-info {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.diet-info .row {
+    justify-content: center;
 }
 
 /* Update button colors to match the lighter green */
@@ -420,34 +232,5 @@
 }
 </style>
 
-{% block extra_js %}
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-    const stripe = Stripe('{{ stripe_public_key }}');
-    const checkoutButton = document.getElementById('checkout-button');
-    
-    checkoutButton.addEventListener('click', function() {
-        fetch('{% url "inventory:create_plan_checkout_session" plan.id %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-        })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(session) {
-            return stripe.redirectToCheckout({ sessionId: session.id });
-        })
-        .then(function(result) {
-            if (result.error) {
-                alert(result.error.message);
-            }
-        })
-        .catch(function(error) {
-            console.error('Error:', error);
-        });
-    });
-</script>
-{% endblock %}
+
 {% endblock %} 

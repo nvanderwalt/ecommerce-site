@@ -20,11 +20,14 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     
     # Exercise plan URLs
+    path('exercise-plan/<int:plan_id>/view/', views.exercise_plan_view, name='exercise_plan_view'),
     path('exercise-plan/<int:plan_id>/checkout/', views.create_exercise_plan_checkout_session, name='create_exercise_plan_checkout_session'),
+    path('exercise-plan/<int:plan_id>/step/<int:step_id>/complete/', views.mark_step_completed, name='mark_step_completed'),
     
     # Nutrition Plan URLs
     path('nutrition-plans/', views.nutrition_plan_list, name='nutrition_plan_list'),
     path('nutrition-plan/<int:plan_id>/', views.nutrition_plan_detail, name='nutrition_plan_detail'),
+    path('nutrition-plan/<int:plan_id>/view/', views.nutrition_plan_view, name='nutrition_plan_view'),
     path('nutrition-plan/<int:plan_id>/checkout/', views.create_plan_checkout_session, name='create_plan_checkout_session'),
     path('nutrition-plan/<int:plan_id>/meal/<int:meal_id>/complete/', views.complete_meal, name='complete_meal'),
     path('newsletter/signup/', views.newsletter_signup, name='newsletter_signup'),
