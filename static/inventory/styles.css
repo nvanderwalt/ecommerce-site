@@ -214,6 +214,23 @@ html, body, .container-fluid, .row, .col, [class*="col-"] {
     background-color: white !important;
 }
 
+/* Preserve cart badge colors */
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.badge.bg-success {
+    background-color: #198754 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
 /* Preserve footer background */
 footer, footer *, footer .container, footer .row, footer .col, footer [class*="col-"] {
     background-color: #343a40 !important;
