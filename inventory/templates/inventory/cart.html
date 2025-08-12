@@ -114,10 +114,10 @@
                         </div>
                         
                         <div class="cart-actions">
-                            <a href="{% url 'product_list' %}" class="action-btn secondary">
-                                <i class="fas fa-arrow-left"></i>
-                                <span>Continue Shopping</span>
-                            </a>
+                                            <a href="{% url 'inventory:product_list' %}" class="action-btn secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Continue Shopping</span>
+                </a>
                             <a href="{% url 'exercise_plan_list' %}" class="action-btn secondary">
                                 <i class="fas fa-running"></i>
                                 <span>Browse Exercise Plans</span>
@@ -132,7 +132,7 @@
                         <h3 class="empty-title">Your cart is empty</h3>
                         <p class="empty-subtitle">Start your fitness journey by adding some products or exercise plans to your cart!</p>
                         <div class="empty-actions">
-                            <a href="{% url 'product_list' %}" class="action-btn primary">
+                            <a href="{% url 'inventory:product_list' %}" class="action-btn primary">
                                 <i class="fas fa-shopping-bag"></i>
                                 <span>Browse Products</span>
                             </a>

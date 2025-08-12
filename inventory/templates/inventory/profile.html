@@ -350,39 +350,13 @@
                                         </div>
                                         <p class="progress-label">Completed</p>
                                     </div>
-                                    <div class="progress-percentage">
-                                        {% if total_exercise_plans > 0 %}
-                                            <span class="percentage">{{ completed_exercise_plans|floatformat:0 }}%</span>
-                                        {% else %}
-                                            <span class="percentage">0%</span>
-                                        {% endif %}
-                                    </div>
+
                                 </div>
                                 
-                                <div class="progress-card">
-                                    <div class="progress-icon">
-                                        <i class="fas fa-utensils"></i>
-                                    </div>
-                                    <div class="progress-info">
-                                        <h4 class="progress-title">Nutrition Plans</h4>
-                                        <div class="progress-stats">
-                                            <span class="progress-number">{{ completed_nutrition_plans }}</span>
-                                            <span class="progress-separator">/</span>
-                                            <span class="progress-total">{{ total_nutrition_plans }}</span>
-                                        </div>
-                                        <p class="progress-label">Completed</p>
-                                    </div>
-                                    <div class="progress-percentage">
-                                        {% if total_nutrition_plans > 0 %}
-                                            <span class="percentage">{{ completed_nutrition_plans|floatformat:0 }}%</span>
-                                        {% else %}
-                                            <span class="percentage">0%</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
+
                             </div>
                             
-                            {% if exercise_progress or nutrition_progress %}
+                            {% if exercise_progress %}
                                 <div class="progress-details">
                                     <h5 class="details-title">Recent Activity</h5>
                                     <div class="activity-list">
@@ -393,13 +367,21 @@
                                                 </div>
                                                 <div class="activity-info">
                                                     <h6 class="activity-name">{{ progress.exercise_plan.name }}</h6>
-                                                    <p class="activity-status">
-                                                        {% if progress.is_completed %}
-                                                            <span class="status-completed">Completed</span>
-                                                        {% else %}
-                                                            <span class="status-in-progress">In Progress</span>
-                                                        {% endif %}
-                                                    </p>
+                                                    <div class="activity-dates">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-calendar-alt me-1"></i>
+                                                            Started: {{ progress.start_date|date:"M j, Y" }}
+                                                            {% if progress.get_end_date %}
+                                                                • Ends: {{ progress.get_end_date|date:"M j, Y" }}
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                    <div class="activity-progress">
+                                                        <div class="mini-progress-bar">
+                                                            <div class="mini-progress-fill exercise-fill" style="width: {{ progress.get_progress_percentage|floatformat:1 }}%"></div>
+                                                        </div>
+                                                        <span class="mini-progress-text">{{ progress.get_progress_percentage|floatformat:1 }}%</span>
+                                                    </div>
                                                 </div>
                                                 <div class="activity-date">
                                                     {{ progress.updated_at|date:"M d" }}
@@ -407,26 +389,7 @@
                                             </div>
                                         {% endfor %}
                                         
-                                        {% for progress in nutrition_progress|slice:":3" %}
-                                            <div class="activity-item">
-                                                <div class="activity-icon">
-                                                    <i class="fas fa-apple-alt"></i>
-                                                </div>
-                                                <div class="activity-info">
-                                                    <h6 class="activity-name">{{ progress.nutrition_plan.name }}</h6>
-                                                    <p class="activity-status">
-                                                        {% if progress.is_completed %}
-                                                            <span class="status-completed">Completed</span>
-                                                        {% else %}
-                                                            <span class="status-in-progress">In Progress</span>
-                                                        {% endif %}
-                                                    </p>
-                                                </div>
-                                                <div class="activity-date">
-                                                    {{ progress.updated_at|date:"M d" }}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
+
                                     </div>
                                 </div>
                             {% else %}
@@ -1102,6 +1065,66 @@
     text-align: right;
 }
 
+/* Progress Bar Styles */
+.progress-bar-container {
+    margin-top: 0.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.exercise-fill {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.nutrition-fill {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 600;
+}
+
+/* Activity Progress Styles */
+.activity-progress {
+    margin-top: 0.25rem;
+}
+
+.mini-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.mini-progress-text {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 600;
+}
+
 .progress-details {
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
@@ -1530,6 +1553,33 @@
 
     .full-width {
         grid-column: 1; /* Reset to default */
+    }
+
+    /* Mobile progress bar adjustments */
+    .progress-bar-container {
+        margin-top: 0.75rem;
+    }
+
+    .activity-dates {
+    margin: 0.25rem 0;
+    font-size: 0.75rem;
+}
+
+.activity-dates small {
+    color: #6c757d;
+    line-height: 1.2;
+}
+
+.activity-progress {
+    margin-top: 0.5rem;
+}
+
+.mini-progress-bar {
+        height: 8px;
+    }
+
+    .mini-progress-text {
+        font-size: 0.8rem;
     }
 }
 </style>

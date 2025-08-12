@@ -82,4 +82,48 @@ def get_nutrition_progress(plan, user):
     try:
         return NutritionPlanProgress.objects.get(plan=plan, user=user)
     except NutritionPlanProgress.DoesNotExist:
-        return None 
+        return None
+
+@register.filter
+def add_days(date, days):
+    """
+    Add days to a date
+    """
+    from datetime import timedelta
+    if date and days:
+        try:
+            return date + timedelta(days=int(days))
+        except (ValueError, TypeError):
+            return date
+    return date
+
+@register.filter
+def multiply(value, arg):
+    """
+    Multiply value by arg
+    """
+    try:
+        return int(value) * int(arg)
+    except (ValueError, TypeError):
+        return value
+
+@register.filter
+def divide(value, arg):
+    """
+    Divide value by arg
+    """
+    try:
+        return int(value) / int(arg)
+    except (ValueError, TypeError):
+        return value
+
+@register.filter
+def ceil(value):
+    """
+    Ceiling function
+    """
+    import math
+    try:
+        return math.ceil(float(value))
+    except (ValueError, TypeError):
+        return value 

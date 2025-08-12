@@ -187,6 +187,13 @@ class ExercisePlanProgress(models.Model):
         completed = self.completed_steps.count()
         return (completed / total_steps) * 100
 
+    def get_end_date(self):
+        """Calculate the expected end date based on plan duration."""
+        if self.plan.duration_weeks:
+            from datetime import timedelta
+            return self.start_date + timedelta(weeks=self.plan.duration_weeks)
+        return None
+
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     session_id = models.CharField(max_length=100, null=True, blank=True)
@@ -321,3 +328,13 @@ class NutritionPlanProgress(models.Model):
             return 0
         completed = self.completed_meals.count()
         return (completed / total_meals) * 100
+
+    def get_end_date(self):
+        """Calculate the expected end date based on meal count (assuming 3 meals per day)."""
+        total_meals = self.plan.meals.count()
+        if total_meals > 0:
+            from datetime import timedelta
+            import math
+            days_needed = math.ceil(total_meals / 3)  # 3 meals per day
+            return self.start_date + timedelta(days=days_needed)
+        return None

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, UserProfile, ExercisePlan, ExercisePlanProgress, NutritionPlan, NutritionPlanProgress, NutritionMeal, Category
 from subscriptions.models import SubscriptionPlan
+from posts.models import Post
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -410,19 +411,22 @@ def profile_view(request):
         print(f"DEBUG: Profile view - Error getting subscription: {str(e)}")
         active_subscription = None
     
-    # Get user's progress data
+    # Get user's progress data - only exercise plans
     exercise_progress = ExercisePlanProgress.objects.filter(user=request.user)
-    nutrition_progress = NutritionPlanProgress.objects.filter(user=request.user)
+    # Nutrition plans removed from progress tracking
+    nutrition_progress = []
     
     # Get all purchased plans (plans with progress records)
     purchased_exercise_plans = exercise_progress.values_list('plan', flat=True)
-    purchased_nutrition_plans = nutrition_progress.values_list('plan', flat=True)
+    # Get nutrition plans from progress (for purchased plans display)
+    purchased_nutrition_plans = NutritionPlanProgress.objects.filter(user=request.user).values_list('plan', flat=True)
     
-    # Calculate overall progress
+    # Calculate overall progress - only exercise plans
     total_exercise_plans = exercise_progress.count()
     completed_exercise_plans = exercise_progress.filter(is_completed=True).count()
-    total_nutrition_plans = nutrition_progress.count()
-    completed_nutrition_plans = nutrition_progress.filter(is_completed=True).count()
+    # Nutrition plans removed from progress tracking
+    total_nutrition_plans = 0
+    completed_nutrition_plans = 0
 
     editing = request.GET.get('edit') == 'true'
     

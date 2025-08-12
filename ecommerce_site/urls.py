@@ -12,7 +12,6 @@ from .sitemaps import (
 )
 from .views import robots_txt
 from inventory.views import (
-    product_list,
     add_to_cart,
     cart_view,
     register,
@@ -41,7 +40,7 @@ sitemaps = {
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view, name='home'),
-    path('products/', product_list, name='product_list'),
+    path('products/', include('inventory.urls')),
     path('cart/', cart_view, name='cart'),
     path('register/', register, name='register'),
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
@@ -56,7 +55,7 @@ urlpatterns = [
     path('exercise-plan/<int:plan_id>/', exercise_plan_detail, name='exercise_plan_detail'),
     path('create-plan-checkout-session/<int:plan_id>/', create_plan_checkout_session, name='create_plan_checkout_session'),
     path('subscriptions/', include('subscriptions.urls')),  # Add subscription URLs
-    path('inventory/', include('inventory.urls')),
+
     path('newsletter/', include('newsletter.urls')),  # Add newsletter URLs
     path('accounts/', include('accounts.urls')),
     path('accounts/logout/', include('django.contrib.auth.urls')),
