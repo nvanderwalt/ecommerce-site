@@ -29,7 +29,7 @@
             <div class="card product-card h-100 shadow-sm">
                 {% if product.image %}
                     <div class="product-image-container">
-                        <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        <img src="{{ product.image }}" class="card-img-top product-image" alt="{{ product.name }}">
                         {% if product.sale_price %}
                             <span class="badge bg-danger position-absolute top-0 end-0 m-2">SALE</span>
                         {% endif %}
