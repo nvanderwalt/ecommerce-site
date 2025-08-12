@@ -179,9 +179,29 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    background-color: white;
+    background-color: white !important;
     margin: 0;
     padding: 0;
+}
+
+/* Force white background on all main content areas */
+main, .main-content, .content-area {
+    background-color: white !important;
+}
+
+/* Override any Bootstrap grey backgrounds */
+.bg-light, .bg-secondary, .bg-muted {
+    background-color: white !important;
+}
+
+/* Force white background on all possible grey elements */
+html, body, .container-fluid, .row, .col, [class*="col-"] {
+    background-color: white !important;
+}
+
+/* Override any wrapper or main content areas */
+.wrapper, .main-wrapper, .content-wrapper {
+    background-color: white !important;
 }
 
 .container {
@@ -805,7 +825,7 @@ body {
 .health-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, #4CAF50, #FFD700);
     border-radius: 50%;
     display: flex;
     align-items: center;
