@@ -837,14 +837,16 @@ html, body, .container-fluid, .row, .col, [class*="col-"] {
     padding: 30px;
     border-radius: 15px;
     text-align: center;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: var(--transition);
     height: 100%;
+    border: 1px solid rgba(0,0,0,0.08);
 }
 
 .health-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-color: rgba(0,0,0,0.12);
 }
 
 .health-icon {
@@ -913,13 +915,15 @@ html, body, .container-fluid, .row, .col, [class*="col-"] {
     padding: 20px;
     background: white;
     border-radius: 10px;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: var(--transition);
+    border: 1px solid rgba(0,0,0,0.08);
 }
 
 .feature-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    border-color: rgba(0,0,0,0.12);
 }
 
 .feature-item i {
