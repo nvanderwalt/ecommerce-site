@@ -60,4 +60,7 @@ class CustomLoginForm(LoginForm):
         super().__init__(*args, **kwargs)
         # Add CSS classes for styling to match signup page
         for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'}) 
+            field.widget.attrs.update({'class': 'form-control'})
+            # Remove aria-describedby to fix HTML validation
+            if 'aria-describedby' in field.widget.attrs:
+                del field.widget.attrs['aria-describedby'] 
