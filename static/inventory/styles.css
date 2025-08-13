@@ -822,16 +822,52 @@ main {
 /* Responsive hero section */
 @media (max-width: 1024px) {
     .hero-section {
-        padding: 70px 0;
+        padding: 50px 0;
     }
     
     .hero-title {
-        font-size: 3rem;
+        font-size: 2.8rem;
     }
     
     .hero-subtitle {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         max-width: 500px;
+    }
+    
+    /* Reduce section spacing on tablets */
+    .section {
+        margin-bottom: 2rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .mb-5 {
+        margin-bottom: 2rem !important;
+    }
+    
+    /* Make cards more compact */
+    .health-card {
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+    
+    .health-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .health-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .health-card p {
+        font-size: 0.9rem;
+        line-height: 1.4;
     }
 }
 
@@ -978,21 +1014,40 @@ main {
 /* Responsive feature items */
 @media (max-width: 1024px) {
     .feature-item {
-        padding: 18px;
-        margin-bottom: 25px;
+        padding: 15px;
+        margin-bottom: 15px;
     }
     
     .feature-item i {
-        font-size: 1.8rem !important;
-        margin-right: 15px !important;
+        font-size: 1.6rem !important;
+        margin-right: 12px !important;
     }
     
     .feature-item h4 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
     }
     
     .feature-item p {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    /* Reduce overall page height */
+    .container-fluid {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Make headings smaller */
+    h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .lead {
+        font-size: 1rem;
+        margin-bottom: 1rem;
     }
 }
 
