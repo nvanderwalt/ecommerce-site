@@ -24,6 +24,8 @@ body .navbar, html .navbar {
     padding: 15px 0 !important;
     width: 100% !important;
     position: relative !important;
+    border-radius: 15px 15px 0 0 !important;
+    margin: 0 !important;
 }
 
 body .navbar .container, html .navbar .container {
@@ -204,6 +206,16 @@ body {
     padding: 0;
 }
 
+/* Main content wrapper - creates the white content box */
+.main-content-wrapper {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin: 20px auto;
+    max-width: 1400px;
+    overflow: hidden;
+}
+
 /* Force white background on all main content areas */
 main, .main-content, .content-area {
     background-color: white !important;
@@ -243,17 +255,32 @@ main {
     .container {
         padding: 18px;
     }
+    
+    .main-content-wrapper {
+        margin: 15px auto;
+        border-radius: 12px;
+    }
 }
 
 @media (max-width: 768px) {
     .container {
         padding: 15px;
     }
+    
+    .main-content-wrapper {
+        margin: 10px auto;
+        border-radius: 10px;
+    }
 }
 
 @media (max-width: 576px) {
     .container {
         padding: 10px;
+    }
+    
+    .main-content-wrapper {
+        margin: 5px auto;
+        border-radius: 8px;
     }
 }
 
