@@ -126,6 +126,19 @@ The following features have been manually tested:
 - Newsletter subscription
 - Responsive design on different devices
 
+### HTML Validation Testing
+All pages of the FitFusion website have been thoroughly tested using the Nu Html Checker (W3C HTML Validator). The validation results confirm:
+
+✅ **No HTML Errors or Warnings Found**
+- All pages pass HTML5 validation standards
+- Proper document structure and semantic markup
+- Valid HTML syntax across the entire site
+- Clean, standards-compliant code
+
+**Validation Tool Used:** Nu Html Checker (Version 25.7.26)
+**Test URL:** https://ecommerce-site-gym-781f127062c6.herokuapp.com/
+**Result:** "Document checking completed. No errors or warnings to show."
+
 ## Deployment
 
 ### Prerequisites
