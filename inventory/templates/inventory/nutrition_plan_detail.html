@@ -2,6 +2,78 @@
 {% load static %}
 {% load inventory_tags %}
 
+{% block extra_css %}
+<style>
+.nutrition-facts {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.nutrition-item {
+    padding: 0.5rem;
+}
+
+.nutrition-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #28a745;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+.nutrition-item small {
+    white-space: nowrap;
+    display: block;
+}
+
+.diet-info h6 {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.diet-info ul {
+    padding-left: 1.2rem;
+}
+
+.diet-info li {
+    margin-bottom: 0.25rem;
+}
+
+.diet-info {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.diet-info .row {
+    justify-content: center;
+}
+
+/* Update button colors to match the lighter green */
+.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.progress-bar.bg-success {
+    background-color: #28a745 !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -161,76 +233,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.nutrition-facts {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 0.5rem;
-}
-
-.nutrition-item {
-    padding: 0.5rem;
-}
-
-.nutrition-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #28a745;
-    white-space: nowrap;
-    min-width: 60px;
-}
-
-.nutrition-item small {
-    white-space: nowrap;
-    display: block;
-}
-
-.diet-info h6 {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.diet-info ul {
-    padding-left: 1.2rem;
-}
-
-.diet-info li {
-    margin-bottom: 0.25rem;
-}
-
-.diet-info {
-    max-width: 100%;
-    margin: 0 auto;
-}
-
-.diet-info .row {
-    justify-content: center;
-}
-
-/* Update button colors to match the lighter green */
-.btn-success {
-    background-color: #28a745 !important;
-    border-color: #28a745 !important;
-}
-
-.btn-success:hover {
-    background-color: #218838 !important;
-    border-color: #1e7e34 !important;
-}
-
-.badge.bg-success {
-    background-color: #28a745 !important;
-}
-
-.progress-bar.bg-success {
-    background-color: #28a745 !important;
-}
-
-.text-success {
-    color: #28a745 !important;
-}
-</style>
-
-
 {% endblock %} 
