@@ -64,12 +64,15 @@ FitFusion is a comprehensive fitness platform that combines workout plans, nutri
 FitFusion is built with a fully responsive design that adapts seamlessly across all devices and screen sizes. The site maintains its professional appearance and functionality whether viewed on desktop, tablet, or mobile devices.
 
 ### Desktop View
+![Desktop View](static/images/desktop-responsive.png)
 *The FitFusion homepage on desktop displays the full navigation menu with all features easily accessible. The green navbar spans the full width with clear navigation links, cart functionality, and user authentication options. The content is presented in clean, white boxes with smooth corners on a light gray background.*
 
 ### Tablet View
+![Tablet View](static/images/tablet-responsive.png)
 *On tablet devices, the layout adapts to medium screen sizes while maintaining the clean, boxed design with smooth corners. The navigation remains accessible and the content is properly formatted for optimal viewing. The responsive design ensures all elements scale appropriately.*
 
 ### Mobile View
+![Mobile View](static/images/mobile-responsive.png)
 *The mobile experience features a hamburger menu for navigation, ensuring all features remain accessible on smaller screens. The content is optimized for touch interaction with appropriate spacing and sizing. The hamburger menu provides easy access to all navigation options.*
 
 ### Responsive Features
@@ -135,6 +138,9 @@ All pages of the FitFusion website have been thoroughly tested using the Nu Html
 - Valid HTML syntax across the entire site
 - Clean, standards-compliant code
 
+![HTML Validation Results](static/images/html-validation.png)
+*HTML validation completed successfully with no errors or warnings*
+
 **Validation Tool Used:** Nu Html Checker (Version 25.7.26)
 **Test URL:** https://ecommerce-site-gym-781f127062c6.herokuapp.com/
 **Result:** "Document checking completed. No errors or warnings to show."
@@ -160,6 +166,9 @@ All CSS styles have been validated using the W3C CSS Validator. The validation r
 - ✅ **No impact on site functionality** or user experience
 - ✅ **Modern CSS practices** use CSS variables that older validators don't fully understand
 - ✅ **All browsers support this syntax** correctly
+
+![CSS Validation Results](static/images/css-validation.png)
+*CSS validation shows Font Awesome library warnings that don't affect functionality*
 
 **Validation Tool Used:** W3C CSS Validator
 **Test URL:** https://ecommerce-site-gym-781f127062c6.herokuapp.com/
