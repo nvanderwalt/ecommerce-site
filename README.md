@@ -46,7 +46,12 @@ FitFusion is a comprehensive fitness platform that combines workout plans, nutri
 - Nutrition Plans
 - User Profiles
 - Newsletter Subscription
+- Social Media Integration
 - SEO Optimization
+- Responsive Design
+- Shopping Cart System
+- Payment Processing (Stripe)
+- Subscription Management
 
 ### Features Left to Implement
 - Advanced progress tracking with charts and analytics
@@ -172,6 +177,18 @@ For production deployment:
 5. Set up database backups
 6. Configure error monitoring
 
+## Contact & Support
+
+### Get in Touch
+- **🌐 Website:** [FitFusion](https://ecommerce-site-gym-781f127062c6.herokuapp.com/)
+- **📘 Facebook:** [FitFusion Facebook Page](https://www.facebook.com/people/FitFusion/61579008766629/)
+- **📧 Email:** Contact through the website contact form
+
+### Support
+- For technical issues: Check the deployment section above
+- For business inquiries: Use the contact form on the website
+- For community support: Join our Facebook community
+
 ## Credits
 
 ### Code
@@ -255,16 +272,26 @@ python manage.py test subscriptions.tests.test_renewal
 
 ## Marketing
 
-### Facebook Business Page
-FitFusion maintains an active presence on Facebook through our business page. The page showcases:
+### Social Media Presence
+
+#### Facebook Business Page
+FitFusion maintains an active presence on Facebook through our official business page. The page showcases:
 - Latest workout plans and nutrition programs
 - Success stories from our community
 - Fitness tips and health advice
 - Special offers and promotions
+- Behind-the-scenes content and updates
 
-**Facebook Business Page:** [FitFusion Facebook Page](https://www.facebook.com/profile.php?id=61579008766629)
+**🌐 Facebook Business Page:** [FitFusion Facebook Page](https://www.facebook.com/people/FitFusion/61579008766629/)
 
-![Facebook Business Page](static/images/facebook_page.png)
+**📱 Follow us on Facebook for:**
+- Daily fitness motivation
+- Exclusive workout previews
+- Community challenges
+- Live Q&A sessions
+- Member success stories
+
+*Note: Screenshot of Facebook page will be added once the page is fully set up with content.*
 
 ### Newsletter
 Users can subscribe to our newsletter to receive:
