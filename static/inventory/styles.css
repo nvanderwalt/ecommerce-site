@@ -1,4 +1,4 @@
-/* Common Styles */
+/* Basic CSS Variables */
 :root {
     --primary-color: #4CAF50;
     --secondary-color: #2196F3;
@@ -10,71 +10,35 @@
     --transition: all 0.3s ease;
 }
 
-/* Responsive Breakpoints */
-/* Extra small devices (phones, 576px and down) */
-/* Small devices (landscape phones, 576px and up) */
-/* Medium devices (tablets, 768px and up) */
-/* Large devices (desktops, 992px and up) */
-/* Extra large devices (large desktops, 1200px and up) */
+/* Basic body styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
 
-/* Modern Navigation Bar - Ensure consistency across all pages */
-body .navbar, html .navbar {
+/* Simple navbar styling - let Bootstrap handle responsiveness */
+.navbar {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%) !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
     padding: 15px 0 !important;
-    width: 100% !important;
-    position: relative !important;
     border-radius: 15px 15px 0 0 !important;
     margin: 0 !important;
 }
 
-body .navbar .container, html .navbar .container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    padding: 0 15px !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-}
-
-body .navbar-brand, html .navbar-brand {
+.navbar-brand {
     font-size: 2.2rem !important;
     font-weight: 800 !important;
     color: white !important;
     text-decoration: none;
-    margin-right: 40px !important;
-    position: static !important;
-    transform: none !important;
-    transition: none !important;
 }
 
-/* Responsive navbar brand */
-@media (max-width: 1024px) {
-    body .navbar-brand, html .navbar-brand {
-        font-size: 2rem !important;
-        margin-right: 30px !important;
-    }
-}
-
-@media (max-width: 768px) {
-    body .navbar-brand, html .navbar-brand {
-        font-size: 1.8rem !important;
-        margin-right: 20px !important;
-    }
-}
-
-@media (max-width: 576px) {
-    body .navbar-brand, html .navbar-brand {
-        font-size: 1.5rem !important;
-        margin-right: 15px !important;
-    }
-}
-
-body .navbar-brand:hover, html .navbar-brand:hover {
+.navbar-brand:hover {
     color: #e8f5e8 !important;
     text-decoration: none;
-    transform: none !important;
-    position: static !important;
 }
 
 .navbar-brand i {
@@ -83,103 +47,7 @@ body .navbar-brand:hover, html .navbar-brand:hover {
     font-size: 2rem !important;
 }
 
-/* Responsive navbar brand icon */
-@media (max-width: 1024px) {
-    .navbar-brand i {
-        font-size: 1.8rem !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .navbar-brand i {
-        font-size: 1.6rem !important;
-    }
-}
-
-@media (max-width: 576px) {
-    .navbar-brand i {
-        font-size: 1.3rem !important;
-    }
-}
-
-body .navbar-nav, html .navbar-nav {
-    align-items: center !important;
-    display: flex !important;
-    flex-shrink: 0 !important;
-}
-
-/* Mobile navbar improvements - only when collapsed */
-@media (max-width: 991px) {
-    /* Style the hamburger button */
-    .navbar-toggler {
-        border: 2px solid rgba(255,255,255,0.5) !important;
-        padding: 8px 12px !important;
-        border-radius: 6px !important;
-    }
-    
-    .navbar-toggler:focus {
-        box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
-    }
-    
-    .navbar-toggler-icon {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-    }
-}
-
-/* When navbar is collapsed (mobile menu open) */
-@media (max-width: 991px) {
-    .navbar-collapse.show {
-        background: rgba(0,0,0,0.1) !important;
-        border-radius: 8px !important;
-        margin-top: 10px !important;
-        padding: 10px !important;
-    }
-    
-    .navbar-collapse.show .navbar-nav {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        width: 100% !important;
-        margin-top: 0 !important;
-    }
-    
-    .navbar-collapse.show .navbar-nav .nav-item {
-        width: 100% !important;
-        margin: 2px 0 !important;
-    }
-    
-    .navbar-collapse.show .navbar-nav .nav-link {
-        padding: 10px 15px !important;
-        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-        width: 100% !important;
-        text-align: left !important;
-        font-size: 1rem !important;
-        border-radius: 4px !important;
-    }
-    
-    .navbar-collapse.show .navbar-nav .nav-link:hover {
-        background: rgba(255,255,255,0.2) !important;
-    }
-    
-    .navbar-collapse.show .navbar-nav .btn-outline-light {
-        margin: 5px 0 !important;
-        width: 100% !important;
-        text-align: center !important;
-        padding: 10px 15px !important;
-        font-size: 1rem !important;
-    }
-}
-
-
-
-/* Tablet navbar improvements */
-@media (min-width: 992px) and (max-width: 1200px) {
-    body .navbar-nav .nav-link, html .navbar-nav .nav-link {
-        padding: 8px 12px !important;
-        font-size: 0.95rem !important;
-    }
-}
-
-body .navbar-nav .nav-link, html .navbar-nav .nav-link {
+.navbar-nav .nav-link {
     color: white !important;
     font-weight: 500 !important;
     padding: 10px 15px !important;
@@ -191,28 +59,15 @@ body .navbar-nav .nav-link, html .navbar-nav .nav-link {
     gap: 8px !important;
 }
 
-body .navbar-nav .nav-link:hover, html .navbar-nav .nav-link:hover {
+.navbar-nav .nav-link:hover {
     background: rgba(255,255,255,0.1) !important;
     color: white !important;
     transform: translateY(-1px) !important;
 }
 
-body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
+.navbar-nav .nav-link i {
     font-size: 1.1rem !important;
     color: rgba(255,255,255,0.9) !important;
-}
-
-/* Responsive nav link icons */
-@media (max-width: 1024px) {
-    body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
-        font-size: 1rem !important;
-    }
-}
-
-@media (max-width: 768px) {
-    body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
-        font-size: 0.9rem !important;
-    }
 }
 
 .btn-outline-light {
@@ -224,53 +79,13 @@ body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
     align-items: center !important;
 }
 
-/* Responsive buttons */
-@media (max-width: 576px) {
-    .btn-outline-light {
-        padding: 8px 16px !important;
-        font-size: 0.9rem !important;
-    }
-}
-
-/* Fix login/signup button spacing */
-.navbar-nav .nav-item:last-child {
-    margin-left: 10px;
-}
-
-.navbar-nav .btn-outline-light {
-    white-space: nowrap;
-    min-width: auto;
-}
-
-/* Ensure login/signup buttons don't get cut off on larger screens */
-@media (min-width: 992px) and (max-width: 1200px) {
-    .navbar-nav .nav-link {
-        padding: 8px 12px !important;
-        font-size: 0.95rem !important;
-    }
-    
-    .navbar-nav .btn-outline-light {
-        padding: 6px 12px !important;
-        font-size: 0.9rem !important;
-    }
-}
-
 .btn-outline-light:hover {
     background-color: #4CAF50 !important;
     border-color: #4CAF50 !important;
     transform: translateY(-2px) !important;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: #f8f9fa !important;
-    margin: 0;
-    padding: 0;
-}
-
-/* Main content wrapper - creates the white content box */
+/* Main content wrapper */
 .main-content-wrapper {
     background: white;
     border-radius: 15px;
@@ -280,601 +95,14 @@ body {
     overflow: hidden;
 }
 
-/* Fix navbar width to match content */
-.navbar .container-fluid {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Force white background on all main content areas */
-main, .main-content, .content-area {
-    background-color: white !important;
-}
-
-/* Remove gap between navbar and hero section */
-main {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.hero-section {
-    margin-top: 0 !important;
-    padding-top: 80px !important;
-}
-
-/* Override any Bootstrap grey backgrounds */
-.bg-light, .bg-secondary, .bg-muted {
-    background-color: white !important;
-}
-
-/* Specific override for sections with bg-light class */
-.section.bg-light {
-    background-color: white !important;
-}
-
-
-
+/* Container styles */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* Responsive container padding */
-@media (max-width: 1024px) {
-    .container {
-        padding: 18px;
-    }
-    
-    .main-content-wrapper {
-        margin: 15px auto;
-        border-radius: 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
-    
-    .main-content-wrapper {
-        margin: 10px auto;
-        border-radius: 10px;
-    }
-}
-
-@media (max-width: 576px) {
-    .container {
-        padding: 10px;
-    }
-    
-    .main-content-wrapper {
-        margin: 5px auto;
-        border-radius: 8px;
-    }
-}
-
-/* Cart Styles */
-.cart-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Responsive cart container */
-@media (max-width: 1024px) {
-    .cart-container {
-        padding: 18px;
-    }
-}
-
-@media (max-width: 768px) {
-    .cart-container {
-        padding: 15px;
-    }
-}
-
-@media (max-width: 576px) {
-    .cart-container {
-        padding: 10px;
-    }
-}
-
-.cart-items {
-    list-style: none;
-    padding: 0;
-}
-
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    margin-bottom: 15px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-/* Responsive cart items */
-@media (max-width: 768px) {
-    .cart-item {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 15px;
-    }
-    
-    .item-controls {
-        margin-top: 15px;
-        width: 100%;
-        justify-content: space-between;
-    }
-}
-
-@media (max-width: 576px) {
-    .cart-item {
-        padding: 12px;
-    }
-    
-    .item-controls {
-        flex-direction: column;
-        gap: 10px;
-    }
-}
-
-.cart-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.item-details h2 {
-    margin: 0 0 10px 0;
-    color: var(--text-color);
-}
-
-.price {
-    color: #666;
-    font-weight: 500;
-}
-
-.item-controls {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.quantity-form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.qty-btn {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    background: white;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: var(--transition);
-}
-
-/* Responsive quantity buttons */
-@media (max-width: 576px) {
-    .qty-btn {
-        padding: 6px 10px;
-        font-size: 0.9rem;
-    }
-}
-
-.qty-btn:hover:not(:disabled) {
-    background: var(--light-gray);
-}
-
-.qty-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.quantity {
-    padding: 0 15px;
-    font-weight: bold;
-    min-width: 30px;
-    text-align: center;
-}
-
-.remove-btn {
-    padding: 8px 16px;
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-/* Responsive remove button */
-@media (max-width: 576px) {
-    .remove-btn {
-        padding: 6px 12px;
-        font-size: 0.9rem;
-    }
-}
-
-.remove-btn:hover {
-    background: #cc0000;
-}
-
-/* Exercise Plans Styles */
-.exercise-plans {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-    padding: 20px 0;
-}
-
-/* Responsive exercise plans grid */
-@media (max-width: 768px) {
-    .exercise-plans {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-        padding: 15px 0;
-    }
-}
-
-@media (max-width: 576px) {
-    .exercise-plans {
-        grid-template-columns: 1fr;
-        gap: 15px;
-        padding: 10px 0;
-    }
-}
-
-.plan-card {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.08);
-}
-
-/* Responsive plan cards */
-@media (max-width: 768px) {
-    .plan-card {
-        padding: 20px;
-    }
-}
-
-@media (max-width: 576px) {
-    .plan-card {
-        padding: 15px;
-    }
-}
-
-.plan-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: var(--primary-color);
-    transform: scaleX(0);
-    transition: var(--transition);
-}
-
-.plan-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    border-color: rgba(0,0,0,0.12);
-}
-
-.plan-card:hover::before {
-    transform: scaleX(1);
-}
-
-.plan-card h2 {
-    margin: 0 0 15px 0;
-    color: var(--text-color);
-    font-size: 1.5em;
-}
-
-/* Responsive plan card headings */
-@media (max-width: 576px) {
-    .plan-card h2 {
-        font-size: 1.3em;
-    }
-}
-
-.difficulty {
-    display: inline-block;
-    padding: 6px 12px;
-    background: var(--primary-color);
-    color: white;
-    border-radius: 20px;
-    font-size: 0.9em;
-    margin-bottom: 15px;
-}
-
-.duration, .calories {
-    color: #666;
-    margin: 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.view-plan-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background: var(--secondary-color);
-    color: white;
-    text-decoration: none;
-    border-radius: 25px;
-    margin-top: 15px;
-    transition: var(--transition);
-}
-
-/* Responsive view plan button */
-@media (max-width: 576px) {
-    .view-plan-btn {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-    }
-}
-
-.view-plan-btn:hover {
-    background: #1976D2;
-    transform: translateX(5px);
-}
-
-/* Messages Styles */
-.messages {
-    margin-bottom: 20px;
-}
-
-.alert {
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    animation: slideIn 0.3s ease-out;
-}
-
-/* Responsive alerts */
-@media (max-width: 576px) {
-    .alert {
-        padding: 10px 12px;
-        font-size: 0.9rem;
-    }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.alert-success {
-    background: #dff0d8;
-    color: #3c763d;
-    border: 1px solid #d6e9c6;
-}
-
-.alert-warning {
-    background: #fcf8e3;
-    color: #8a6d3b;
-    border: 1px solid #faebcc;
-}
-
-.alert-error {
-    background: #f2dede;
-    color: #a94442;
-    border: 1px solid #ebccd1;
-}
-
-/* Plan Detail Styles */
-.plan-detail {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Responsive plan detail */
-@media (max-width: 768px) {
-    .plan-detail {
-        padding: 15px;
-    }
-}
-
-@media (max-width: 576px) {
-    .plan-detail {
-        padding: 10px;
-    }
-}
-
-.plan-info {
-    background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    margin-top: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Responsive plan info */
-@media (max-width: 576px) {
-    .plan-info {
-        padding: 15px;
-        margin-top: 15px;
-    }
-}
-
-.plan-info p {
-    margin: 10px 0;
-    line-height: 1.6;
-}
-
-.equipment {
-    background: #f5f5f5;
-    padding: 10px;
-    border-radius: 4px;
-    margin: 15px 0;
-}
-
-.instructor {
-    font-style: italic;
-    color: #666;
-}
-
-.description {
-    margin: 20px 0;
-    white-space: pre-line;
-}
-
-.cart-summary {
-    margin-top: 20px;
-    padding: 20px;
-    background: #f8f8f8;
-    border-radius: 5px;
-}
-
-/* Responsive cart summary */
-@media (max-width: 576px) {
-    .cart-summary {
-        padding: 15px;
-        margin-top: 15px;
-    }
-}
-
-.checkout-btn {
-    padding: 10px 20px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 1.1em;
-}
-
-/* Responsive checkout button */
-@media (max-width: 576px) {
-    .checkout-btn {
-        padding: 8px 16px;
-        font-size: 1rem;
-        width: 100%;
-    }
-}
-
-.checkout-btn:hover {
-    background: #45a049;
-}
-
-.empty-cart {
-    text-align: center;
-    padding: 40px;
-    background: #f8f8f8;
-    border-radius: 5px;
-}
-
-/* Responsive empty cart */
-@media (max-width: 576px) {
-    .empty-cart {
-        padding: 30px 20px;
-    }
-}
-
-.back-link {
-    margin-top: 20px;
-}
-
-.back-link a {
-    color: #666;
-    text-decoration: none;
-}
-
-.back-link a:hover {
-    text-decoration: underline;
-}
-
-/* Product Cards Responsive Design */
-.product-card {
-    transition: var(--transition);
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.product-image-container {
-    position: relative;
-    height: 250px;
-    overflow: hidden;
-    padding: 10px;
-}
-
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: var(--transition);
-    border-radius: 8px;
-}
-
-.product-card:hover .product-image {
-    transform: scale(1.05);
-}
-
-.product-image-placeholder {
-    height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f8f9fa;
-    color: #6c757d;
-    padding: 20px;
-}
-
-/* Responsive product cards */
-@media (max-width: 768px) {
-    .product-image-container,
-    .product-image-placeholder {
-        height: 220px;
-        padding: 8px;
-    }
-}
-
-@media (max-width: 576px) {
-    .product-image-container,
-    .product-image-placeholder {
-        height: 200px;
-        padding: 5px;
-    }
-    
-    .product-card .card-body {
-        padding: 15px;
-    }
-    
-    .product-card .card-title {
-        font-size: 1.1rem;
-    }
-    
-    .product-card .card-text {
-        font-size: 0.9rem;
-    }
-}
-
-/* Hero Section Responsive Design */
+/* Hero section */
 .hero-section {
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     color: white;
@@ -916,87 +144,7 @@ main {
     margin-right: auto;
 }
 
-/* Responsive hero section */
-@media (max-width: 1024px) {
-    .hero-section {
-        padding: 50px 0;
-    }
-    
-    .hero-title {
-        font-size: 2.8rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.1rem;
-        max-width: 500px;
-    }
-    
-    /* Reduce section spacing on tablets */
-    .section {
-        margin-bottom: 2rem !important;
-    }
-    
-    .mb-4 {
-        margin-bottom: 1.5rem !important;
-    }
-    
-    .mb-5 {
-        margin-bottom: 2rem !important;
-    }
-    
-    /* Make cards more compact */
-    .health-card {
-        padding: 20px;
-        margin-bottom: 10px;
-    }
-    
-    .health-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
-    }
-    
-    .health-card h3 {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-    }
-    
-    .health-card p {
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 60px 0;
-    }
-    
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.1rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .hero-section {
-        padding: 40px 0;
-    }
-    
-    .hero-title {
-        font-size: 2rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-}
-
-/* Health Cards Responsive Design */
+/* Health cards */
 .health-card {
     background: white;
     padding: 30px;
@@ -1038,122 +186,23 @@ main {
     line-height: 1.6;
 }
 
-/* Responsive health cards */
-@media (max-width: 1024px) {
-    .health-card {
-        padding: 28px;
-        margin-bottom: 15px;
-    }
-    
-    .health-icon {
-        width: 75px;
-        height: 75px;
-        font-size: 1.9rem;
-    }
-    
-    .health-card h3 {
-        font-size: 1.4rem;
-    }
-    
-    .health-card p {
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .health-card {
-        padding: 25px;
-        margin-bottom: 20px;
-    }
-    
-    .health-icon {
-        width: 70px;
-        height: 70px;
-        font-size: 1.8rem;
-    }
-    
-    .health-card h3 {
-        font-size: 1.3rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .health-card {
-        padding: 20px;
-    }
-    
-    .health-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
-    }
-    
-    .health-card h3 {
-        font-size: 1.2rem;
-    }
-}
-
-/* Feature Items Responsive Design */
-.feature-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 20px;
-    transition: var(--transition);
-}
-
-.feature-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 8px;
-}
-
-/* Responsive feature items */
-@media (max-width: 1024px) {
-    .feature-item {
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-    
-    .feature-item i {
-        font-size: 1.6rem !important;
-        margin-right: 12px !important;
-    }
-    
-    .feature-item h4 {
-        font-size: 1.2rem;
-        margin-bottom: 8px;
-    }
-    
-    .feature-item p {
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-    
-    /* Reduce overall page height */
-    .container-fluid {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-    }
-    
-    /* Make headings smaller */
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-    }
-    
-    .lead {
-        font-size: 1rem;
-        margin-bottom: 1rem;
-    }
-}
-
+/* Feature items */
 .feature-item {
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: var(--transition);
     border: 1px solid rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
 }
 
 .feature-item i {
@@ -1174,40 +223,7 @@ main {
     line-height: 1.6;
 }
 
-/* Responsive feature items */
-@media (max-width: 768px) {
-    .feature-item {
-        flex-direction: column;
-        text-align: center;
-        padding: 25px;
-    }
-    
-    .feature-item i {
-        margin-right: 0;
-        margin-bottom: 15px;
-        font-size: 2.2rem;
-    }
-    
-    .feature-item h4 {
-        font-size: 1.2rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .feature-item {
-        padding: 20px;
-    }
-    
-    .feature-item i {
-        font-size: 2rem;
-    }
-    
-    .feature-item h4 {
-        font-size: 1.1rem;
-    }
-}
-
-/* Newsletter Section Responsive Design */
+/* Newsletter section */
 .newsletter-section {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     padding: 60px 0;
@@ -1253,39 +269,7 @@ main {
     transform: translateY(-2px);
 }
 
-/* Responsive newsletter section */
-@media (max-width: 768px) {
-    .newsletter-section {
-        padding: 40px 0;
-    }
-    
-    .newsletter-form {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .newsletter-form button {
-        width: 100%;
-    }
-}
-
-@media (max-width: 576px) {
-    .newsletter-section {
-        padding: 30px 0;
-    }
-    
-    .newsletter-form input[type="email"] {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-    }
-    
-    .newsletter-form button {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-    }
-}
-
-/* Footer Responsive Design */
+/* Footer */
 footer {
     background: #343a40 !important;
     color: white;
@@ -1302,139 +286,444 @@ footer p {
     line-height: 1.6;
 }
 
-/* Responsive footer */
+/* Product cards */
+.product-card {
+    transition: var(--transition);
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.product-image-container {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: var(--transition);
+    border-radius: 8px;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.product-image-placeholder {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #6c757d;
+    padding: 20px;
+}
+
+/* Exercise plans */
+.exercise-plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 20px 0;
+}
+
+.plan-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.plan-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: var(--transition);
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    border-color: rgba(0,0,0,0.12);
+}
+
+.plan-card:hover::before {
+    transform: scaleX(1);
+}
+
+.plan-card h2 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-size: 1.5em;
+}
+
+.difficulty {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.duration, .calories {
+    color: #666;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.view-plan-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--secondary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    margin-top: 15px;
+    transition: var(--transition);
+}
+
+.view-plan-btn:hover {
+    background: #1976D2;
+    transform: translateX(5px);
+}
+
+/* Cart styles */
+.cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cart-items {
+    list-style: none;
+    padding: 0;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.cart-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.item-details h2 {
+    margin: 0 0 10px 0;
+    color: var(--text-color);
+}
+
+.price {
+    color: #666;
+    font-weight: 500;
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.quantity-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qty-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.qty-btn:hover:not(:disabled) {
+    background: var(--light-gray);
+}
+
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quantity {
+    padding: 0 15px;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.remove-btn {
+    padding: 8px 16px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.remove-btn:hover {
+    background: #cc0000;
+}
+
+.cart-summary {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f8f8;
+    border-radius: 5px;
+}
+
+.checkout-btn {
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.checkout-btn:hover {
+    background: #45a049;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px;
+    background: #f8f8f8;
+    border-radius: 5px;
+}
+
+.back-link {
+    margin-top: 20px;
+}
+
+.back-link a {
+    color: #666;
+    text-decoration: none;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+}
+
+/* Messages */
+.messages {
+    margin-bottom: 20px;
+}
+
+.alert {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.alert-success {
+    background: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.alert-warning {
+    background: #fcf8e3;
+    color: #8a6d3b;
+    border: 1px solid #faebcc;
+}
+
+.alert-error {
+    background: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+/* Plan detail */
+.plan-detail {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.plan-info {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.plan-info p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.equipment {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 15px 0;
+}
+
+.instructor {
+    font-style: italic;
+    color: #666;
+}
+
+.description {
+    margin: 20px 0;
+    white-space: pre-line;
+}
+
+/* Simple responsive breakpoints - let Bootstrap handle the rest */
 @media (max-width: 768px) {
-    footer {
-        padding: 30px 0 15px;
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .feature-item {
+        flex-direction: column;
         text-align: center;
+        padding: 25px;
     }
     
-    footer h3 {
-        font-size: 1.3rem;
+    .feature-item i {
+        margin-right: 0;
         margin-bottom: 15px;
+        font-size: 2.2rem;
     }
     
-    footer .row {
-        margin-bottom: 20px;
+    .newsletter-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .newsletter-form button {
+        width: 100%;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+    
+    .item-controls {
+        margin-top: 15px;
+        width: 100%;
+        justify-content: space-between;
     }
 }
 
 @media (max-width: 576px) {
-    footer {
-        padding: 25px 0 10px;
+    .hero-title {
+        font-size: 2rem;
     }
     
-    footer h3 {
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .health-card {
+        padding: 20px;
+    }
+    
+    .health-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .health-card h3 {
         font-size: 1.2rem;
     }
     
-    footer .fab.fa-facebook {
-        font-size: 1.5rem !important;
-    }
-}
-
-/* General Responsive Utilities */
-@media (max-width: 768px) {
-    .d-md-none {
-        display: none !important;
-    }
-    
-    .text-md-center {
-        text-align: center !important;
-    }
-    
-    .mb-md-4 {
-        margin-bottom: 1.5rem !important;
-    }
-}
-
-@media (max-width: 576px) {
-    .d-sm-none {
-        display: none !important;
-    }
-    
-    .text-sm-center {
-        text-align: center !important;
-    }
-    
-    .mb-sm-3 {
-        margin-bottom: 1rem !important;
-    }
-    
-    .px-sm-2 {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-    }
-}
-
-/* Remove purple gradients from main content (but not navbar) */
-main .container, main .row, main .col-md-6, main .col-12 {
-    background: transparent !important;
-}
-
-/* Override any Bootstrap purple gradients in main content (but not navbar) */
-main .bg-primary, main .bg-gradient {
-    background: transparent !important;
-}
-
-/* Ensure navbar is properly positioned */
-.navbar {
-    z-index: 1000 !important;
-}
-
-/* Additional Mobile Optimizations */
-@media (max-width: 576px) {
-    /* Improve touch targets */
-    .btn, button, a {
-        min-height: 44px;
-        min-width: 44px;
-    }
-    
-    /* Better spacing for mobile */
-    .container-fluid {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-    
-    /* Improve readability */
-    body {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-    
-    /* Better form inputs */
-    input, select, textarea {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-}
-
-/* Tablet Optimizations */
-@media (min-width: 577px) and (max-width: 991px) {
-    .container {
-        max-width: 100%;
-        padding: 0 20px;
-    }
-    
-    .hero-title {
-        font-size: 3rem;
-    }
-    
-    .product-card .card-body {
+    .feature-item {
         padding: 20px;
     }
-}
-
-/* Large Screen Optimizations */
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1400px;
+    
+    .feature-item i {
+        font-size: 2rem;
     }
     
-    .hero-title {
-        font-size: 4rem;
+    .feature-item h4 {
+        font-size: 1.1rem;
     }
     
-    .exercise-plans {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    .cart-item {
+        padding: 12px;
+    }
+    
+    .item-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .qty-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .remove-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .checkout-btn {
+        padding: 8px 16px;
+        font-size: 1rem;
+        width: 100%;
     }
 }
 
