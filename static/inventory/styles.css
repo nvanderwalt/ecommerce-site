@@ -47,6 +47,13 @@ body .navbar-brand, html .navbar-brand {
 }
 
 /* Responsive navbar brand */
+@media (max-width: 1024px) {
+    body .navbar-brand, html .navbar-brand {
+        font-size: 2rem !important;
+        margin-right: 30px !important;
+    }
+}
+
 @media (max-width: 768px) {
     body .navbar-brand, html .navbar-brand {
         font-size: 1.8rem !important;
@@ -75,6 +82,12 @@ body .navbar-brand:hover, html .navbar-brand:hover {
 }
 
 /* Responsive navbar brand icon */
+@media (max-width: 1024px) {
+    .navbar-brand i {
+        font-size: 1.8rem !important;
+    }
+}
+
 @media (max-width: 768px) {
     .navbar-brand i {
         font-size: 1.6rem !important;
@@ -102,54 +115,61 @@ body .navbar-nav, html .navbar-nav {
         margin-top: 15px !important;
     }
     
-    body .nav-item, html .nav-item {
-        margin: 5px 0 !important;
+    body .navbar-nav .nav-item, html .navbar-nav .nav-item {
         width: 100% !important;
+        margin: 5px 0 !important;
     }
     
-    body .nav-link, html .nav-link {
-        padding: 12px 16px !important;
-        border-radius: 8px !important;
-        margin: 2px 0 !important;
+    body .navbar-nav .nav-link, html .navbar-nav .nav-link {
+        padding: 12px 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
         width: 100% !important;
         text-align: left !important;
     }
-    
-    .navbar-nav .btn-outline-light {
-        margin: 10px 0 !important;
-        width: 100% !important;
-        justify-content: center !important;
+}
+
+/* Tablet navbar improvements */
+@media (min-width: 992px) and (max-width: 1200px) {
+    body .navbar-nav .nav-link, html .navbar-nav .nav-link {
+        padding: 8px 12px !important;
+        font-size: 0.95rem !important;
     }
 }
 
-body .nav-item, html .nav-item {
-    margin: 0 8px !important;
-    flex-shrink: 0 !important;
-}
-
-body .nav-link, html .nav-link {
+body .navbar-nav .nav-link, html .navbar-nav .nav-link {
     color: white !important;
-    font-weight: 700 !important;
-    font-size: 1.1rem !important;
-    padding: 10px 16px !important;
-    border-radius: 6px !important;
-    transition: all 0.3s ease !important;
-    white-space: nowrap !important;
+    font-weight: 500 !important;
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
+    transition: var(--transition) !important;
+    text-decoration: none !important;
     display: flex !important;
     align-items: center !important;
+    gap: 8px !important;
 }
 
-/* Responsive nav links */
-@media (max-width: 768px) {
-    body .nav-link, html .nav-link {
+body .navbar-nav .nav-link:hover, html .navbar-nav .nav-link:hover {
+    background: rgba(255,255,255,0.1) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+}
+
+body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
+    font-size: 1.1rem !important;
+    color: rgba(255,255,255,0.9) !important;
+}
+
+/* Responsive nav link icons */
+@media (max-width: 1024px) {
+    body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
         font-size: 1rem !important;
-        padding: 10px 12px !important;
     }
 }
 
-.nav-link:hover {
-    color: #e8f5e8 !important;
-    transform: translateY(-2px) !important;
+@media (max-width: 768px) {
+    body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
+        font-size: 0.9rem !important;
+    }
 }
 
 .btn-outline-light {
@@ -219,6 +239,12 @@ main {
 }
 
 /* Responsive container padding */
+@media (max-width: 1024px) {
+    .container {
+        padding: 18px;
+    }
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 15px;
@@ -239,6 +265,12 @@ main {
 }
 
 /* Responsive cart container */
+@media (max-width: 1024px) {
+    .cart-container {
+        padding: 18px;
+    }
+}
+
 @media (max-width: 768px) {
     .cart-container {
         padding: 15px;
@@ -788,6 +820,21 @@ main {
 }
 
 /* Responsive hero section */
+@media (max-width: 1024px) {
+    .hero-section {
+        padding: 70px 0;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        max-width: 500px;
+    }
+}
+
 @media (max-width: 768px) {
     .hero-section {
         padding: 60px 0;
@@ -859,6 +906,27 @@ main {
 }
 
 /* Responsive health cards */
+@media (max-width: 1024px) {
+    .health-card {
+        padding: 28px;
+        margin-bottom: 15px;
+    }
+    
+    .health-icon {
+        width: 75px;
+        height: 75px;
+        font-size: 1.9rem;
+    }
+    
+    .health-card h3 {
+        font-size: 1.4rem;
+    }
+    
+    .health-card p {
+        font-size: 0.95rem;
+    }
+}
+
 @media (max-width: 768px) {
     .health-card {
         padding: 25px;
@@ -898,17 +966,42 @@ main {
     align-items: center;
     margin-bottom: 30px;
     padding: 20px;
+    transition: var(--transition);
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* Responsive feature items */
+@media (max-width: 1024px) {
+    .feature-item {
+        padding: 18px;
+        margin-bottom: 25px;
+    }
+    
+    .feature-item i {
+        font-size: 1.8rem !important;
+        margin-right: 15px !important;
+    }
+    
+    .feature-item h4 {
+        font-size: 1.3rem;
+    }
+    
+    .feature-item p {
+        font-size: 0.95rem;
+    }
+}
+
+.feature-item {
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: var(--transition);
     border: 1px solid rgba(0,0,0,0.08);
-}
-
-.feature-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    border-color: rgba(0,0,0,0.12);
 }
 
 .feature-item i {
