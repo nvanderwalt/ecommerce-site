@@ -193,6 +193,41 @@ body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
     }
 }
 
+/* Fix login/signup button spacing */
+.navbar-nav .nav-item:last-child {
+    margin-left: 10px;
+}
+
+.navbar-nav .btn-outline-light {
+    white-space: nowrap;
+    min-width: auto;
+}
+
+/* Ensure login/signup buttons don't get cut off */
+@media (max-width: 1200px) {
+    .navbar-nav .nav-link {
+        padding: 8px 10px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .navbar-nav .btn-outline-light {
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .navbar-nav .nav-link {
+        padding: 6px 8px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .navbar-nav .btn-outline-light {
+        padding: 5px 10px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
 .btn-outline-light:hover {
     background-color: #4CAF50 !important;
     border-color: #4CAF50 !important;
