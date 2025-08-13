@@ -1,0 +1,5 @@
+[33m074dfb4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Complete CSS rewrite: clean, minimal approach that works with Bootstrap's responsive system
+[33md14d5b0[m Fix navbar collapse: remove CSS that was preventing Bootstrap's responsive behavior from working
+[33m8b1f163[m Fix navbar responsiveness: implement proper hamburger menu for mobile devices
+[33mbb263c8[m Fix login/signup button spacing in navbar to prevent cutoff
+[33mfb73e4a[m Remove duplicate navbar CSS from home.html that was causing second navbar to appear
