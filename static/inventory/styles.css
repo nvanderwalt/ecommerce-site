@@ -110,23 +110,61 @@ body .navbar-nav, html .navbar-nav {
 
 /* Mobile navbar improvements */
 @media (max-width: 991px) {
+    /* Ensure navbar collapse works properly */
+    .navbar-collapse {
+        background: rgba(0,0,0,0.1) !important;
+        border-radius: 8px !important;
+        margin-top: 10px !important;
+        padding: 10px !important;
+    }
+    
     body .navbar-nav, html .navbar-nav {
         flex-direction: column !important;
         align-items: flex-start !important;
         width: 100% !important;
-        margin-top: 15px !important;
+        margin-top: 0 !important;
     }
     
     body .navbar-nav .nav-item, html .navbar-nav .nav-item {
         width: 100% !important;
-        margin: 5px 0 !important;
+        margin: 2px 0 !important;
     }
     
     body .navbar-nav .nav-link, html .navbar-nav .nav-link {
-        padding: 12px 0 !important;
+        padding: 10px 15px !important;
         border-bottom: 1px solid rgba(255,255,255,0.1) !important;
         width: 100% !important;
         text-align: left !important;
+        font-size: 1rem !important;
+        border-radius: 4px !important;
+    }
+    
+    body .navbar-nav .nav-link:hover, html .navbar-nav .nav-link:hover {
+        background: rgba(255,255,255,0.2) !important;
+    }
+    
+    /* Style the hamburger button */
+    .navbar-toggler {
+        border: 2px solid rgba(255,255,255,0.5) !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25) !important;
+    }
+    
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+    }
+    
+    /* Ensure login/signup buttons work in mobile menu */
+    .navbar-nav .btn-outline-light {
+        margin: 5px 0 !important;
+        width: 100% !important;
+        text-align: center !important;
+        padding: 10px 15px !important;
+        font-size: 1rem !important;
     }
 }
 
@@ -203,28 +241,16 @@ body .navbar-nav .nav-link i, html .navbar-nav .nav-link i {
     min-width: auto;
 }
 
-/* Ensure login/signup buttons don't get cut off */
-@media (max-width: 1200px) {
+/* Ensure login/signup buttons don't get cut off on larger screens */
+@media (min-width: 992px) and (max-width: 1200px) {
     .navbar-nav .nav-link {
-        padding: 8px 10px !important;
-        font-size: 0.9rem !important;
+        padding: 8px 12px !important;
+        font-size: 0.95rem !important;
     }
     
     .navbar-nav .btn-outline-light {
         padding: 6px 12px !important;
-        font-size: 0.85rem !important;
-    }
-}
-
-@media (max-width: 992px) {
-    .navbar-nav .nav-link {
-        padding: 6px 8px !important;
-        font-size: 0.85rem !important;
-    }
-    
-    .navbar-nav .btn-outline-light {
-        padding: 5px 10px !important;
-        font-size: 0.8rem !important;
+        font-size: 0.9rem !important;
     }
 }
 
