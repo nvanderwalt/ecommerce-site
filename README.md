@@ -1,6 +1,6 @@
 # FitFusion - Your Complete Fitness Platform
 
-![FitFusion Logo](static/images/logo.png)
+![FitFusion Logo](static/images/fitfusion-logo.png)
 
 ## Overview
 
