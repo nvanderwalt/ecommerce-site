@@ -130,6 +130,32 @@ body .navbar-nav, html .navbar-nav {
     }
 }
 
+/* Fix navbar menu overflow on medium screens */
+@media (min-width: 992px) and (max-width: 1200px) {
+    body .navbar-nav .nav-link, html .navbar-nav .nav-link {
+        padding: 8px 8px !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap !important;
+    }
+    
+    body .navbar-brand, html .navbar-brand {
+        font-size: 1.8rem !important;
+        margin-right: 20px !important;
+    }
+    
+    .navbar-brand i {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* Fix navbar menu overflow on smaller desktop screens */
+@media (min-width: 1201px) and (max-width: 1400px) {
+    body .navbar-nav .nav-link, html .navbar-nav .nav-link {
+        padding: 8px 10px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
 /* Tablet navbar improvements */
 @media (min-width: 992px) and (max-width: 1200px) {
     body .navbar-nav .nav-link, html .navbar-nav .nav-link {
@@ -214,6 +240,24 @@ body {
     margin: 20px auto;
     max-width: 1400px;
     overflow: hidden;
+}
+
+/* Fix navbar width to match content */
+.navbar .container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Ensure navbar content doesn't overflow */
+.navbar-collapse {
+    overflow: hidden;
+}
+
+/* Force navbar to wrap content properly */
+.navbar-nav {
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 /* Force white background on all main content areas */
