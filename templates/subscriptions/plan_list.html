@@ -3,50 +3,6 @@
 
 {% block title %}Subscription Plans - FitFusion{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-    <h1 class="hero-title text-center mb-5">Subscription Plans</h1>
-    <p class="lead text-center mb-5">Choose the perfect subscription tier to unlock premium features and accelerate your fitness journey with personalized support.</p>
-    
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for plan in plans %}
-        <div class="col">
-            <div class="plan-card">
-                <h2>{{ plan.name }}</h2>
-                <div class="plan-badges">
-                    <span class="badge difficulty-badge difficulty-{{ plan.plan_type|lower }}">{{ plan.plan_type }}</span>
-                </div>
-                <p class="description">{{ plan.description }}</p>
-                <div class="features">
-                    {% for feature in plan.features %}
-                    <p class="feature"><i class="fas fa-check text-success"></i> {{ feature }}</p>
-                    {% endfor %}
-                </div>
-                <p class="price">€{{ plan.price }}/month</p>
-                <div class="plan-buttons">
-                    <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="view-plan-btn">Learn More</a>
-                    <form method="POST" action="{% url 'subscriptions:create' plan.id %}" style="display: inline; flex: 1;">
-                        {% csrf_token %}
-                        <button type="submit" class="subscribe-btn">
-                            Subscribe Now
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    {% if current_subscription %}
-    <div class="alert alert-info mt-4">
-        <h4 class="alert-heading">Current Subscription</h4>
-        <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
-    </div>
-    {% endif %}
-</div>
-
-
-
 {% block extra_css %}
 <style>
     .hero-title {
@@ -200,4 +156,46 @@
     }
 </style>
 {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="hero-title text-center mb-5">Subscription Plans</h1>
+    <p class="lead text-center mb-5">Choose the perfect subscription tier to unlock premium features and accelerate your fitness journey with personalized support.</p>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for plan in plans %}
+        <div class="col">
+            <div class="plan-card">
+                <h2>{{ plan.name }}</h2>
+                <div class="plan-badges">
+                    <span class="badge difficulty-badge difficulty-{{ plan.plan_type|lower }}">{{ plan.plan_type }}</span>
+                </div>
+                <p class="description">{{ plan.description }}</p>
+                <div class="features">
+                    {% for feature in plan.features %}
+                    <p class="feature"><i class="fas fa-check text-success"></i> {{ feature }}</p>
+                    {% endfor %}
+                </div>
+                <p class="price">€{{ plan.price }}/month</p>
+                <div class="plan-buttons">
+                    <a href="{% url 'subscriptions:plan_detail' plan.id %}" class="view-plan-btn">Learn More</a>
+                    <form method="POST" action="{% url 'subscriptions:create' plan.id %}" style="display: inline; flex: 1;">
+                        {% csrf_token %}
+                        <button type="submit" class="subscribe-btn">
+                            Subscribe Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if current_subscription %}
+    <div class="alert alert-info mt-4">
+        <h4 class="alert-heading">Current Subscription</h4>
+        <p>You are currently subscribed to the {{ current_subscription.plan.name }} plan.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %} 
